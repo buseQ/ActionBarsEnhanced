@@ -8,7 +8,7 @@ Addon.BarsToHide = {
     "MicroMenu",
 }
 
-Addon.Options = {}
+Addon.C = {}
 
 Addon.Defaults = {
     CurrentLoopGlow = 3,
@@ -78,9 +78,22 @@ Addon.Defaults = {
     FontHotKeyScale = 1.0,
     FontStacks = true,
     FontStacksScale = 1.0,
+    FontHideName = false,
     FontName = true,
     FontNameScale = 1.0,
 
+    ModifyWAGlow = false,
+    CurrentWAProcGlow = 8,
+    WAProcColor = { r=1.0, g=1.0, b=1.0, a=1.0 },
+    UseWAProcColor = false,
+    DesaturateWAProc = false,
+
+    CurrentWALoopGlow = 3,
+    WALoopColor = { r=1.0, g=1.0, b=1.0, a=1.0 },
+    UseWALoopColor = false,
+    DesaturateWALoop = false,
+
+    AddWAMask = false,
 }
 
 Addon.Templates = {
@@ -256,6 +269,17 @@ Addon.Templates = {
             scale = 0.85,
         },
         {
+            name = "ABE Lightning",
+            texture = "Interface/addons/ActionBarsEnhanced/assets/ABE_Lightning.tga",
+            rows = 6,
+            columns = 5,
+            frames = 30,
+            duration = 1.2,
+            frameW = 100,
+            frameH = 100,
+            scale = 0.85,
+        },
+        {
             name = "GCD",
             atlas = "UI-CooldownManager-Alert-Flipbook",
             rows = 11,
@@ -382,39 +406,8 @@ Addon.Templates = {
             atlas = "UI-HUD-ActionBar-Proc-Start-Flipbook",
         },
         {
-            name = "Modern Blizzard Blue Proc",
-            atlas = "RotationHelper-ProcStartBlue-Flipbook-2x",
-        },
-        {
             name = "Modern Blizzard Proc Short",
             texture = "Interface/addons/ActionBarsEnhanced/assets/ProcStartYellow.tga",
-            rows = 3,
-            columns = 6,
-            frames = 18,
-            duration = 0.5,
-            scale = 1.0,
-        },
-        {
-            name = "Modern Blizzard Blue Proc Short",
-            texture = "Interface/addons/ActionBarsEnhanced/assets/ProcStartBlue.tga",
-            rows = 3,
-            columns = 6,
-            frames = 18,
-            duration = 0.5,
-            scale = 1.0,
-        },
-        {
-            name = "Modern Blizzard White Proc Short",
-            texture = "Interface/addons/ActionBarsEnhanced/assets/ProcStartWhite.tga",
-            rows = 3,
-            columns = 6,
-            frames = 18,
-            duration = 0.5,
-            scale = 1.0,
-        },
-        {
-            name = "Modern Blizzard Rainbow Proc Short",
-            texture = "Interface/addons/ActionBarsEnhanced/assets/ProcRainbow_Short.tga",
             rows = 3,
             columns = 6,
             frames = 18,
@@ -431,12 +424,34 @@ Addon.Templates = {
             scale = 1.0,
         },
         {
+            name = "Modern Blizzard Blue Proc",
+            atlas = "RotationHelper-ProcStartBlue-Flipbook-2x",
+        },
+        {
+            name = "Modern Blizzard Blue Proc Short",
+            texture = "Interface/addons/ActionBarsEnhanced/assets/ProcStartBlue.tga",
+            rows = 3,
+            columns = 6,
+            frames = 18,
+            duration = 0.5,
+            scale = 1.0,
+        },
+        {
             name = "Modern Blizzard Blue Proc Shorter",
             texture = "Interface/addons/ActionBarsEnhanced/assets/ProcStartBlue_Shorter.tga",
             rows = 2,
             columns = 5,
             frames = 10,
             duration = 0.35,
+            scale = 1.0,
+        },
+        {
+            name = "Modern Blizzard White Proc Short",
+            texture = "Interface/addons/ActionBarsEnhanced/assets/ProcStartWhite.tga",
+            rows = 3,
+            columns = 6,
+            frames = 18,
+            duration = 0.5,
             scale = 1.0,
         },
         {
@@ -449,6 +464,15 @@ Addon.Templates = {
             scale = 1.0,
         },
         {
+            name = "Modern Blizzard Rainbow Proc Short",
+            texture = "Interface/addons/ActionBarsEnhanced/assets/ProcRainbow_Short.tga",
+            rows = 3,
+            columns = 6,
+            frames = 18,
+            duration = 0.5,
+            scale = 1.0,
+        },
+        {
             name = "Modern Blizzard Rainbow Proc Shorter",
             texture = "Interface/addons/ActionBarsEnhanced/assets/ProcRainbow_Shorter.tga",
             rows = 2,
@@ -458,7 +482,7 @@ Addon.Templates = {
             scale = 1.0,
         },
         {
-            name = "Classic Blizzard Proc",
+            name = "Classic-like Blizzard Proc",
             texture = "Interface/addons/ActionBarsEnhanced/assets/ClassicLike_Flipbook.tga",
             rows = 4,
             columns = 3,

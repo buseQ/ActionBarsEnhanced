@@ -1,6 +1,5 @@
 local AddonName, Addon = ...
 
-local C = Addon.Options
 local T = Addon.Templates
 
 local function GetFlipBook(...)
@@ -16,7 +15,7 @@ end
 
 function Addon:UpdateAssistFlipbook(region)
 
-    local loopAnim = T.LoopGlow[C.CurrentAssistType] or nil
+    local loopAnim = T.LoopGlow[Addon.C.CurrentAssistType] or nil
 
     local flipAnim = GetFlipBook(region.Anim:GetAnimations())
 
@@ -39,8 +38,8 @@ function Addon:UpdateAssistFlipbook(region)
         region:SetScale(loopAnim.scale or 1)
     end
     --region.ProcLoopFlipbook:SetTexCoords(333, 400, 0.412598, 0.575195, 0.393555, 0.78418, false, false)
-    region:SetDesaturated(C.DesaturateAssist)
-    if C.UseAssistGlowColor then
+    region:SetDesaturated(Addon.C.DesaturateAssist)
+    if Addon.C.UseAssistGlowColor then
         region:SetVertexColor(Addon:GetRGB("LoopGlowColor"))
     else
         region:SetVertexColor(1.0, 1.0, 1.0)
@@ -56,15 +55,15 @@ function Addon:UpdateFlipbook(Button)
 
 	if (not region) or (not region.ProcStartAnim) then return end
 
-    local loopAnim = T.LoopGlow[C.CurrentLoopGlow] or nil
-    local procAnim = T.ProcGlow[C.CurrentProcGlow] or nil
-    local altGlowAtlas = T.PushedTextures[C.CurrentAssistAltType] or nil
+    local loopAnim = T.LoopGlow[Addon.C.CurrentLoopGlow] or nil
+    local procAnim = T.ProcGlow[Addon.C.CurrentProcGlow] or nil
+    local altGlowAtlas = T.PushedTextures[Addon.C.CurrentAssistAltType] or nil
 
     if altGlowAtlas then
         region.ProcAltGlow:SetAtlas(altGlowAtlas.atlas)
     end
-    region.ProcAltGlow:SetDesaturated(C.DesaturateAssistAlt)
-    if C.UseAssistAltColor then
+    region.ProcAltGlow:SetDesaturated(Addon.C.DesaturateAssistAlt)
+    if Addon.C.UseAssistAltColor then
         region.ProcAltGlow:SetVertexColor(Addon:GetRGB("AssistAltColor"))
     else
         region.ProcAltGlow:SetVertexColor(1.0, 1.0, 1.0)
@@ -74,7 +73,7 @@ function Addon:UpdateFlipbook(Button)
     
     if startProc then
         
-        if C.HideProc then
+        if Addon.C.HideProc then
             startProc:SetDuration(0)
             region.ProcStartFlipbook:Hide()
         else
@@ -93,9 +92,9 @@ function Addon:UpdateFlipbook(Button)
                 startProc:SetFlipBookFrameHeight(procAnim.frameH or 0.0)
                 region.ProcStartFlipbook:SetScale(procAnim.scale or 1)
             end
-            region.ProcStartFlipbook:SetDesaturated(C.DesaturateProc)
+            region.ProcStartFlipbook:SetDesaturated(Addon.C.DesaturateProc)
 
-            if C.UseProcColor then
+            if Addon.C.UseProcColor then
                 region.ProcStartFlipbook:SetVertexColor(Addon:GetRGB("ProcColor"))
             else
                 region.ProcStartFlipbook:SetVertexColor(1.0, 1.0, 1.0)
@@ -121,8 +120,8 @@ function Addon:UpdateFlipbook(Button)
         region.ProcLoopFlipbook:SetScale(loopAnim.scale or 1)
     end
     --region.ProcLoopFlipbook:SetTexCoords(333, 400, 0.412598, 0.575195, 0.393555, 0.78418, false, false)
-    region.ProcLoopFlipbook:SetDesaturated(C.DesaturateGlow)
-    if C.UseLoopGlowColor then
+    region.ProcLoopFlipbook:SetDesaturated(Addon.C.DesaturateGlow)
+    if Addon.C.UseLoopGlowColor then
         region.ProcLoopFlipbook:SetVertexColor(Addon:GetRGB("LoopGlowColor"))
     else
         region.ProcLoopFlipbook:SetVertexColor(1.0, 1.0, 1.0)
@@ -261,21 +260,21 @@ local function IsFrameFocused(frame)
 end
 
 local function ShouldFadeIn(frame)
-    return (C.FadeInOnCombat and UnitAffectingCombat("player"))
-    or (C.FadeInOnTarget and UnitExists("target"))
-    or (C.FadeInOnCasting and UnitCastingInfo("player"))
-    or (C.FadeInOnHover and IsFrameFocused(frame))
+    return (Addon.C.FadeInOnCombat and UnitAffectingCombat("player"))
+    or (Addon.C.FadeInOnTarget and UnitExists("target"))
+    or (Addon.C.FadeInOnCasting and UnitCastingInfo("player"))
+    or (Addon.C.FadeInOnHover and IsFrameFocused(frame))
 end
 
 function Addon:BarsFadeAnim()
-    if not C.FadeBars then return end
+    if not Addon.C.FadeBars then return end
     for _, barName in ipairs(animBars) do
         local frame = _G[barName]
         if frame then
-            if C.FadeBars and ShouldFadeIn(frame) then
+            if Addon.C.FadeBars and ShouldFadeIn(frame) then
                 FrameFadeIn(frame, 0.25, frame:GetAlpha(), 1)
             else
-                FrameFadeOut(frame, 0.25, frame:GetAlpha(), C.FadeBarsAlpha)
+                FrameFadeOut(frame, 0.25, frame:GetAlpha(), Addon.C.FadeBarsAlpha)
             end
         end
     end
@@ -289,17 +288,17 @@ function Addon:RefreshIconColor(button)
     local isUsable, notEnoughMana = IsUsableAction(button.action)
     button.needsRangeCheck = spellID and C_Spell.SpellHasRange(spellID)
     button.spellOutOfRange = button.needsRangeCheck and C_Spell.IsSpellInRange(spellID) == false
-    if (button.spellOutOfRange and C.UseOORColor) then
-        icon:SetDesaturated(C.OORDesaturate)
+    if (button.spellOutOfRange and Addon.C.UseOORColor) then
+        icon:SetDesaturated(Addon.C.OORDesaturate)
         icon:SetVertexColor(Addon:GetRGBA("OORColor"))       
     elseif isUsable then
         icon:SetDesaturated(false)
         icon:SetVertexColor(1.0, 1.0, 1.0)
-    elseif (notEnoughMana and C.UseOOMColor) then
-        icon:SetDesaturated(C.OOMDesaturate)
+    elseif (notEnoughMana and Addon.C.UseOOMColor) then
+        icon:SetDesaturated(Addon.C.OOMDesaturate)
         icon:SetVertexColor(Addon:GetRGBA("OOMColor"))
-    elseif C.UseNoUseColor then
-        icon:SetDesaturated(C.NoUseDesaturate)
+    elseif Addon.C.UseNoUseColor then
+        icon:SetDesaturated(Addon.C.NoUseDesaturate)
         icon:SetVertexColor(Addon:GetRGBA("NoUseColor"))
     end
 end
@@ -320,7 +319,7 @@ local function Hook_UpdateUsable(self, action, usable, noMana)
 end
 
 local function Hook_UpdateButton(button)
-    local pushedAtlas = T.PushedTextures[C.CurrentPushedTexture] or nil
+    local pushedAtlas = T.PushedTextures[Addon.C.CurrentPushedTexture] or nil
     if pushedAtlas and pushedAtlas.atlas then
         button:SetPushedAtlas(pushedAtlas.atlas)
         if pushedAtlas.point then
@@ -336,15 +335,15 @@ local function Hook_UpdateButton(button)
         button.PushedTexture:SetDrawLayer("OVERLAY")
     end
 
-    button.PushedTexture:SetDesaturated(C.DesaturatePushed)
-    if C.UsePushedColor then
+    button.PushedTexture:SetDesaturated(Addon.C.DesaturatePushed)
+    if Addon.C.UsePushedColor then
         button.PushedTexture:SetVertexColor(Addon:GetRGBA("PushedColor"))
     end
 
     --button.PushedTexture:SetDesaturated(true)
     --button.PushedTexture:SetVertexColor(r, g, b)
 
-    local highlightAtlas = T.HighlightTextures[C.CurrentHighlightTexture] or nil
+    local highlightAtlas = T.HighlightTextures[Addon.C.CurrentHighlightTexture] or nil
     if highlightAtlas and highlightAtlas.hide then
         button.HighlightTexture:Hide()
     else
@@ -362,14 +361,14 @@ local function Hook_UpdateButton(button)
             end
         end
 
-        button.HighlightTexture:SetDesaturated(C.DesaturateHighlight)
-        if C.UseHighlightColor then
+        button.HighlightTexture:SetDesaturated(Addon.C.DesaturateHighlight)
+        if Addon.C.UseHighlightColor then
             button.HighlightTexture:SetVertexColor(Addon:GetRGBA("HighlightColor"))
         end
     end
 
     if button.CheckedTexture then
-        local checkedAtlas = T.CheckedTextures[C.CurrentCheckedTexture] or nil
+        local checkedAtlas = T.CheckedTextures[Addon.C.CurrentCheckedTexture] or nil
         if checkedAtlas and checkedAtlas.hide then
             button.CheckedTexture:Hide()
         else
@@ -387,18 +386,25 @@ local function Hook_UpdateButton(button)
                 end
             end
 
-            button.CheckedTexture:SetDesaturated(C.DesaturateChecked)
-            if C.UseCheckedColor then
+            button.CheckedTexture:SetDesaturated(Addon.C.DesaturateChecked)
+            if Addon.C.UseCheckedColor then
                 button.CheckedTexture:SetVertexColor(Addon:GetRGBA("CheckedColor"))
             end
         end
     end
-    
+    if button.Name then
+        if Addon.C.FontHideName then
+            button.Name:Hide()
+        else
+            button.Name:Show()
+        end
+    end
     if button.TextOverlayContainer then
         local mult = button:GetParent():GetScale()
         if mult < 1 then
-            button.TextOverlayContainer.HotKey:SetScale(C.FontHotKey and mult + C.FontHotKeyScale or 1.0)
-            button.TextOverlayContainer.Count:SetScale(C.FontStacks and mult + C.FontStacksScale or 1.0)
+            button.TextOverlayContainer.HotKey:SetScale(Addon.C.FontHotKey and mult + Addon.C.FontHotKeyScale or 1.0)
+            button.TextOverlayContainer.Count:SetScale(Addon.C.FontStacks and mult + Addon.C.FontStacksScale or 1.0)
+            button.Name:SetScale(Addon.C.FontName and mult + Addon.C.FontNameScale or 1.0)
         end
 
         if shortHotKey then
@@ -416,11 +422,11 @@ local function Hook_UpdateButton(button)
 
     end
     local eventFrame = ActionBarActionEventsFrame
-    if C.HideInterrupt then
+    if Addon.C.HideInterrupt then
         eventFrame:UnregisterEvent("UNIT_SPELLCAST_INTERRUPTED")
         eventFrame:UnregisterEvent("UNIT_SPELLCAST_SUCCEEDED")
     end
-    if C.HideCasting then
+    if Addon.C.HideCasting then
         eventFrame:UnregisterEvent("UNIT_SPELLCAST_CHANNEL_START")
         eventFrame:UnregisterEvent("UNIT_SPELLCAST_CHANNEL_STOP")
         eventFrame:UnregisterEvent("UNIT_SPELLCAST_EMPOWER_START")
@@ -428,13 +434,13 @@ local function Hook_UpdateButton(button)
         eventFrame:UnregisterEvent("UNIT_SPELLCAST_START")
         eventFrame:UnregisterEvent("UNIT_SPELLCAST_STOP")
     end
-    if C.HideReticle then
+    if Addon.C.HideReticle then
         eventFrame:UnregisterEvent("UNIT_SPELLCAST_FAILED")
         eventFrame:UnregisterEvent("UNIT_SPELLCAST_RETICLE_CLEAR")
         eventFrame:UnregisterEvent("UNIT_SPELLCAST_RETICLE_TARGET")
         eventFrame:UnregisterEvent("UNIT_SPELLCAST_SENT")
     end
-    if C.FadeBars then
+    if Addon.C.FadeBars then
         button:HookScript("OnEnter", HoverHook)
         button:HookScript("OnLeave", HoverHook)
     end
@@ -469,7 +475,7 @@ local function Hook_UpdateCooldown(self)
 
         end
     end ]]
-    if self.cooldown and C.UseCooldownColor then
+    if self.cooldown and Addon.C.UseCooldownColor then
         self.cooldown:SetSwipeColor(Addon:GetRGBA("CooldownColor"))
         self.cooldown:SetSwipeTexture("Interface/HUD/UI-HUD-CoolDownManager-Icon-Swipe")
         self.cooldown:ClearAllPoints()
@@ -505,11 +511,31 @@ local function InitializeSavedVariables()
         end
     end
 end
+local function ApplyProfile()
+    ABDB = ABDB or {}
+    ABDB.Profiles = ABDB.Profiles or {}
+    Addon.P = ABDB.Profiles
 
+    if next(ABDB) then
+        local migrate, table = ActionBarsEnhancedProfilesMixin:NeedMigrateProfile()
+        if migrate then
+            local playerID = Addon:GetPlayerID()
+            ABDB.Profiles.mapping = ABDB.Profiles.mapping or {}
+            ABDB.Profiles.mapping[playerID] = "Default"
+            ABDB.Profiles.profilesList = ABDB.Profiles.profilesList or {}
+            ABDB.Profiles.profilesList["Default"] = CopyTable(table)
+        end
+    end
+
+    local currentProfile = ActionBarsEnhancedProfilesMixin:GetPlayerProfile()
+
+    ActionBarsEnhancedProfilesMixin:SetProfile(currentProfile)
+end
 
 local function ProcessEvent(self, event, ...)
     if event == "PLAYER_LOGIN" then
-        InitializeSavedVariables()
+        --InitializeSavedVariables()
+        ApplyProfile()
         
         for _, barName in pairs(bars) do
             local frame = _G[barName]
@@ -539,10 +565,18 @@ local function ProcessEvent(self, event, ...)
         hooksecurefunc(ActionBarActionButtonMixin, "OnLoad", Hook_UpdateButton)
 
         Addon:Welcome()
+
+        
+    end
+    if event == "PLAYER_ENTERING_WORLD" then
+        local stateWA = C_AddOns.GetAddOnEnableState("WeakAuras", UnitName("player"))
+        if stateWA > 0 then
+            ABE_WAIntegrationParse()
+        end
     end
     if event == "ACTION_RANGE_CHECK_UPDATE" then
         local slot, inRange, checksRange = ...
-        if C.UseOORColor then
+        if Addon.C.UseOORColor then
             Hook_RangeCheckButton(slot, inRange, checksRange)
         end
     end
@@ -564,3 +598,4 @@ eventHandlerFrame:RegisterEvent('PLAYER_REGEN_ENABLED')
 eventHandlerFrame:RegisterEvent('PLAYER_TARGET_CHANGED')
 eventHandlerFrame:RegisterEvent('UNIT_SPELLCAST_START')
 eventHandlerFrame:RegisterEvent('UNIT_SPELLCAST_STOP')
+eventHandlerFrame:RegisterEvent('PLAYER_ENTERING_WORLD')

@@ -74,6 +74,14 @@
 				</MaskTexture>
 				<Texture parentKey="SlotBackground" atlas="UI-HUD-ActionBar-IconFrame-Background" setAllPoints="true"/>
 			</Layer>
+			<Layer level="OVERLAY">
+				<FontString parentKey="Name" inherits="GameFontHighlightSmallOutline" hidden="false">
+					<Size x="36" y="10"/>
+					<Anchors>
+						<Anchor point="BOTTOM" x="0" y="2"/>
+					</Anchors>
+				</FontString>
+			</Layer>
 		</Layers>
 		<NormalTexture parentKey="NormalTexture" atlas="UI-HUD-ActionBar-IconFrame">
 			<Size x="45" y="45"/>
@@ -382,10 +390,49 @@
 				</Frames>
 			</Frame>
 
+			<Frame parentKey="WAIntegrationContainer" inherits="OptionsContainerTemplate" hidden="false">
+				<Size x="720" y="280"/>
+				<Anchors>
+					<Anchor point="TOP" relativeKey="$parent.AssistLoopOptionsContainer" relativePoint="BOTTOM" x="0" y="0"/>
+				</Anchors>
+				<Frames>
+					<Frame parentKey="ModifyWAGlow" inherits="OptionsCheckboxTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.Desc" relativePoint="BOTTOM" y="-10"/>
+						</Anchors>
+					</Frame>
+					<Frame parentKey="WAProcType" inherits="OptionsDropdownTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.ModifyWAGlow" relativePoint="BOTTOM" y="-2"/>
+						</Anchors>
+					</Frame>
+					<Frame parentKey="WACustomColorProc" inherits="OptionsColorOverrideTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.WAProcType" relativePoint="BOTTOM" y="-2"/>
+						</Anchors>
+					</Frame>
+					<Frame parentKey="WALoopType" inherits="OptionsDropdownTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.WACustomColorProc" relativePoint="BOTTOM" y="-2"/>
+						</Anchors>
+					</Frame>
+					<Frame parentKey="WACustomColorLoop" inherits="OptionsColorOverrideTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.WALoopType" relativePoint="BOTTOM" y="-2"/>
+						</Anchors>
+					</Frame>
+					<Frame parentKey="AddWAMask" inherits="OptionsCheckboxTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.WACustomColorLoop" relativePoint="BOTTOM" y="-2"/>
+						</Anchors>
+					</Frame>
+				</Frames>
+			</Frame>
+
 			<Frame parentKey="FadeOptionsContainer" inherits="OptionsContainerTemplate" hidden="false">
 				<Size x="720" y="260"/>
 				<Anchors>
-					<Anchor point="TOP" relativeKey="$parent.AssistLoopOptionsContainer" relativePoint="BOTTOM" x="0" y="0"/>
+					<Anchor point="TOP" relativeKey="$parent.WAIntegrationContainer" relativePoint="BOTTOM" x="0" y="0"/>
 				</Anchors>
 				<Frames>
 					<Frame parentKey="FadeOutBars" inherits="OptionsCheckboxSliderTemplate">
@@ -568,7 +615,7 @@
 			</Frame>
 
 			<Frame parentKey="FontOptionsContainer" inherits="OptionsContainerTemplate" hidden="false">
-				<Size x="720" y="280"/>
+				<Size x="720" y="310"/>
 				<Anchors>
 					<Anchor point="TOP" relativeKey="$parent.HideFramesOptionsContainer" relativePoint="BOTTOM" x="0" y="0"/>
 				</Anchors>
@@ -583,9 +630,14 @@
 							<Anchor point="TOP" relativeKey="$parent.HotkeyScale" relativePoint="BOTTOM" y="-2"/>
 						</Anchors>
 					</Frame>
-					<Frame parentKey="NameScale" inherits="OptionsCheckboxSliderTemplate">
+					<Frame parentKey="NameHide" inherits="OptionsCheckboxTemplate">
 						<Anchors>
 							<Anchor point="TOP" relativeKey="$parent.StacksScale" relativePoint="BOTTOM" y="-2"/>
+						</Anchors>
+					</Frame>
+					<Frame parentKey="NameScale" inherits="OptionsCheckboxSliderTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.NameHide" relativePoint="BOTTOM" y="-2"/>
 						</Anchors>
 					</Frame>
 					<CheckButton parentKey="PreviewFont05" inherits="OptionsButtonTextPreviewTemplate" hidden="false" scale="0.5">
@@ -655,6 +707,15 @@
                 </Frame>
             </ScrollChild>
         </ScrollFrame>
+		<Button parentKey="ProfilesButton" mixin="ActionBarEnhancedMixin" inherits="UIPanelButtonTemplate" text="Profiles" hidden="false" virtual="true">
+			<Size x="150" y="25"/>
+			<Anchors>
+				<Anchor point="TOPRIGHT" relativePoint="TOPRIGHT" relativeKey="$parent" x="-15" y="-30"/>
+			</Anchors>
+			<Scripts>
+				<OnClick method="OpenProfileFrame"/>
+			</Scripts>
+		</Button>
 		</Frames>
 		<Scripts>
 			<OnLoad>
