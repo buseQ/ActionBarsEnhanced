@@ -266,6 +266,37 @@ local function ShouldFadeIn(frame)
     or (Addon.C.FadeInOnHover and IsFrameFocused(frame))
 end
 
+local function FixKeyBindText(text)
+    if text and text ~= _G.RANGE_INDICATOR then
+		text = gsub(text, 'Mouse Button ', "M")
+		text = gsub(text, 'Middle Mouse ', "MMB")
+		text = gsub(text, 'Num Lock', "N")
+		text = gsub(text, 'Page Up', "PU")
+		text = gsub(text, 'Page Down', "PD")
+		text = gsub(text, 'Spacebar', "SpB")
+		text = gsub(text, 'Insert', "Ins")
+		text = gsub(text, 'Home', "Hm")
+		text = gsub(text, 'Delete', "Del")
+		text = gsub(text, 'Num Pad /', "N/")
+		text = gsub(text, 'Num Pad *', "N*")
+		text = gsub(text, 'Num Pad -', "N-")
+		text = gsub(text, 'Num Pad +', "N+")
+		text = gsub(text, 'Num Pad =', "N=")
+    end
+    return text or ""
+end 
+
+local function Hook_UpdateHotkeys(self, actionButtonType)
+    local hotKey = self.HotKey
+	local text = hotKey:GetText()
+    hotKey:SetText(FixKeyBindText(text))
+    local mult = self:GetParent():GetScale()
+    if mult < 1 then
+        hotKey:SetScale(Addon.C.FontHotKey and mult + Addon.C.FontHotKeyScale or 1.0)
+        hotKey:SetPoint("TOPRIGHT", self, "TOPRIGHT", 0, 0)
+    end
+end
+
 function Addon:BarsFadeAnim()
     if not Addon.C.FadeBars then return end
     for _, barName in ipairs(animBars) do
@@ -403,23 +434,15 @@ local function Hook_UpdateButton(button)
         local mult = button:GetParent():GetScale()
         if mult < 1 then
             button.TextOverlayContainer.HotKey:SetScale(Addon.C.FontHotKey and mult + Addon.C.FontHotKeyScale or 1.0)
+            button.TextOverlayContainer.HotKey:SetPoint("TOPRIGHT", button.TextOverlayContainer, "TOPRIGHT", 0, 0)
             button.TextOverlayContainer.Count:SetScale(Addon.C.FontStacks and mult + Addon.C.FontStacksScale or 1.0)
             button.Name:SetScale(Addon.C.FontName and mult + Addon.C.FontNameScale or 1.0)
         end
 
-        if shortHotKey then
-            local hotKey = button.TextOverlayContainer.HotKey:GetText()
-
-            if hotKey:match("Mouse Button") then
-                local buttonNum = hotKey:match("Mouse Button (%d+)")
-                if buttonNum then
-                    button.TextOverlayContainer.HotKey:SetText("MB-" .. buttonNum)
-                end
-            elseif hotKey == "Middle Mouse" then
-                button.TextOverlayContainer.HotKey:SetText("MMB")
-            end
+        local hotKey = button.TextOverlayContainer.HotKey:GetText()
+        if hotKey and hotKey ~= _G.RANGE_INDICATOR then
+            button.TextOverlayContainer.HotKey:SetText(FixKeyBindText(hotKey))
         end
-
     end
     local eventFrame = ActionBarActionEventsFrame
     if Addon.C.HideInterrupt then
@@ -447,6 +470,7 @@ local function Hook_UpdateButton(button)
 
     hooksecurefunc(button, "Update", Hook_Update)
     hooksecurefunc(button, "UpdateUsable", Hook_UpdateUsable)
+    hooksecurefunc(button, "UpdateHotkeys", Hook_UpdateHotkeys)
 end
 
 local function Hook_RangeCheckButton(slot, inRange, checksRange)

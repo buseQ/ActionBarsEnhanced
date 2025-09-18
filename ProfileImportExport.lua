@@ -279,18 +279,26 @@ function ActionBarsEnhancedProfilesMixin:ExportProfile()
     end
 end
 
-function ActionBarsEnhancedImportDialogMixin:AcceptImport()
-    local profileString = ActionBarEnhancedImportProfile.ImportControl.InputContainer.EditBox:GetText()
-    local profileName = ActionBarEnhancedImportProfile.NameControl.EditBox:GetText()
+function ActionBarsEnhancedImportDialogMixin:AcceptImport(profileString, profileName)
+    if not profileString then
+        profileString = ActionBarEnhancedImportProfile.ImportControl.InputContainer.EditBox:GetText()
+    end
+    if not profileName then
+        profileName = ActionBarEnhancedImportProfile.NameControl.EditBox:GetText()
+    end
     if profileString ~= "" and profileName ~= "" then
         if Addon.P.profilesList[profileName] ~= nil then
             Addon.Print("Profile with this name already exists")
+            return false
         else
             local profileTable = Addon.DecompressData(profileString)
             if profileTable then
                 Addon.P.profilesList[profileName] = CopyTable(profileTable)
-                ActionBarEnhancedImportProfile:Hide()
+                if ActionBarEnhancedImportProfile and ActionBarEnhancedImportProfile:IsVisible() then
+                    ActionBarEnhancedImportProfile:Hide()
+                end
                 ActionBarsEnhancedProfilesMixin:SetProfile(profileName, true)
+                return true
             end
         end
     end
@@ -304,4 +312,12 @@ function ActionBarsEnhancedProfilesMixin:ImportProfile()
     else
         ActionBarEnhancedImportProfile:Show()
     end
+end
+
+function ActionBarsEnhancedProfilesMixin:GetProfiles()
+    local profileTbl = {}
+    for profileName, data in pairs(Addon.P.profilesList) do
+        table.insert(profileTbl, profileName)
+    end
+    return profileTbl
 end
