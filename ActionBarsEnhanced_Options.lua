@@ -253,7 +253,7 @@ function ActionBarEnhancedMixin:InitOptions()
         end
     end
 
-    function ActionBarEnhancedDropdownMixin:SetupDropdown(frame, setting, name, IsSelected, OnSelect)
+    function ActionBarEnhancedDropdownMixin:SetupDropdown(frame, setting, name, IsSelected, OnSelect, showNew)
         local menuGenerator = function(_, rootDescription)
             rootDescription:CreateTitle(name)
             
@@ -263,6 +263,12 @@ function ActionBarEnhancedMixin:InitOptions()
                 rootDescription:CreateRadio(categoryName, IsSelected, OnSelect, categoryID)
             end
         end
+        if showNew then
+            frame.NewFeature:Show()
+        else
+            frame.NewFeature:Hide()
+        end
+
         frame.Text:SetText(name)
         frame.Control.Dropdown:SetupMenu(menuGenerator)
         frame.Control.Dropdown:SetWidth(300)
@@ -385,7 +391,8 @@ function ActionBarEnhancedMixin:InitOptions()
         function(id) return id == Addon.C.CurrentLoopGlow end,
         function(id)
             Addon:SaveSetting("CurrentLoopGlow", id)
-        end
+        end,
+        true
     )
     ActionBarEnhancedDropdownMixin:SetupColorSwatch(
         optionsFrame.ScrollFrame.ScrollChild.GlowOptionsContainer.CustomColorGlow,
@@ -411,7 +418,8 @@ function ActionBarEnhancedMixin:InitOptions()
         function(id) return id == Addon.C.CurrentProcGlow end,
         function(id) 
             Addon:SaveSetting("CurrentProcGlow", id)
-        end
+        end,
+        true
     )
     ActionBarEnhancedDropdownMixin:SetupColorSwatch(
         optionsFrame.ScrollFrame.ScrollChild.ProcOptionsContainer.CustomColorProc,
