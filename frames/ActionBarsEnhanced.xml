@@ -113,6 +113,44 @@
 			</OnLeave>
 		</Scripts>
 	</CheckButton>
+	<CheckButton name="OptionsButtonGlowPreviewTemplate" inherits="OptionsButtonPreviewTemplate" virtual="true">
+		<Frames>
+			<Frame parentKey="ProcGlow" hidden="false">
+				<Size x="65" y="65"/>
+				<Anchors>
+					<Anchor point="CENTER" x="0" y="0" relativeKey="$parent" relativePoint="CENTER"/>
+				</Anchors>
+				<Layers>
+					<Layer level="ARTWORK">
+						<Texture parentKey="ProcStartFlipbook" atlas="UI-HUD-ActionBar-Proc-Start-Flipbook" alpha="0">
+							<Size x="150" y="150"/>
+							<Anchors>
+								<Anchor point="CENTER"/>
+							</Anchors>
+						</Texture>
+						<Texture parentKey="ProcLoopFlipbook" atlas="UI-HUD-ActionBar-Proc-Loop-Flipbook" setAllPoints="true" alpha="0"/>
+						<Texture parentKey="ProcAltGlow" atlas="UI-HUD-RotationHelper-ProcAltGlow" useAtlasSize="true" hidden="true">
+							<Anchors>
+								<Anchor point="CENTER"/>
+							</Anchors>
+						</Texture>
+					</Layer>
+				</Layers>
+				<Animations>
+					<AnimationGroup parentKey="ProcLoop" looping="REPEAT">
+						<Alpha childKey="ProcLoopFlipbook" duration=".001" order="0" fromAlpha="1" toAlpha="1"/>
+						<FlipBook parentKey="FlipAnim" childKey="ProcLoopFlipbook" duration="1" order="0" flipBookRows="6" flipBookColumns="5" flipBookFrames="30" flipBookFrameWidth="0" flipBookFrameHeight="0"/>
+					</AnimationGroup>
+						
+					<AnimationGroup parentKey="ProcStartAnim" setToFinalAlpha="true" looping="REPEAT">
+						<Alpha childKey="ProcStartFlipbook" startDelay="0.5" duration=".001" order="0" fromAlpha="1" toAlpha="1"/>
+						<FlipBook childKey="ProcStartFlipbook" duration="0.7" order="1" flipBookRows="6" flipBookColumns="5" flipBookFrames="30" flipBookFrameWidth="0" flipBookFrameHeight="0"/>
+						<Alpha childKey="ProcStartFlipbook" duration=".001" order="2" fromAlpha="1" toAlpha="0"/>
+					</AnimationGroup>
+				</Animations>
+			</Frame>
+		</Frames>
+	</CheckButton>
 	<CheckButton name="OptionsButtonTextPreviewTemplate" inherits="OptionsButtonPreviewTemplate" mixin="ActionBarEnhancedButtonPreviewMixin" virtual="true">
 		<Frames>
 			<Frame parentKey="TextOverlayContainer" mixin="ActionButtonTextOverlayContainerMixin" setAllPoints="true" hidden="false">
@@ -334,6 +372,11 @@
 							<Anchor point="TOP" relativeKey="$parent.GlowOptions" relativePoint="BOTTOM" y="-2"/>
 						</Anchors>
 					</Frame>
+					<CheckButton parentKey="ProcLoopPreview" inherits="OptionsButtonGlowPreviewTemplate" scale="1.8">
+						<Anchors>
+							<Anchor point="TOPLEFT" relativeKey="$parent.GlowOptions" relativePoint="CENTER" x="150" y="0"/>
+						</Anchors>
+					</CheckButton>
 				</Frames>
 			</Frame>
 			<Frame parentKey="ProcOptionsContainer" inherits="OptionsContainerTemplate" hidden="false">
@@ -357,6 +400,11 @@
 							<Anchor point="TOP" relativeKey="$parent.ProcOptions" relativePoint="BOTTOM" y="-2"/>
 						</Anchors>
 					</Frame>
+					<CheckButton parentKey="ProcStartPreview" inherits="OptionsButtonGlowPreviewTemplate" scale="1.8">
+						<Anchors>
+							<Anchor point="TOPLEFT" relativeKey="$parent.HideProc" relativePoint="CENTER" x="150" y="0"/>
+						</Anchors>
+					</CheckButton>
 				</Frames>
 			</Frame>
 

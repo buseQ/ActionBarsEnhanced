@@ -168,7 +168,92 @@ function ActionBarEnhancedMixin:InitOptions()
 
     local defaultSizes = {}
     function ActionBarEnhancedDropdownMixin:RefreshPreview(button)
+        local function GetFlipBook(...)
+            local Animations = {...}
+
+            for _, Animation in ipairs(Animations) do
+                if Animation:GetObjectType() == "FlipBook" then
+                    Animation:SetParentKey("FlipAnim")
+                    return Animation
+                end
+            end
+        end
+
         if not button then return end
+
+        local loopAnim = T.LoopGlow[Addon.C.CurrentLoopGlow] or nil
+        local procAnim = T.ProcGlow[Addon.C.CurrentProcGlow] or nil
+        local altGlowAtlas = T.PushedTextures[Addon.C.CurrentAssistAltType] or nil
+        local region = button.ProcGlow
+        if region then
+            if altGlowAtlas then
+                region.ProcAltGlow:SetAtlas(altGlowAtlas.atlas)
+            end
+            region.ProcAltGlow:SetDesaturated(Addon.C.DesaturateAssistAlt)
+            if Addon.C.UseAssistAltColor then
+                region.ProcAltGlow:SetVertexColor(Addon:GetRGB("AssistAltColor"))
+            else
+                region.ProcAltGlow:SetVertexColor(1.0, 1.0, 1.0)
+            end
+                
+            local startProc = region.ProcStartAnim.FlipAnim or GetFlipBook(region.ProcStartAnim:GetAnimations())
+            
+            if startProc and region.ProcStartFlipbook:IsVisible() then
+                
+                if Addon.C.HideProc then
+                    startProc:SetDuration(0)
+                    region.ProcStartFlipbook:Hide()
+                else
+                    region.ProcStartFlipbook:Show()
+                    if procAnim.atlas then
+                        region.ProcStartFlipbook:SetAtlas(procAnim.atlas)
+                    elseif procAnim.texture then
+                        region.ProcStartFlipbook:SetTexture(procAnim.texture)
+                    end
+                    if procAnim then
+                        startProc:SetFlipBookRows(procAnim.rows or 6)
+                        startProc:SetFlipBookColumns(procAnim.columns or 5)
+                        startProc:SetFlipBookFrames(procAnim.frames or 30)
+                        startProc:SetDuration(procAnim.duration or 0.702)
+                        startProc:SetFlipBookFrameWidth(procAnim.frameW or 0.0)
+                        startProc:SetFlipBookFrameHeight(procAnim.frameH or 0.0)
+                        region.ProcStartFlipbook:SetScale(procAnim.scale or 1)
+                    end
+                    region.ProcStartFlipbook:SetDesaturated(Addon.C.DesaturateProc)
+
+                    if Addon.C.UseProcColor then
+                        region.ProcStartFlipbook:SetVertexColor(Addon:GetRGB("ProcColor"))
+                    else
+                        region.ProcStartFlipbook:SetVertexColor(1.0, 1.0, 1.0)
+                    end
+                end
+            end
+
+            if loopAnim.atlas then
+                region.ProcLoopFlipbook:SetAtlas(loopAnim.atlas)    
+            elseif loopAnim.texture then
+                region.ProcLoopFlipbook:SetTexture(loopAnim.texture)
+            end
+            if loopAnim then
+                region.ProcLoopFlipbook:ClearAllPoints()
+                region.ProcLoopFlipbook:SetSize(region:GetSize())
+                region.ProcLoopFlipbook:SetPoint("CENTER", region, "CENTER", -1.5, 1)
+                region.ProcLoop.FlipAnim:SetFlipBookRows(loopAnim.rows or 6)
+                region.ProcLoop.FlipAnim:SetFlipBookColumns(loopAnim.columns or 5)
+                region.ProcLoop.FlipAnim:SetFlipBookFrames(loopAnim.frames or 30)
+                region.ProcLoop.FlipAnim:SetDuration(loopAnim.duration or 1.0)
+                region.ProcLoop.FlipAnim:SetFlipBookFrameWidth(loopAnim.frameW or 0.0)
+                region.ProcLoop.FlipAnim:SetFlipBookFrameHeight(loopAnim.frameH or 0.0)
+                region.ProcLoopFlipbook:SetScale(loopAnim.scale or 1)
+            end
+            --region.ProcLoopFlipbook:SetTexCoords(333, 400, 0.412598, 0.575195, 0.393555, 0.78418, false, false)
+            region.ProcLoopFlipbook:SetDesaturated(Addon.C.DesaturateGlow)
+            if Addon.C.UseLoopGlowColor then
+                region.ProcLoopFlipbook:SetVertexColor(Addon:GetRGB("LoopGlowColor"))
+            else
+                region.ProcLoopFlipbook:SetVertexColor(1.0, 1.0, 1.0)
+            end
+        end
 
         local pushedAtlas = T.PushedTextures[Addon.C.CurrentPushedTexture] or nil
         if pushedAtlas and pushedAtlas.atlas then
@@ -353,13 +438,13 @@ function ActionBarEnhancedMixin:InitOptions()
                 button:SetSize(90, 25)
                 button:SetText("Class")
                 button:Show()
-                button:SetScript("OnClick", function()
-                    info.r, info.g, info.b = PlayerUtil.GetClassColor():GetRGB()
-                    info.a = 1.0
-                    ColorPickerFrame:SetupColorPickerAndShow(info)
-                end)
                 ColorPickerFrame.classButton = button
             end
+            ColorPickerFrame.classButton:SetScript("OnClick", function()
+                info.r, info.g, info.b = PlayerUtil.GetClassColor():GetRGB()
+                info.a = 1.0
+                ColorPickerFrame:SetupColorPickerAndShow(info)
+            end)
         end
 
         info.swatchFunc = function ()
@@ -380,6 +465,15 @@ function ActionBarEnhancedMixin:InitOptions()
     end
 
     ---------------------------------------------
+    local loopContainer = optionsFrame.ScrollFrame.ScrollChild.GlowOptionsContainer
+    local procContainer = optionsFrame.ScrollFrame.ScrollChild.ProcOptionsContainer
+    local pushedContainer = optionsFrame.ScrollFrame.ScrollChild.PushedOptionsContainer
+    local highlightContainer = optionsFrame.ScrollFrame.ScrollChild.HighlightOptionsContainer
+    local checkedContainer = optionsFrame.ScrollFrame.ScrollChild.CheckedOptionsContainer
+    local hideContainer = optionsFrame.ScrollFrame.ScrollChild.HideFramesOptionsContainer
+    local fontContainer = optionsFrame.ScrollFrame.ScrollChild.FontOptionsContainer
+
+    ---------------------------------------------
     -----------------GLOW OPTIONS----------------
     ---------------------------------------------
     optionsFrame.ScrollFrame.ScrollChild.GlowOptionsContainer.Title:SetText(L.GlowTypeTitle)
@@ -391,6 +485,7 @@ function ActionBarEnhancedMixin:InitOptions()
         function(id) return id == Addon.C.CurrentLoopGlow end,
         function(id)
             Addon:SaveSetting("CurrentLoopGlow", id)
+            ActionBarEnhancedDropdownMixin:RefreshPreview(loopContainer.ProcLoopPreview)
         end,
         true
     )
@@ -418,8 +513,8 @@ function ActionBarEnhancedMixin:InitOptions()
         function(id) return id == Addon.C.CurrentProcGlow end,
         function(id) 
             Addon:SaveSetting("CurrentProcGlow", id)
-        end,
-        true
+            ActionBarEnhancedDropdownMixin:RefreshPreview(procContainer.ProcStartPreview)
+        end
     )
     ActionBarEnhancedDropdownMixin:SetupColorSwatch(
         optionsFrame.ScrollFrame.ScrollChild.ProcOptionsContainer.CustomColorProc,
@@ -554,15 +649,6 @@ function ActionBarEnhancedMixin:InitOptions()
         "FadeInOnHover"
     )
 
-
-    ---------------------------------------------
-
-    local pushedContainer = optionsFrame.ScrollFrame.ScrollChild.PushedOptionsContainer
-    local highlightContainer = optionsFrame.ScrollFrame.ScrollChild.HighlightOptionsContainer
-    local checkedContainer = optionsFrame.ScrollFrame.ScrollChild.CheckedOptionsContainer
-    local hideContainer = optionsFrame.ScrollFrame.ScrollChild.HideFramesOptionsContainer
-    local fontContainer = optionsFrame.ScrollFrame.ScrollChild.FontOptionsContainer
-
     ---------------------------------------------
     ------------PUSHED TEXTURE OPTIONS-----------
     ---------------------------------------------
@@ -584,7 +670,6 @@ function ActionBarEnhancedMixin:InitOptions()
         "PushedColor",
         {"UsePushedColor", "DesaturatePushed"}
     )
-    pushedContainer.PreviewPushed.icon:SetTexture("interface/icons/ability_warrior_revenge.blp")
     ---------------------------------------------
     ----------HIGHLIGHT TEXTURE OPTIONS----------
     ---------------------------------------------
@@ -607,7 +692,6 @@ function ActionBarEnhancedMixin:InitOptions()
         {"UseHighlightColor", "DesaturateHighlight"},
         true
     )
-    highlightContainer.PreviewHighlight.icon:SetTexture("interface/icons/ability_creature_felsunder.blp")
     ---------------------------------------------
     -----------CHECKED TEXTURE OPTIONS-----------
     ---------------------------------------------
@@ -630,7 +714,6 @@ function ActionBarEnhancedMixin:InitOptions()
         {"UseCheckedColor","DesaturateChecked"},
         true
     )
-    checkedContainer.PreviewChecked.icon:SetTexture("interface/icons/spell_shadow_shadowbolt.blp")
     ---------------------------------------------
     ------------COOLDOWN SWIPE OPTIONS-----------
     ---------------------------------------------
@@ -700,28 +783,6 @@ function ActionBarEnhancedMixin:InitOptions()
         "HideReticle"
     )
 
-    hideContainer.PreviewInterrupt.icon:SetTexture("interface/icons/spell_frost_icestorm.blp")
-    hideContainer.PreviewInterrupt.InterruptDisplay:Show()
-    hideContainer.PreviewInterrupt.InterruptDisplay.Base.AnimIn:SetLooping("REPEAT")
-    hideContainer.PreviewInterrupt.InterruptDisplay.Highlight.AnimIn:SetLooping("REPEAT")
-    hideContainer.PreviewInterrupt.InterruptDisplay.Base.AnimIn:Play()
-    hideContainer.PreviewInterrupt.InterruptDisplay.Highlight.AnimIn:Play()
-    hideContainer.PreviewInterrupt.Title.TitleText:SetText("Interrupt")
-
-    hideContainer.PreviewCasting.icon:SetTexture("interface/icons/ability_evoker_firebreath.blp")
-    hideContainer.PreviewCasting.SpellCastAnimFrame:Show()
-    hideContainer.PreviewCasting.SpellCastAnimFrame.Fill.CastingAnim:SetLooping("REPEAT")
-    hideContainer.PreviewCasting.SpellCastAnimFrame.EndBurst.FinishCastAnim:SetLooping("REPEAT")
-    hideContainer.PreviewCasting.SpellCastAnimFrame.Fill.CastingAnim:Play()
-    hideContainer.PreviewCasting.SpellCastAnimFrame.EndBurst.FinishCastAnim:Play()
-    hideContainer.PreviewCasting.Title.TitleText:SetText("Casting")
-
-    hideContainer.PreviewReticle.icon:SetTexture("interface/icons/inv_misc_herb_talandrasrose.blp")
-    hideContainer.PreviewReticle.TargetReticleAnimFrame:Show()
-    hideContainer.PreviewReticle.TargetReticleAnimFrame.HighlightAnim:SetLooping("REPEAT")
-    hideContainer.PreviewReticle.TargetReticleAnimFrame.HighlightAnim:Play()
-    hideContainer.PreviewReticle.Title.TitleText:SetText("Reticle")
-
     ---------------------------------------------
     -----------------FONT OPTIONS----------------
     ---------------------------------------------
@@ -771,44 +832,110 @@ function ActionBarEnhancedMixin:InitOptions()
     fontContainer.NameScale.Checkbox:SetEnabled(not Addon.C.FontHideName)
     fontContainer.NameScale.SliderWithSteppers:SetEnabled(not Addon.C.FontHideName)
 
-    fontContainer.PreviewFont05.icon:SetTexture("interface/icons/ability_warrior_punishingblow.blp")
-    fontContainer.PreviewFont075.icon:SetTexture("interface/icons/spell_holy_righteousfury.blp")
-    fontContainer.PreviewFont1.icon:SetTexture("interface/icons/ability_monk_tigerpalm.blp")
-    fontContainer.PreviewFont15.icon:SetTexture("interface/icons/ability_druid_ferociousbite.blp")
-    fontContainer.PreviewFont2.icon:SetTexture("interface/icons/ability_deathknight_remorselesswinters2.blp")
+    function ActionBarEnhancedDropdownMixin:InitPreview()
+        local function GetRandomClassSpellIcon()
+            local rotationSpells = C_AssistedCombat.GetRotationSpells()
+            local spellID = 1160
+            if #rotationSpells > 0 then
+                local rnd = math.random(1, #rotationSpells)
+                spellID = rotationSpells[rnd]
+                spellID = C_Spell.GetOverrideSpell(spellID)
+            end
+            local spellInfo = C_Spell.GetSpellInfo(spellID)
 
-    fontContainer.PreviewFont05.TextOverlayContainer.HotKey:SetText("1")
-    fontContainer.PreviewFont075.TextOverlayContainer.HotKey:SetText("2")
-    fontContainer.PreviewFont1.TextOverlayContainer.HotKey:SetText("3")
-    fontContainer.PreviewFont15.TextOverlayContainer.HotKey:SetText("4")
-    fontContainer.PreviewFont2.TextOverlayContainer.HotKey:SetText("4")
+            return spellInfo.iconID 
+        end
 
-    fontContainer.PreviewFont05.TextOverlayContainer.Count:SetText("99")
-    fontContainer.PreviewFont075.TextOverlayContainer.Count:SetText("99")
-    fontContainer.PreviewFont1.TextOverlayContainer.Count:SetText("99")
-    fontContainer.PreviewFont15.TextOverlayContainer.Count:SetText("99")
-    fontContainer.PreviewFont2.TextOverlayContainer.Count:SetText("99")
+        --preview for proc loop
+        loopContainer.ProcLoopPreview.icon:SetTexture(GetRandomClassSpellIcon())
+        loopContainer.ProcLoopPreview.ProcGlow.ProcStartFlipbook:Hide()
+        loopContainer.ProcLoopPreview.ProcGlow.ProcAltGlow:Hide()
+        loopContainer.ProcLoopPreview.ProcGlow.ProcLoop:Play()
 
-    fontContainer.PreviewFont05.Name:SetText("Name")
-    fontContainer.PreviewFont075.Name:SetText("Name")
-    fontContainer.PreviewFont1.Name:SetText("Name")
-    fontContainer.PreviewFont15.Name:SetText("Name")
-    fontContainer.PreviewFont2.Name:SetText("Name")
+        --preview for proc start
+        procContainer.ProcStartPreview.icon:SetTexture(GetRandomClassSpellIcon())
+        procContainer.ProcStartPreview.ProcGlow.ProcLoopFlipbook:Hide()
+        procContainer.ProcStartPreview.ProcGlow.ProcAltGlow:Hide()
+        procContainer.ProcStartPreview.ProcGlow.ProcStartAnim:Play()
 
 
-function ActionBarEnhancedDropdownMixin:RefreshAllPreview()
-    ActionBarEnhancedDropdownMixin:RefreshPreview(pushedContainer.PreviewPushed)
-    ActionBarEnhancedDropdownMixin:RefreshPreview(highlightContainer.PreviewHighlight)
-    ActionBarEnhancedDropdownMixin:RefreshPreview(checkedContainer.PreviewChecked)
-    ActionBarEnhancedDropdownMixin:RefreshPreview(hideContainer.PreviewInterrupt)
-    ActionBarEnhancedDropdownMixin:RefreshPreview(hideContainer.PreviewCasting)
-    ActionBarEnhancedDropdownMixin:RefreshPreview(hideContainer.PreviewReticle)
-    ActionBarEnhancedDropdownMixin:RefreshPreview(fontContainer.PreviewFont05)
-    ActionBarEnhancedDropdownMixin:RefreshPreview(fontContainer.PreviewFont075)
-    ActionBarEnhancedDropdownMixin:RefreshPreview(fontContainer.PreviewFont1)
-    ActionBarEnhancedDropdownMixin:RefreshPreview(fontContainer.PreviewFont15)
-    ActionBarEnhancedDropdownMixin:RefreshPreview(fontContainer.PreviewFont2)
-end
+        --preview for pushed texture
+        pushedContainer.PreviewPushed.icon:SetTexture(GetRandomClassSpellIcon())
+
+        --preview for highlight texture
+        highlightContainer.PreviewHighlight.icon:SetTexture(GetRandomClassSpellIcon())
+
+        --preview for checked texture
+        checkedContainer.PreviewChecked.icon:SetTexture(GetRandomClassSpellIcon())
+
+        --preview for hide animations
+        hideContainer.PreviewInterrupt.icon:SetTexture(GetRandomClassSpellIcon())
+        hideContainer.PreviewInterrupt.InterruptDisplay:Show()
+        hideContainer.PreviewInterrupt.InterruptDisplay.Base.AnimIn:SetLooping("REPEAT")
+        hideContainer.PreviewInterrupt.InterruptDisplay.Highlight.AnimIn:SetLooping("REPEAT")
+        hideContainer.PreviewInterrupt.InterruptDisplay.Base.AnimIn:Play()
+        hideContainer.PreviewInterrupt.InterruptDisplay.Highlight.AnimIn:Play()
+        hideContainer.PreviewInterrupt.Title.TitleText:SetText("Interrupt")
+
+        hideContainer.PreviewCasting.icon:SetTexture(GetRandomClassSpellIcon())
+        hideContainer.PreviewCasting.SpellCastAnimFrame:Show()
+        hideContainer.PreviewCasting.SpellCastAnimFrame.Fill.CastingAnim:SetLooping("REPEAT")
+        hideContainer.PreviewCasting.SpellCastAnimFrame.EndBurst.FinishCastAnim:SetLooping("REPEAT")
+        hideContainer.PreviewCasting.SpellCastAnimFrame.Fill.CastingAnim:Play()
+        hideContainer.PreviewCasting.SpellCastAnimFrame.EndBurst.FinishCastAnim:Play()
+        hideContainer.PreviewCasting.Title.TitleText:SetText("Casting")
+
+        hideContainer.PreviewReticle.icon:SetTexture(GetRandomClassSpellIcon())
+        hideContainer.PreviewReticle.TargetReticleAnimFrame:Show()
+        hideContainer.PreviewReticle.TargetReticleAnimFrame.HighlightAnim:SetLooping("REPEAT")
+        hideContainer.PreviewReticle.TargetReticleAnimFrame.HighlightAnim:Play()
+        hideContainer.PreviewReticle.Title.TitleText:SetText("Reticle")
+
+        ---preview for font options
+        fontContainer.PreviewFont05.icon:SetTexture(GetRandomClassSpellIcon())
+        fontContainer.PreviewFont075.icon:SetTexture(GetRandomClassSpellIcon())
+        fontContainer.PreviewFont1.icon:SetTexture(GetRandomClassSpellIcon())
+        fontContainer.PreviewFont15.icon:SetTexture(GetRandomClassSpellIcon())
+        fontContainer.PreviewFont2.icon:SetTexture(GetRandomClassSpellIcon())
+
+        fontContainer.PreviewFont05.TextOverlayContainer.HotKey:SetText("1")
+        fontContainer.PreviewFont075.TextOverlayContainer.HotKey:SetText("2")
+        fontContainer.PreviewFont1.TextOverlayContainer.HotKey:SetText("3")
+        fontContainer.PreviewFont15.TextOverlayContainer.HotKey:SetText("4")
+        fontContainer.PreviewFont2.TextOverlayContainer.HotKey:SetText("4")
+
+        fontContainer.PreviewFont05.TextOverlayContainer.Count:SetText("99")
+        fontContainer.PreviewFont075.TextOverlayContainer.Count:SetText("99")
+        fontContainer.PreviewFont1.TextOverlayContainer.Count:SetText("99")
+        fontContainer.PreviewFont15.TextOverlayContainer.Count:SetText("99")
+        fontContainer.PreviewFont2.TextOverlayContainer.Count:SetText("99")
+
+        fontContainer.PreviewFont05.Name:SetText("Name")
+        fontContainer.PreviewFont075.Name:SetText("Name")
+        fontContainer.PreviewFont1.Name:SetText("Name")
+        fontContainer.PreviewFont15.Name:SetText("Name")
+        fontContainer.PreviewFont2.Name:SetText("Name")
+
+        ActionBarEnhancedDropdownMixin:RefreshAllPreview()
+    end
+
+    function ActionBarEnhancedDropdownMixin:RefreshAllPreview()
+        ActionBarEnhancedDropdownMixin:RefreshPreview(loopContainer.ProcLoopPreview)
+        ActionBarEnhancedDropdownMixin:RefreshPreview(procContainer.ProcStartPreview)
+        ActionBarEnhancedDropdownMixin:RefreshPreview(pushedContainer.PreviewPushed)
+        ActionBarEnhancedDropdownMixin:RefreshPreview(highlightContainer.PreviewHighlight)
+        ActionBarEnhancedDropdownMixin:RefreshPreview(checkedContainer.PreviewChecked)
+        ActionBarEnhancedDropdownMixin:RefreshPreview(hideContainer.PreviewInterrupt)
+        ActionBarEnhancedDropdownMixin:RefreshPreview(hideContainer.PreviewCasting)
+        ActionBarEnhancedDropdownMixin:RefreshPreview(hideContainer.PreviewReticle)
+        ActionBarEnhancedDropdownMixin:RefreshPreview(fontContainer.PreviewFont05)
+        ActionBarEnhancedDropdownMixin:RefreshPreview(fontContainer.PreviewFont075)
+        ActionBarEnhancedDropdownMixin:RefreshPreview(fontContainer.PreviewFont1)
+        ActionBarEnhancedDropdownMixin:RefreshPreview(fontContainer.PreviewFont15)
+        ActionBarEnhancedDropdownMixin:RefreshPreview(fontContainer.PreviewFont2)
+    end
+
+    ActionBarEnhancedDropdownMixin:InitPreview()
 
     optionsFrame:Show()
     optionsFrame.ScrollFrame.ScrollChild:SetWidth(optionsFrame.ScrollFrame:GetWidth())

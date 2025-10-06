@@ -40,7 +40,7 @@ function Addon:UpdateAssistFlipbook(region)
     --region.ProcLoopFlipbook:SetTexCoords(333, 400, 0.412598, 0.575195, 0.393555, 0.78418, false, false)
     region:SetDesaturated(Addon.C.DesaturateAssist)
     if Addon.C.UseAssistGlowColor then
-        region:SetVertexColor(Addon:GetRGB("LoopGlowColor"))
+        region:SetVertexColor(Addon:GetRGB("AssistGlowColor"))
     else
         region:SetVertexColor(1.0, 1.0, 1.0)
     end
