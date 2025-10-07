@@ -14,10 +14,10 @@ body:
     id: request-type
     attributes:
       label: Type of feature request
-    options:
-      - Major new functionality
-      - Improvement to existing feature
-      - Small quality-of-life change
+      options:
+        - Major new functionality
+        - Improvement to existing feature
+        - Small quality-of-life change
     validations: 
       required: true
   - type: textarea
