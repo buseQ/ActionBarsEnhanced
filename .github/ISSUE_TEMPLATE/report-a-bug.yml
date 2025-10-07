@@ -1,0 +1,76 @@
+name: Bug Report
+description: File a bug report
+labels: ["bug"]
+title: "[Bug] "
+assignees:
+  - Hndrxuprt
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please fill out the form below to help me reproduce and fix the issue.
+  - type: input
+    id: addon-version
+    attributes:
+      label: Addon Version
+      description: What version of ActionBarsEnhanced are you using?
+      placeholder: "e.g., v1.2.5"
+    validations:
+      required: true
+  - type: input
+    id: game-version
+    attributes:
+      label: World of Warcraft Version
+      description: Your game client version
+      placeholder: "e.g., 11.2"
+    validations:
+      required: true
+  - type: dropdown
+    id: localization
+    attributes:
+      label: Game Client Language
+      description: Which language is your game client using?
+      options:
+        - English
+        - Spanish (Mexico)
+        - Portuguese
+        - German
+        - Spanish (Spain)
+        - French
+        - Italian
+        - Russian
+        - Korean
+        - Chinese (Traditional)
+        - Chinese (Simplified)
+    validations:
+      required: true
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Describe the bug
+      description: A clear and concise description of what happens vs. what you expected to happen.
+      placeholder: |
+        Example: "When I enable the 'X' glow, the animation stutters every 2 seconds instead of playing smoothly."
+    validations:
+      required: true
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Exact steps to make the bug happen.
+      placeholder: |
+        1. Go to Addon options
+        2. Select "X" animation from the dropdown
+        3. Set color to YYY
+        4. Enter combat and trigger a proc
+        5. Observe the stuttering animation
+    validations:
+      required: true
+  - type: textarea
+    id: error-message
+    attributes:
+      label: Lua Error Message (if any)
+      description: If you see an error, please paste the FULL text from BugSack, !BugGrabber, or your chat window.
+      render: lua
+    validations:
+      required: false
