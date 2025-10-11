@@ -17,6 +17,8 @@
   - Hide spell casting animation.
   - Hide AoE targeting reticle.
 - **🎨 Deep Customization:** Tweak everything you see.
+  - Change and recolor button border.
+  - Change and recolor button backdrop.
   - Recolor icons based on conditions (Out of Range, No Mana).
   - Customize button state textures (pressed, active).
   - Adjust cooldown swipe animation.
@@ -52,6 +54,8 @@
   - Скрытие анимации произнесения заклинания.
   - Скрытие индикатора AoE (Reticle).
 - **🎨 Глубокий кастом:** Измените всё, что видите.
+  - Смена текстуры и покраска рамки кнопок.
+  - Смена текстуры и покраска фона кнопок.
   - Покраска иконок в зависимости от условий (Out of Range, No Mana).
   - Изменение текстур состояний кнопки (нажатая, активная).
   - Настройка анимации кулдауна (swipe).
