@@ -86,25 +86,25 @@
 		<NormalTexture parentKey="NormalTexture" atlas="UI-HUD-ActionBar-IconFrame">
 			<Size x="45" y="45"/>
 			<Anchors>
-				<Anchor point="CENTER" x="1.5" y="-1"/>
+				<Anchor point="CENTER" x="0" y="0"/>
 			</Anchors>
 		</NormalTexture>
 		<PushedTexture atlas="UI-HUD-ActionBar-IconFrame-Down" parentKey="PushedTexture">
 			<Size x="45" y="45"/>
 			<Anchors>
-				<Anchor point="CENTER" x="1.5" y="-1"/>
+				<Anchor point="CENTER" x="0" y="0"/>
 			</Anchors>
 		</PushedTexture>
 		<HighlightTexture atlas="UI-HUD-ActionBar-IconFrame-Mouseover" parentKey="HighlightTexture">
 			<Size x="45" y="45"/>
 			<Anchors>
-				<Anchor point="CENTER" x="1.5" y="-1"/>
+				<Anchor point="CENTER" x="0" y="0"/>
 			</Anchors>
 		</HighlightTexture>
 		<CheckedTexture atlas="UI-HUD-ActionBar-IconFrame-Mouseover" parentKey="CheckedTexture">
 			<Size x="45" y="45"/>
 			<Anchors>
-				<Anchor point="CENTER" x="1.5" y="-1"/>
+				<Anchor point="CENTER" x="0" y="0"/>
 			</Anchors>
 		</CheckedTexture>
 		<Scripts>
@@ -196,7 +196,7 @@
 			</Layer>
 			<Layer level="ARTWORK">
 				<FontString parentKey="Title" inherits="Fancy32Font" justifyH="MIDDLE" maxLines="1">
-					<Size x="600"/>
+					
 					<Shadow x="1" y="-1">
 						<Color r="0" g="0" b="0"/>
 					</Shadow>
@@ -216,6 +216,14 @@
 				</FontString>
 			</Layer>
 		</Layers>
+		<Frames>
+			<Frame parentKey="NewFeature" inherits="NewFeatureLabelTemplate" frameStrata="HIGH" scale="1.5" frameLevel="100" hidden="true">
+				<Size x="1" y="1"/>
+				<Anchors>
+					<Anchor point="RIGHT" x="0" y="0" relativeKey="$parent.Title" relativePoint="LEFT"/>
+				</Anchors>
+			</Frame>
+		</Frames>
 	</Frame>
 	<Frame name="OptionsDropdownTemplate" mixin="ActionBarEnhancedDropdownMixin" virtual="true">
 		<Size y="26"/>
@@ -269,6 +277,12 @@
 				<CheckedTexture atlas="checkmark-minimal" useAtlasSize="true"/>
 				<DisabledCheckedTexture atlas="checkmark-minimal-disabled" useAtlasSize="true"/>
 			</CheckButton>
+			<Frame parentKey="NewFeature" inherits="NewFeatureLabelTemplate" frameStrata="HIGH" scale=".8" frameLevel="100" hidden="true">
+				<Size x="1" y="1"/>
+				<Anchors>
+					<Anchor point="BOTTOMRIGHT" x="16" y="-10" relativeKey="$parent.Text" relativePoint="LEFT"/>
+				</Anchors>
+			</Frame>
 		</Frames>
 	</Frame>
 	<Frame name="OptionsCheckboxSliderTemplate" mixin="ActionBarEnhancedCheckboxSliderMixin" virtual="true">
@@ -510,11 +524,90 @@
 					</Frame>
 				</Frames>
 			</Frame>
+			
+			<Frame parentKey="NormalOptionsContainer" inherits="OptionsContainerTemplate" hidden="false">
+				<Size x="720" y="180"/>
+				<Anchors>
+					<Anchor point="TOP" relativeKey="$parent.FadeOptionsContainer" relativePoint="BOTTOM" x="0" y="0"/>
+				</Anchors>
+				<Frames>
+					<Frame parentKey="NormalTextureOptions" inherits="OptionsDropdownTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.Desc" relativePoint="BOTTOM" y="-10"/>
+						</Anchors>
+					</Frame>
+					<Frame parentKey="CustomColorNormal" inherits="OptionsColorOverrideTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.NormalTextureOptions" relativePoint="BOTTOM" y="-2"/>
+						</Anchors>
+					</Frame>
+					<CheckButton parentKey="PreviewNormal" inherits="OptionsButtonPreviewTemplate" hidden="false" scale="1.8">
+						<Anchors>
+							<Anchor point="TOPLEFT" relativeKey="$parent.NormalTextureOptions" relativePoint="CENTER" x="150" y="0"/>
+						</Anchors>
+					</CheckButton>
+
+				</Frames>	
+			</Frame>
+
+			<Frame parentKey="BackdropOptionsContainer" inherits="OptionsContainerTemplate" hidden="false">
+				<Size x="720" y="180"/>
+				<Anchors>
+					<Anchor point="TOP" relativeKey="$parent.NormalOptionsContainer" relativePoint="BOTTOM" x="0" y="0"/>
+				</Anchors>
+				<Frames>
+					<Frame parentKey="BackdropTextureOptions" inherits="OptionsDropdownTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.Desc" relativePoint="BOTTOM" y="-10"/>
+						</Anchors>
+					</Frame>
+					<Frame parentKey="CustomColorBackdrop" inherits="OptionsColorOverrideTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.BackdropTextureOptions" relativePoint="BOTTOM" y="-2"/>
+						</Anchors>
+					</Frame>
+					<CheckButton parentKey="PreviewBackdrop" inherits="OptionsButtonPreviewTemplate" hidden="false" scale="1.8">
+						<Anchors>
+							<Anchor point="TOPLEFT" relativeKey="$parent.BackdropTextureOptions" relativePoint="CENTER" x="150" y="0"/>
+						</Anchors>
+					</CheckButton>
+
+				</Frames>	
+			</Frame>
+			<Frame parentKey="IconOptionsContainer" inherits="OptionsContainerTemplate" hidden="false">
+				<Size x="720" y="220"/>
+				<Anchors>
+					<Anchor point="TOP" relativeKey="$parent.BackdropOptionsContainer" relativePoint="BOTTOM" x="0" y="0"/>
+				</Anchors>
+				<Frames>
+					<Frame parentKey="IconMaskTextureOptions" inherits="OptionsDropdownTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.Desc" relativePoint="BOTTOM" y="-10"/>
+						</Anchors>
+					</Frame>
+					<Frame parentKey="MaskScale" inherits="OptionsCheckboxSliderTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.IconMaskTextureOptions" relativePoint="BOTTOM" y="-2"/>
+						</Anchors>
+					</Frame>
+					<Frame parentKey="IconScale" inherits="OptionsCheckboxSliderTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.MaskScale" relativePoint="BOTTOM" y="-2"/>
+						</Anchors>
+					</Frame>
+					<CheckButton parentKey="PreviewIcon" inherits="OptionsButtonPreviewTemplate" hidden="false" scale="1.8">
+						<Anchors>
+							<Anchor point="TOPLEFT" relativeKey="$parent.IconMaskTextureOptions" relativePoint="CENTER" x="150" y="0"/>
+						</Anchors>
+					</CheckButton>
+
+				</Frames>	
+			</Frame>
 
 			<Frame parentKey="PushedOptionsContainer" inherits="OptionsContainerTemplate" hidden="false">
 				<Size x="720" y="180"/>
 				<Anchors>
-					<Anchor point="TOP" relativeKey="$parent.FadeOptionsContainer" relativePoint="BOTTOM" x="0" y="0"/>
+					<Anchor point="TOP" relativeKey="$parent.IconOptionsContainer" relativePoint="BOTTOM" x="0" y="0"/>
 				</Anchors>
 				<Frames>
 					<Frame parentKey="PushedTextureOptions" inherits="OptionsDropdownTemplate">
@@ -614,7 +707,7 @@
 			</Frame>
 
 			<Frame parentKey="HideFramesOptionsContainer" inherits="OptionsContainerTemplate" hidden="false">
-				<Size x="720" y="240"/>
+				<Size x="720" y="250"/>
 				<Anchors>
 					<Anchor point="TOP" relativeKey="$parent.ColorOverrideOptionsContainer" relativePoint="BOTTOM" x="0" y="0"/>
 				</Anchors>
@@ -629,9 +722,14 @@
 							<Anchor point="TOP" relativeKey="$parent.HideBagBars" relativePoint="BOTTOM" y="-2"/>
 						</Anchors>
 					</Frame>
-					<Frame parentKey="HideInterrupt" inherits="OptionsCheckboxTemplate">
+					<Frame parentKey="HideStanceBar" inherits="OptionsCheckboxTemplate">
 						<Anchors>
 							<Anchor point="TOP" relativeKey="$parent.HideMicroMenu" relativePoint="BOTTOM" y="-2"/>
+						</Anchors>
+					</Frame>
+					<Frame parentKey="HideInterrupt" inherits="OptionsCheckboxTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.HideStanceBar" relativePoint="BOTTOM" y="-2"/>
 						</Anchors>
 					</Frame>
 					<Frame parentKey="HideCasting" inherits="OptionsCheckboxTemplate">

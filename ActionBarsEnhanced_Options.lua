@@ -70,6 +70,19 @@ function Addon:GetRGBA(settingName)
 end
 local toReload = {
     ["FadeBars"] = true,
+    ["CurrentNormalTexture"] = true,
+    ["DesaturateNormal"] = true,
+    ["UseNormalTextureColor"] = true,
+    ["NormalTextureColor"] = true,
+    ["CurrentBackdropTexture"] = true,
+    ["DesaturateBackdrop"] = true,
+    ["UseBackdropColor"] = true,
+    ["BackdropColor"] = true,
+    ["UseIconMaskScale"] = true,
+    ["IconMaskScale"] = true,
+    ["CurrentIconMaskTexture"] = true,
+    ["UseIconScale"] = true,
+    ["IconScale"] = true,
     ["CurrentPushedTexture"] = true,
     ["DesaturatePushed"] = true,
     ["UsePushedColor"] = true,
@@ -110,7 +123,9 @@ function Addon:SaveSetting(key, value)
     Addon.C[key] = value
     ABDB.Profiles.profilesList[currentProfile][key] = value
     if toReload[key] then
-        StaticPopup_Show("ABE_RELOAD")
+        if not StaticPopup_Visible("ABE_RELOAD") then
+            StaticPopup_Show("ABE_RELOAD")
+        end
     end
 end
 
@@ -118,8 +133,10 @@ function Addon:HideBars(barName)
     local bar = _G[barName]
     if bar then
         if Addon.C["Hide"..barName] then
+            if barName == "StanceBar" and InCombatLockdown() then return end
             bar:Hide()
         else
+            if barName == "StanceBar" and not StanceBar:ShouldShow() then return end
             bar:Show()
         end
     end
@@ -255,9 +272,91 @@ function ActionBarEnhancedMixin:InitOptions()
             end
         end
 
+        local normalAtlas = T.NormalTextures[Addon.C.CurrentNormalTexture] or nil
+        if button.NormalTexture then
+            if normalAtlas then
+                if normalAtlas.hide then
+                    button.NormalTexture:Hide()
+                else
+                    if normalAtlas.atlas then
+                        button:SetNormalAtlas(normalAtlas.atlas)
+                    end
+                    if normalAtlas.texture then
+                        button.NormalTexture:SetTexture(normalAtlas.texture)
+                    end
+                    if normalAtlas.point then
+                        button.NormalTexture:ClearAllPoints()
+                        button.NormalTexture:SetPoint(normalAtlas.point, button, normalAtlas.point)
+                    else
+                        button.NormalTexture:SetPoint("TOPLEFT")
+                    end
+                    if normalAtlas.padding then
+                        button.NormalTexture:AdjustPointsOffset(normalAtlas.padding[1], normalAtlas.padding[2])
+                    else
+                        button.NormalTexture:AdjustPointsOffset(0,0)
+                    end
+                    if normalAtlas.size then
+                        button.NormalTexture:SetSize(normalAtlas.size[1], normalAtlas.size[2])
+                    end
+                    if normalAtlas.coords then
+                        button.NormalTexture:SetTexCoord(normalAtlas.coords[1], normalAtlas.coords[2], normalAtlas.coords[3], normalAtlas.coords[4])
+                    end
+                    button.NormalTexture:SetDrawLayer("OVERLAY")
+                end
+            end
+            button.NormalTexture:SetDesaturated(Addon.C.DesaturateNormal)
+            if Addon.C.UseNormalTextureColor then
+                button.NormalTexture:SetVertexColor(Addon:GetRGBA("NormalTextureColor"))
+            end
+        end
+
+        if button.backdropPreview then
+            button.icon:Hide()
+            local backdropAtlas = T.BackdropTextures[Addon.C.CurrentBackdropTexture] or nil
+            if button.SlotBackground then
+                if backdropAtlas then
+                    if backdropAtlas.hide then
+                        button.SlotBackground:Hide()
+                    else
+                        if backdropAtlas.atlas then
+                            button.SlotBackground:SetAtlas(backdropAtlas.atlas)
+                        end
+                        if backdropAtlas.texture then
+                            button.SlotBackground:SetTexture(backdropAtlas.texture)
+                        end
+                        if backdropAtlas.point then
+                            button.SlotBackground:ClearAllPoints()
+                            button.SlotBackground:SetPoint(backdropAtlas.point, button, backdropAtlas.point)
+                        else
+                            button.SlotBackground:SetPoint("TOPLEFT")
+                        end
+                        if backdropAtlas.padding then
+                            button.SlotBackground:AdjustPointsOffset(backdropAtlas.padding[1], backdropAtlas.padding[2])
+                        else
+                            button.SlotBackground:AdjustPointsOffset(0,0)
+                        end
+                        if backdropAtlas.size then
+                            button.SlotBackground:SetSize(backdropAtlas.size[1], backdropAtlas.size[2])
+                        end
+                        if backdropAtlas.coords then
+                            button.SlotBackground:SetTexCoord(backdropAtlas.coords[1], backdropAtlas.coords[2], backdropAtlas.coords[3], backdropAtlas.coords[4])
+                        end
+                    end
+                end
+                button.SlotBackground:SetDesaturated(Addon.C.DesaturateBackdrop)
+                if Addon.C.UseBackdropColor then
+                    button.SlotBackground:SetVertexColor(Addon:GetRGBA("BackdropColor"))
+                end
+            end
+        end
+
         local pushedAtlas = T.PushedTextures[Addon.C.CurrentPushedTexture] or nil
-        if pushedAtlas and pushedAtlas.atlas then
-            button:SetPushedAtlas(pushedAtlas.atlas)
+        if pushedAtlas then
+            if pushedAtlas.atlas then
+                button:SetPushedAtlas(pushedAtlas.atlas)
+            elseif pushedAtlas.texture then
+                button.PushedTexture:SetTexture(pushedAtlas.texture)
+            end
             if pushedAtlas.point then
                 button.PushedTexture:ClearAllPoints()
                 button.PushedTexture:SetPoint("CENTER", button, "CENTER")
@@ -279,8 +378,12 @@ function ActionBarEnhancedMixin:InitOptions()
             button.HighlightTexture:Hide()
         else
             button.HighlightTexture:Show()
-            if highlightAtlas and highlightAtlas.atlas then
-                button.HighlightTexture:SetAtlas(highlightAtlas.atlas)
+            if highlightAtlas then
+                if highlightAtlas.atlas then
+                    button.HighlightTexture:SetAtlas(highlightAtlas.atlas)
+                elseif highlightAtlas.texture then
+                    button.HighlightTexture:SetTexture(highlightAtlas.texture)
+                end
                 if highlightAtlas.point then
                     button.HighlightTexture:ClearAllPoints()
                     button.HighlightTexture:SetPoint("CENTER", button, "CENTER")
@@ -299,12 +402,16 @@ function ActionBarEnhancedMixin:InitOptions()
             end
         end
         if button.CheckedTexture then
-            local checkedAtlas = T.CheckedTextures[Addon.C.CurrentCheckedTexture] or nil
+            local checkedAtlas = T.HighlightTextures[Addon.C.CurrentCheckedTexture] or nil
             if checkedAtlas and checkedAtlas.hide then
                 button.CheckedTexture:SetAtlas("")
             else
-                if checkedAtlas and checkedAtlas.atlas then
-                    button.CheckedTexture:SetAtlas(checkedAtlas.atlas)
+                if checkedAtlas then
+                    if checkedAtlas.atlas then
+                        button.CheckedTexture:SetAtlas(checkedAtlas.atlas)
+                    elseif checkedAtlas.texture then
+                        button.CheckedTexture:SetTexture(checkedAtlas.texture)
+                    end
                     if checkedAtlas.point then
                         button.CheckedTexture:ClearAllPoints()
                         button.CheckedTexture:SetPoint("CENTER", button, "CENTER")
@@ -323,6 +430,42 @@ function ActionBarEnhancedMixin:InitOptions()
                 end
             end
         end
+        if button.IconMask then
+            local iconMaskAtlas = T.IconMaskTextures[Addon.C.CurrentIconMaskTexture] or nil
+            if iconMaskAtlas then
+                if iconMaskAtlas.atlas and Addon.C.CurrentIconMaskTexture > 1 then
+                    button.IconMask:SetAtlas(iconMaskAtlas.atlas)
+                    if iconMaskAtlas.point then
+                        button.IconMask:ClearAllPoints()
+                        button.IconMask:SetPoint(iconMaskAtlas.point, button.icon, iconMaskAtlas.point)
+                    end
+                    if iconMaskAtlas.size then
+                        button.IconMask:SetSize(iconMaskAtlas.size[1], iconMaskAtlas.size[2])
+                    end
+                    if iconMaskAtlas.coords then
+                        button.IconMask:SetTexCoord(iconMaskAtlas.coords[1], iconMaskAtlas.coords[2], iconMaskAtlas.coords[3], iconMaskAtlas.coords[4])
+                    end
+                end
+                if isStanceBar then
+                    button.IconMask:SetScale(Addon.C.UseIconMaskScale and Addon.C.IconMaskScale * 0.69 or 1.0)
+                else
+                    button.IconMask:SetScale(Addon.C.UseIconMaskScale and Addon.C.IconMaskScale or 1.0)
+                end
+            end
+        end
+
+        if button.icon then
+            button.icon:ClearAllPoints()
+            button.icon:SetPoint("CENTER", button, "CENTER", -0.5, 0.5)
+            if isStanceBar then
+                button.icon:SetSize(31,31)
+                button.icon:SetScale(Addon.C.UseIconScale and Addon.C.IconScale * 0.69 or 1.0)
+            else
+                button.icon:SetSize(45,45)
+                button.icon:SetScale(Addon.C.UseIconScale and Addon.C.IconScale or 1.0)
+            end
+        end
+
         if button.Name then
             if Addon.C.FontHideName then
                 button.Name:Hide()
@@ -362,6 +505,11 @@ function ActionBarEnhancedMixin:InitOptions()
     end
 
     function ActionBarEnhancedDropdownMixin:SetupCheckbox(checkboxFrame, name, value, callback)
+        if checkboxFrame.new then
+            checkboxFrame.NewFeature:Show()
+        else
+            checkboxFrame.NewFeature:Hide()
+        end
         checkboxFrame.Text:SetText(name)
         checkboxFrame.Checkbox:SetChecked(Addon.C[value])
         checkboxFrame.Checkbox:SetScript("OnClick",
@@ -467,6 +615,9 @@ function ActionBarEnhancedMixin:InitOptions()
     ---------------------------------------------
     local loopContainer = optionsFrame.ScrollFrame.ScrollChild.GlowOptionsContainer
     local procContainer = optionsFrame.ScrollFrame.ScrollChild.ProcOptionsContainer
+    local normalContainer = optionsFrame.ScrollFrame.ScrollChild.NormalOptionsContainer
+    local backdropContainer = optionsFrame.ScrollFrame.ScrollChild.BackdropOptionsContainer
+    local iconContaiter = optionsFrame.ScrollFrame.ScrollChild.IconOptionsContainer
     local pushedContainer = optionsFrame.ScrollFrame.ScrollChild.PushedOptionsContainer
     local highlightContainer = optionsFrame.ScrollFrame.ScrollChild.HighlightOptionsContainer
     local checkedContainer = optionsFrame.ScrollFrame.ScrollChild.CheckedOptionsContainer
@@ -650,6 +801,92 @@ function ActionBarEnhancedMixin:InitOptions()
     )
 
     ---------------------------------------------
+    ------------NORMAL TEXTURE OPTIONS-----------
+    ---------------------------------------------
+    normalContainer.NewFeature:Show()
+    normalContainer.Title:SetText(L.NormalTitle)
+    normalContainer.Desc:SetText(L.NormalDesc)
+    ActionBarEnhancedDropdownMixin:SetupDropdown(
+        normalContainer.NormalTextureOptions,
+        T.NormalTextures,
+        L.NormalTextureType,
+        function(id) return id == Addon.C.CurrentNormalTexture end,
+        function(id)
+            Addon:SaveSetting("CurrentNormalTexture", id)
+            ActionBarEnhancedDropdownMixin:RefreshAllPreview()
+        end
+    )
+    ActionBarEnhancedDropdownMixin:SetupColorSwatch(
+        normalContainer.CustomColorNormal,
+        L.UseCustomColor,
+        "NormalTextureColor",
+        {"UseNormalTextureColor", "DesaturateNormal"},
+        true
+    )
+
+    ---------------------------------------------
+    -----------BACKDROP TEXTURE OPTIONS----------
+    ---------------------------------------------
+    backdropContainer.NewFeature:Show()
+    backdropContainer.Title:SetText(L.BackdropTitle)
+    backdropContainer.Desc:SetText(L.BackdropDesc)
+    backdropContainer.PreviewBackdrop.backdropPreview = true
+    ActionBarEnhancedDropdownMixin:SetupDropdown(
+        backdropContainer.BackdropTextureOptions,
+        T.BackdropTextures,
+        L.BackdropTextureType,
+        function(id) return id == Addon.C.CurrentBackdropTexture end,
+        function(id)
+            Addon:SaveSetting("CurrentBackdropTexture", id)
+            ActionBarEnhancedDropdownMixin:RefreshAllPreview()
+        end
+    )
+    ActionBarEnhancedDropdownMixin:SetupColorSwatch(
+        backdropContainer.CustomColorBackdrop,
+        L.UseCustomColor,
+        "BackdropColor",
+        {"UseBackdropColor", "DesaturateBackdrop"},
+        true
+    )
+
+    ---------------------------------------------
+    -----------------ICON OPTIONS----------------
+    ---------------------------------------------
+    iconContaiter.NewFeature:Show()
+    iconContaiter.Title:SetText(L.IconTitle)
+    iconContaiter.Desc:SetText(L.IconDesc)
+    ActionBarEnhancedDropdownMixin:SetupDropdown(
+        iconContaiter.IconMaskTextureOptions,
+        T.IconMaskTextures,
+        L.IconMaskTextureType,
+        function(id) return id == Addon.C.CurrentIconMaskTexture end,
+        function(id)
+            Addon:SaveSetting("CurrentIconMaskTexture", id)
+            ActionBarEnhancedDropdownMixin:RefreshAllPreview()
+        end
+    )
+    ActionBarEnhancedCheckboxSliderMixin:SetupCheckboxSlider(
+        iconContaiter.MaskScale,
+        L.IconMaskScale,
+        "UseIconMaskScale",
+        "IconMaskScale",
+        0.5, 1.5, 0.05, "Mask Scale",
+        function()
+            ActionBarEnhancedDropdownMixin:RefreshPreview(iconContaiter.PreviewIcon)
+        end
+    )
+    ActionBarEnhancedCheckboxSliderMixin:SetupCheckboxSlider(
+        iconContaiter.IconScale,
+        L.IconScale,
+        "UseIconScale",
+        "IconScale",
+        0.5, 1.5, 0.05, "Icon Scale",
+        function()
+            ActionBarEnhancedDropdownMixin:RefreshPreview(iconContaiter.PreviewIcon)
+        end
+    )
+
+    ---------------------------------------------
     ------------PUSHED TEXTURE OPTIONS-----------
     ---------------------------------------------
     pushedContainer.Title:SetText(L.PushedTitle)
@@ -662,7 +899,8 @@ function ActionBarEnhancedMixin:InitOptions()
         function(id)
             Addon:SaveSetting("CurrentPushedTexture", id)
             ActionBarEnhancedDropdownMixin:RefreshAllPreview()
-        end
+        end,
+        true
     )
     ActionBarEnhancedDropdownMixin:SetupColorSwatch(
         pushedContainer.CustomColorPushed,
@@ -699,7 +937,7 @@ function ActionBarEnhancedMixin:InitOptions()
     checkedContainer.Desc:SetText(L.CheckedDesc)
     ActionBarEnhancedDropdownMixin:SetupDropdown(
         checkedContainer.CheckedTextureOptions,
-        T.CheckedTextures,
+        T.HighlightTextures,
         L.CheckedTextureType,
         function(id) return id == Addon.C.CurrentCheckedTexture end,
         function(id)
@@ -766,6 +1004,13 @@ function ActionBarEnhancedMixin:InitOptions()
         L.HideMicroMenuBar,
         "HideMicroMenu",
         function() Addon:HideBars("MicroMenu") end
+    )
+    hideContainer.HideStanceBar.new = true
+    ActionBarEnhancedDropdownMixin:SetupCheckbox(
+        hideContainer.HideStanceBar,
+        L.HideStanceBar,
+        "HideStanceBar",
+        function() Addon:HideBars("StanceBar") end
     )
     ActionBarEnhancedDropdownMixin:SetupCheckbox(
         hideContainer.HideInterrupt,
@@ -858,6 +1103,14 @@ function ActionBarEnhancedMixin:InitOptions()
         procContainer.ProcStartPreview.ProcGlow.ProcAltGlow:Hide()
         procContainer.ProcStartPreview.ProcGlow.ProcStartAnim:Play()
 
+        --preview for normal texture
+        normalContainer.PreviewNormal.icon:SetTexture(GetRandomClassSpellIcon())
+
+        --preview for backdrop
+        backdropContainer.PreviewBackdrop.icon:SetTexture(GetRandomClassSpellIcon())
+
+        --preview for iconmask
+        iconContaiter.PreviewIcon.icon:SetTexture(GetRandomClassSpellIcon())
 
         --preview for pushed texture
         pushedContainer.PreviewPushed.icon:SetTexture(GetRandomClassSpellIcon())
@@ -922,6 +1175,9 @@ function ActionBarEnhancedMixin:InitOptions()
     function ActionBarEnhancedDropdownMixin:RefreshAllPreview()
         ActionBarEnhancedDropdownMixin:RefreshPreview(loopContainer.ProcLoopPreview)
         ActionBarEnhancedDropdownMixin:RefreshPreview(procContainer.ProcStartPreview)
+        ActionBarEnhancedDropdownMixin:RefreshPreview(normalContainer.PreviewNormal)
+        ActionBarEnhancedDropdownMixin:RefreshPreview(backdropContainer.PreviewBackdrop)
+        ActionBarEnhancedDropdownMixin:RefreshPreview(iconContaiter.PreviewIcon)
         ActionBarEnhancedDropdownMixin:RefreshPreview(pushedContainer.PreviewPushed)
         ActionBarEnhancedDropdownMixin:RefreshPreview(highlightContainer.PreviewHighlight)
         ActionBarEnhancedDropdownMixin:RefreshPreview(checkedContainer.PreviewChecked)
