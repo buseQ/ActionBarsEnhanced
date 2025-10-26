@@ -228,7 +228,7 @@ local bars = {
     
 	"MultiActionBar",
 	"StanceBar",
-	"PetBar",
+	"PetActionBar",
 	"PossessActionBar",
 	"BonusBar",
 	"VehicleBar",
@@ -271,6 +271,10 @@ local function FixKeyBindText(text)
         return text:gsub("([%-%.%+%*%?%^%$%(%)%[%]%%])", "%%%1")
     end
     if text and text ~= _G.RANGE_INDICATOR then
+        text = gsub(text, "(s%-)", "s")
+		text = gsub(text, "(a%-)", "a")
+		text = gsub(text, "(а%-)", "a")
+		text = gsub(text, "(c%-)", "c")
 		text = gsub(text, KEY_BUTTON4, "M4")
 		text = gsub(text, KEY_BUTTON5, "M5")
 		text = gsub(text, KEY_BUTTON3, "MMB")
@@ -300,15 +304,89 @@ local function FixKeyBindText(text)
     return text or ""
 end
 
+function Addon:UpdateButtonFont(button, isStanceBar)
+    if not button.TextOverlayContainer then return end
+    
+    local mult = math.min(button:GetParent():GetScale(), 1.0)
+
+    local hotKey = button.TextOverlayContainer.HotKey:GetText()
+    if hotKey and hotKey ~= _G.RANGE_INDICATOR then
+        hotKey = FixKeyBindText(hotKey)
+        button.TextOverlayContainer.HotKey:SetText(hotKey)
+        if Addon.C.CurrentHotkeyFont ~= "Default" then
+            button.TextOverlayContainer.HotKey:SetFont(
+                LibStub("LibSharedMedia-3.0"):Fetch("font", Addon.C.CurrentHotkeyFont),
+                (Addon.C.UseHotkeyFontSize and Addon.C.HotkeyFontSize or 11),
+                Addon.C.CurrentHotkeyOutline > 1 and Addon.FontOutlines[Addon.C.CurrentHotkeyOutline] or ""
+            )
+        end
+        button.TextOverlayContainer.HotKey:ClearAllPoints()
+        local fontSize = Addon.C.UseHotkeyFontSize and Addon.C.HotkeyFontSize or 11
+        button.TextOverlayContainer.HotKey:SetFontHeight(fontSize)
+        button.TextOverlayContainer.HotKey:SetWidth(0)
+        button.TextOverlayContainer.HotKey:SetPoint(
+            Addon.AttachPoints[Addon.C.CurrentHotkeyPoint],
+            button.TextOverlayContainer,
+            Addon.AttachPoints[Addon.C.CurrentHotkeyRelativePoint],
+            Addon.C.UseHotkeyOffset and Addon.C.HotkeyOffsetX or -5,
+            Addon.C.UseHotkeyOffset and Addon.C.HotkeyOffsetY or -5
+        )
+        if Addon.C.UseHotkeyShadow then
+            button.TextOverlayContainer.HotKey:SetShadowColor(Addon:GetRGBA("HotkeyShadow"))
+        else
+            button.TextOverlayContainer.HotKey:SetShadowColor(0,0,0,0)
+        end
+        if Addon.C.UseHotkeyShadowOffset then
+            button.TextOverlayContainer.HotKey:SetShadowOffset(Addon.C.HotkeyShadowOffsetX*mult, Addon.C.HotkeyShadowOffsetY*mult)
+        else
+            button.TextOverlayContainer.HotKey:SetShadowOffset(0,0)
+        end
+    end
+
+    if Addon.C.CurrentStacksFont ~= "Default" then
+        button.TextOverlayContainer.Count:SetFont(
+            LibStub("LibSharedMedia-3.0"):Fetch("font", Addon.C.CurrentStacksFont),
+            (Addon.C.UseStacksFontSize and Addon.C.StacksFontSize or 16),
+            Addon.C.CurrentStacksOutline > 1 and Addon.FontOutlines[Addon.C.CurrentStacksOutline] or ""
+        )
+    end
+    button.TextOverlayContainer.Count:ClearAllPoints()
+    local fontSize = Addon.C.UseStacksFontSize and Addon.C.StacksFontSize or 16
+    button.TextOverlayContainer.Count:SetFontHeight(fontSize)
+    button.TextOverlayContainer.Count:SetPoint(
+        Addon.AttachPoints[Addon.C.CurrentStacksPoint],
+        button.TextOverlayContainer,
+        Addon.AttachPoints[Addon.C.CurrentStacksRelativePoint],
+        Addon.C.UseStacksOffset and Addon.C.StacksOffsetX or -5,
+        Addon.C.UseStacksOffset and Addon.C.StacksOffsetY or 5
+    )
+    if Addon.C.UseStacksShadow then
+        button.TextOverlayContainer.Count:SetShadowColor(Addon:GetRGBA("StacksShadow"))
+    else
+        button.TextOverlayContainer.Count:SetShadowColor(0,0,0,0)
+    end
+    if Addon.C.UseStacksShadowOffset then
+        button.TextOverlayContainer.Count:SetShadowOffset(Addon.C.StacksShadowOffsetX*mult, Addon.C.StacksShadowOffsetY*mult)
+    else
+        button.TextOverlayContainer.Count:SetShadowOffset(0,0)
+    end
+    if Addon.C.UseStacksColor then
+        button.TextOverlayContainer.Count:SetVertexColor(Addon:GetRGBA("StacksColor"))
+    end
+
+    if mult < 1 then
+        button.TextOverlayContainer.HotKey:SetScale((Addon.C.FontHotKey and not isStanceBar) and Addon.C.FontHotKeyScale or 1.0)
+        button.TextOverlayContainer.Count:SetScale((Addon.C.FontStacks and not isStanceBar) and Addon.C.FontStacksScale or 1.0)
+        button.Name:SetScale(Addon.C.FontName and Addon.C.FontNameScale or 1.0)
+    end
+end
+
 local function Hook_UpdateHotkeys(self, actionButtonType)
+    local button = self:GetParent()
     local hotKey = self.HotKey
 	local text = hotKey:GetText()
     hotKey:SetText(FixKeyBindText(text))
-    local mult = self:GetParent():GetScale()
-    if mult < 1 then
-        hotKey:SetScale(Addon.C.FontHotKey and mult + Addon.C.FontHotKeyScale or 1.0)
-        hotKey:SetPoint("TOPRIGHT", self, "TOPRIGHT", 0, 0)
-    end
+    Addon:UpdateButtonFont(self)    
 end
 
 function Addon:BarsFadeAnim()
@@ -325,27 +403,41 @@ function Addon:BarsFadeAnim()
     end
 end
 
+local function RefreshDesaturated(icon, desaturated)
+    icon:SetDesaturated(desaturated)
+end
+function Addon:RefreshHotkeyColor(button)
+    if not button.TextOverlayContainer or not button.TextOverlayContainer.HotKey then return end
+    if Addon.C.UseHotkeyColor then
+        button.TextOverlayContainer.HotKey:SetVertexColor(Addon:GetRGBA("HotkeyColor"))
+    end
+end
 function Addon:RefreshIconColor(button)
     local icon = button.icon
     local action = button.action
     local type, spellID = GetActionInfo(action)
+    local desaturated = false
 
-    local isUsable, notEnoughMana = IsUsableAction(button.action)
+    local isUsable, notEnoughMana = IsUsableAction(action)
     button.needsRangeCheck = spellID and C_Spell.SpellHasRange(spellID)
     button.spellOutOfRange = button.needsRangeCheck and C_Spell.IsSpellInRange(spellID) == false
     if (button.spellOutOfRange and Addon.C.UseOORColor) then
-        icon:SetDesaturated(Addon.C.OORDesaturate)
+        desaturated = Addon.C.OORDesaturate
         icon:SetVertexColor(Addon:GetRGBA("OORColor"))       
     elseif isUsable then
-        icon:SetDesaturated(false)
+        desaturated = false
         icon:SetVertexColor(1.0, 1.0, 1.0)
     elseif (notEnoughMana and Addon.C.UseOOMColor) then
-        icon:SetDesaturated(Addon.C.OOMDesaturate)
+        desaturated = Addon.C.OOMDesaturate
         icon:SetVertexColor(Addon:GetRGBA("OOMColor"))
     elseif Addon.C.UseNoUseColor then
-        icon:SetDesaturated(Addon.C.NoUseDesaturate)
+        desaturated = Addon.C.NoUseDesaturate
         icon:SetVertexColor(Addon:GetRGBA("NoUseColor"))
     end
+    if not button.spellOutOfRange then
+        Addon:RefreshHotkeyColor(button)
+    end
+    RefreshDesaturated(icon, desaturated)
 end
 
 local function HoverHook(button)
@@ -358,14 +450,13 @@ end
 
 local function Hook_Update(self)
     Addon:RefreshIconColor(self)
+    --Addon:RefreshHotkeyColor(self)
 end
 local function Hook_UpdateUsable(self, action, usable, noMana)
     Addon:RefreshIconColor(self)
 end
 
-local function Hook_UpdateButton(button, isStanceBar)
-    if button == ExtraActionButton1 then return end
-
+function Addon:UpdateNormalTexture(button, isStanceBar)
     local normalAtlas = T.NormalTextures[Addon.C.CurrentNormalTexture] or nil
     if button.NormalTexture then
         if normalAtlas then
@@ -400,7 +491,8 @@ local function Hook_UpdateButton(button, isStanceBar)
             button.NormalTexture:SetVertexColor(Addon:GetRGBA("NormalTextureColor"))
         end
     end
-
+end
+function Addon:UpdateBackdropTexture(button, isStanceBar)
     local backdropAtlas = T.BackdropTextures[Addon.C.CurrentBackdropTexture] or nil
     if button.SlotBackground then
         if backdropAtlas and Addon.C.CurrentBackdropTexture > 1 then
@@ -430,7 +522,8 @@ local function Hook_UpdateButton(button, isStanceBar)
             button.SlotBackground:SetVertexColor(Addon:GetRGBA("BackdropColor"))
         end
     end
-
+end
+function Addon:UpdatePushedTexture(button, isStanceBar)
     local pushedAtlas = T.PushedTextures[Addon.C.CurrentPushedTexture] or nil
     if button.PushedTexture then
         if pushedAtlas and Addon.C.CurrentPushedTexture > 1 then
@@ -458,10 +551,8 @@ local function Hook_UpdateButton(button, isStanceBar)
             button.PushedTexture:SetVertexColor(Addon:GetRGBA("PushedColor"))
         end
     end
-
-    --button.PushedTexture:SetDesaturated(true)
-    --button.PushedTexture:SetVertexColor(r, g, b)
-
+end
+function Addon:UpdateHighlightTexture(button, isStanceBar)
     local highlightAtlas = T.HighlightTextures[Addon.C.CurrentHighlightTexture] or nil
     if highlightAtlas and highlightAtlas.hide then
         button.HighlightTexture:Hide()
@@ -475,6 +566,9 @@ local function Hook_UpdateButton(button, isStanceBar)
             if highlightAtlas.point then
                 button.HighlightTexture:ClearAllPoints()
                 button.HighlightTexture:SetPoint(highlightAtlas.point, button, highlightAtlas.point)
+            end
+            if highlightAtlas.padding then
+                button.HighlightTexture:AdjustPointsOffset(highlightAtlas.padding[1], highlightAtlas.padding[2])
             end
             if highlightAtlas.size then
                 button.HighlightTexture:SetSize(highlightAtlas.size[1], highlightAtlas.size[2])
@@ -490,7 +584,8 @@ local function Hook_UpdateButton(button, isStanceBar)
             button.HighlightTexture:SetVertexColor(Addon:GetRGBA("HighlightColor"))
         end
     end
-
+end
+function Addon:UpdateCheckedTexture(button, isStanceBar)
     if button.CheckedTexture then
         local checkedAtlas = T.HighlightTextures[Addon.C.CurrentCheckedTexture] or nil
         if checkedAtlas then
@@ -519,29 +614,69 @@ local function Hook_UpdateButton(button, isStanceBar)
             end
         end
     end
-
-    if button.IconMask then
-        local iconMaskAtlas = T.IconMaskTextures[Addon.C.CurrentIconMaskTexture] or nil
-        if iconMaskAtlas then
-            if iconMaskAtlas.atlas and Addon.C.CurrentIconMaskTexture > 1 then
+end
+function Addon:UpdateIconMask(button, isStanceBar)
+    local iconMaskAtlas = T.IconMaskTextures[Addon.C.CurrentIconMaskTexture] or nil
+    if iconMaskAtlas then
+        if Addon.C.CurrentIconMaskTexture > 1 then
+            button.IconMask:SetHorizTile(false)
+            button.IconMask:SetVertTile(false)
+            if iconMaskAtlas.atlas then
                 button.IconMask:SetAtlas(iconMaskAtlas.atlas)
-                if iconMaskAtlas.point then
-                    button.IconMask:ClearAllPoints()
-                    button.IconMask:SetPoint(iconMaskAtlas.point, button.icon, iconMaskAtlas.point)
-                end
-                if iconMaskAtlas.size then
-                    button.IconMask:SetSize(iconMaskAtlas.size[1], iconMaskAtlas.size[2])
-                end
-                if iconMaskAtlas.coords then
-                    button.IconMask:SetTexCoord(iconMaskAtlas.coords[1], iconMaskAtlas.coords[2], iconMaskAtlas.coords[3], iconMaskAtlas.coords[4])
-                end
+            elseif iconMaskAtlas.texture then
+                button.IconMask:SetTexture(iconMaskAtlas.texture)
             end
-            if isStanceBar then
-                button.IconMask:SetScale(Addon.C.UseIconMaskScale and Addon.C.IconMaskScale * 0.69 or 1.0)
-            else
-                button.IconMask:SetScale(Addon.C.UseIconMaskScale and Addon.C.IconMaskScale or 1.0)
+            if iconMaskAtlas.point then
+                button.IconMask:ClearAllPoints()
+                button.IconMask:SetPoint(iconMaskAtlas.point, button.icon, iconMaskAtlas.point)
+            end
+            if iconMaskAtlas.size then
+                button.IconMask:SetSize(iconMaskAtlas.size[1], iconMaskAtlas.size[2])
+            end
+            if iconMaskAtlas.coords then
+                button.IconMask:SetTexCoord(iconMaskAtlas.coords[1], iconMaskAtlas.coords[2], iconMaskAtlas.coords[3], iconMaskAtlas.coords[4])
             end
         end
+        if isStanceBar then
+            button.IconMask:SetScale(Addon.C.UseIconMaskScale and Addon.C.IconMaskScale * 0.69 or 1.0)
+        else
+            button.IconMask:SetScale(Addon.C.UseIconMaskScale and Addon.C.IconMaskScale or 1.0)
+        end
+    end
+end
+function Addon:UpdateCooldown(button, isStanceBar)
+    button.cooldown:SetFrameStrata("HIGH")
+    if Addon.C.UseSwipeSize then
+        button.cooldown:ClearAllPoints()
+        local size = isStanceBar and Addon.C.SwipeSize*0.69 or Addon.C.SwipeSize
+        button.cooldown:SetPoint("CENTER", button.icon, "CENTER", 0, 0)
+        button.cooldown:SetSize(size, size)
+    end
+    local color = {r = 1.0, g = 1.0, b = 1.0, a = 1.0}
+    if Addon.C.UseCooldownFontColor then
+        color.r,color.g,color.b,color.a = Addon:GetRGBA("CooldownFontColor")
+    end
+    local fontSize = Addon.C.UseCooldownFontSize and Addon.C.CooldownFontSize or 17
+    local _, fontName = Addon:GetFontObject(
+        Addon.C.CurrentCooldownFont,
+        "OUTLINE",
+        color,
+        fontSize,
+        isStanceBar
+    )
+    button.cooldown:SetCountdownFont(fontName)
+    button.cooldown:SetCountdownAbbrevThreshold(320)
+end
+local function Hook_UpdateButton(button, isStanceBar)
+    if button == ExtraActionButton1 then return end
+    Addon:UpdateNormalTexture(button, isStanceBar)
+    Addon:UpdateBackdropTexture(button, isStanceBar)
+    Addon:UpdatePushedTexture(button, isStanceBar)
+    Addon:UpdateHighlightTexture(button, isStanceBar)
+    Addon:UpdateCheckedTexture(button, isStanceBar)
+
+    if button.IconMask then
+        Addon:UpdateIconMask(button, isStanceBar)
     end
 
     if button.icon then
@@ -555,60 +690,51 @@ local function Hook_UpdateButton(button, isStanceBar)
         button.icon:SetScale(Addon.C.UseIconScale and Addon.C.IconScale or 1.0)
     end
 
-    if not isStanceBar then
-        if button.Name then
-            if Addon.C.FontHideName then
-                button.Name:Hide()
-            else
-                button.Name:Show()
-            end
-        end
-        if button.TextOverlayContainer then
-            local mult = button:GetParent():GetScale()
-            if mult < 1 then
-                button.TextOverlayContainer.HotKey:SetScale(Addon.C.FontHotKey and mult + Addon.C.FontHotKeyScale or 1.0)
-                button.TextOverlayContainer.HotKey:SetPoint("TOPRIGHT", button.TextOverlayContainer, "TOPRIGHT", 0, 0)
-                button.TextOverlayContainer.Count:SetScale(Addon.C.FontStacks and mult + Addon.C.FontStacksScale or 1.0)
-                button.Name:SetScale(Addon.C.FontName and mult + Addon.C.FontNameScale or 1.0)
-            end
+    
+    if button.cooldown then
+        Addon:UpdateCooldown(button, isStanceBar)
+    end
 
-            local hotKey = button.TextOverlayContainer.HotKey:GetText()
-            if hotKey and hotKey ~= _G.RANGE_INDICATOR then
-                button.TextOverlayContainer.HotKey:SetText(FixKeyBindText(hotKey))
-            end
+    if button.Name then
+        if Addon.C.FontHideName then
+            button.Name:Hide()
+        else
+            button.Name:Show()
         end
-        local eventFrame = ActionBarActionEventsFrame
-        if Addon.C.HideInterrupt then
-            eventFrame:UnregisterEvent("UNIT_SPELLCAST_INTERRUPTED")
-            eventFrame:UnregisterEvent("UNIT_SPELLCAST_SUCCEEDED")
-        end
-        if Addon.C.HideCasting then
-            eventFrame:UnregisterEvent("UNIT_SPELLCAST_CHANNEL_START")
-            eventFrame:UnregisterEvent("UNIT_SPELLCAST_CHANNEL_STOP")
-            eventFrame:UnregisterEvent("UNIT_SPELLCAST_EMPOWER_START")
-            eventFrame:UnregisterEvent("UNIT_SPELLCAST_EMPOWER_STOP")
-            eventFrame:UnregisterEvent("UNIT_SPELLCAST_START")
-            eventFrame:UnregisterEvent("UNIT_SPELLCAST_STOP")
-        end
-        if Addon.C.HideReticle then
-            eventFrame:UnregisterEvent("UNIT_SPELLCAST_FAILED")
-            eventFrame:UnregisterEvent("UNIT_SPELLCAST_RETICLE_CLEAR")
-            eventFrame:UnregisterEvent("UNIT_SPELLCAST_RETICLE_TARGET")
-            eventFrame:UnregisterEvent("UNIT_SPELLCAST_SENT")
-        end
-        if Addon.C.FadeBars then
-            button:HookScript("OnEnter", HoverHook)
-            button:HookScript("OnLeave", HoverHook)
-        end
-        if button.Update then
-            hooksecurefunc(button, "Update", Hook_Update)
-        end
-        if button.UpdateUsable then
-            hooksecurefunc(button, "UpdateUsable", Hook_UpdateUsable)
-        end
-        if button.UpdateHotkeys then
-            hooksecurefunc(button, "UpdateHotkeys", Hook_UpdateHotkeys)
-        end
+    end
+    Addon:UpdateButtonFont(button, isStanceBar)
+
+    local eventFrame = ActionBarActionEventsFrame
+    if Addon.C.HideInterrupt then
+        eventFrame:UnregisterEvent("UNIT_SPELLCAST_INTERRUPTED")
+        eventFrame:UnregisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+    end
+    if Addon.C.HideCasting then
+        eventFrame:UnregisterEvent("UNIT_SPELLCAST_CHANNEL_START")
+        eventFrame:UnregisterEvent("UNIT_SPELLCAST_CHANNEL_STOP")
+        eventFrame:UnregisterEvent("UNIT_SPELLCAST_EMPOWER_START")
+        eventFrame:UnregisterEvent("UNIT_SPELLCAST_EMPOWER_STOP")
+        eventFrame:UnregisterEvent("UNIT_SPELLCAST_START")
+        eventFrame:UnregisterEvent("UNIT_SPELLCAST_STOP")
+    end
+    if Addon.C.HideReticle then
+        eventFrame:UnregisterEvent("UNIT_SPELLCAST_FAILED")
+        eventFrame:UnregisterEvent("UNIT_SPELLCAST_RETICLE_CLEAR")
+        eventFrame:UnregisterEvent("UNIT_SPELLCAST_RETICLE_TARGET")
+        eventFrame:UnregisterEvent("UNIT_SPELLCAST_SENT")
+    end
+    if Addon.C.FadeBars then
+        button:HookScript("OnEnter", HoverHook)
+        button:HookScript("OnLeave", HoverHook)
+    end
+    if button.Update then
+        hooksecurefunc(button, "Update", Hook_Update)
+    end
+    if button.UpdateUsable then
+        hooksecurefunc(button, "UpdateUsable", Hook_UpdateUsable)
+    end
+    if button.UpdateHotkeys then
+        hooksecurefunc(button, "UpdateHotkeys", Hook_UpdateHotkeys)
     end
 end
 
@@ -618,34 +744,67 @@ local function Hook_RangeCheckButton(slot, inRange, checksRange)
     if buttons then
         for _, button in pairs(buttons) do
             Addon:RefreshIconColor(button)
+            --Addon:RefreshHotkeyColor(button)
         end
     end
 end
-local function Hook_UpdateCooldown(self)
-    local actionType, actionID
-    if self.action then
-        actionType, actionID = GetActionInfo(self.action)
+function Addon:RefreshCooldown(button, isStanceBar)
+    --[[ local actionType, actionID
+    if button.action then
+        actionType, actionID = GetActionInfo(button.action)
     end
-
-    --[[ if actionID then
+    if actionID then
         local spellCooldownInfo = C_Spell.GetSpellCooldown(actionID)
-        if spellCooldownInfo then
-            if spellCooldownInfo.activeCategory and spellCooldownInfo.activeCategory ~= Constants.SpellCooldownConsts.GLOBAL_RECOVERY_CATEGORY then
-                self.icon:SetDesaturated(true)
-            else
-                self.icon:SetDesaturated(false)
+        local function IsExpired(spellCooldownInfo)
+            if spellCooldownInfo.startTime == 0 then
+                return true
             end
 
+            return spellCooldownInfo.startTime + spellCooldownInfo.duration <= GetTime()
+        end
+        if spellCooldownInfo then
+            if spellCooldownInfo.activeCategory == Constants.SpellCooldownConsts.GLOBAL_RECOVERY_CATEGORY then
+                button.cooldownDesaturated = false
+            else
+                button.cooldownDesaturated = true
+            end
+            button.cooldownDesaturated = button.cooldownDesaturated and not IsExpired(spellCooldownInfo)
+            --RefreshDesaturated(button.icon, button.cooldownDesaturated)
         end
     end ]]
-    if self.cooldown and Addon.C.UseCooldownColor then
-        self.cooldown:SetSwipeColor(Addon:GetRGBA("CooldownColor"))
-        self.cooldown:SetSwipeTexture("Interface/HUD/UI-HUD-CoolDownManager-Icon-Swipe")
-        self.cooldown:ClearAllPoints()
-        self.cooldown:SetPoint("CENTER", self.icon, "CENTER")
-        self.cooldown:SetSize(46,45)
+   --Addon:RefreshIconColor(button)
+   local function RefreshEdgeTexture(cooldown, isStanceBar)
+        cooldown:SetEdgeTexture(T.EdgeTextures[Addon.C.CurrentEdgeTexture].texture)
+        if Addon.C.UseEdgeSize then
+            cooldown:ClearAllPoints()
+            cooldown:SetPoint("CENTER", cooldown:GetParent().icon, "CENTER", 0, 0)
+            local size = isStanceBar and Addon.C.EdgeSize*0.69 or Addon.C.EdgeSize
+            cooldown:SetSize(size, size)
+        end
+        if Addon.C.UseEdgeColor then
+            cooldown:SetEdgeColor(Addon:GetRGBA("EdgeColor"))
+        end
+    end
+    local function RefreshSwipeTexture(button, isStanceBar)
+        if Addon.C.CurrentSwipeTexture and Addon.C.CurrentSwipeTexture > 1 then
+            button.cooldown:SetSwipeTexture(T.SwipeTextures[Addon.C.CurrentSwipeTexture].texture)
+        end
+        if Addon.C.UseCooldownColor then
+            button.cooldown:SetSwipeColor(Addon:GetRGBA("CooldownColor"))
+        end
     end
     
+    if button.cooldown then
+        RefreshSwipeTexture(button, isStanceBar)
+
+        button.cooldown:SetDrawEdge(Addon.C.EdgeAlwaysShow)
+        if button.cooldown:GetDrawEdge() then
+            RefreshEdgeTexture(button.cooldown, isStanceBar)
+        end
+    end
+    if button.chargeCooldown then
+        RefreshEdgeTexture(button.chargeCooldown, isStanceBar)
+    end
 end
 
 local function Hook_Assist(self, actionButton, shown)
@@ -657,8 +816,30 @@ local function Hook_Assist(self, actionButton, shown)
     end
 end
 
+local function Hook_CooldownFrame_Set(self)
+    if not self then return end
+
+    local button = self:GetParent()
+    if not button then return end
+
+    local bar = button:GetParent()
+    if not bar then return end
+
+    bar = bar:GetParent()
+
+    local barName = bar and bar:GetName() or ""
+    
+    if barName == "" or not tContains(bars, barName) then
+        return
+    end
+
+    local isStanceBar = (barName == "PetActionBar" or barName == "StanceBar")
+
+    Addon:RefreshCooldown(button, isStanceBar)
+end
+
 hooksecurefunc(ActionButtonSpellAlertManager, "ShowAlert", Hook_UpdateFlipbook)
-hooksecurefunc("ActionButton_UpdateCooldown", Hook_UpdateCooldown)
+hooksecurefunc("CooldownFrame_Set", Hook_CooldownFrame_Set)
 
 hooksecurefunc(AssistedCombatManager, "SetAssistedHighlightFrameShown", Hook_Assist)
 
@@ -720,6 +901,10 @@ local function Hook_ShowStanceBar()
     end)
 end
 
+local function DisableTalkingHeadFrame()
+    TalkingHeadFrame:Hide()
+end
+
 local function ProcessEvent(self, event, ...)
     if event == "PLAYER_LOGIN" then
         ApplyProfile()
@@ -755,7 +940,18 @@ local function ProcessEvent(self, event, ...)
 
         Addon:Welcome()
 
-        
+        if not next(Addon.Fonts) then
+            Addon.Fonts = Addon:GetFontsList()
+        end
+
+        if Addon.C.HideTalkingHead then
+            Addon.eventHandlerFrame:RegisterEvent("TALKINGHEAD_REQUESTED")
+        else
+            Addon.eventHandlerFrame:UnregisterEvent("TALKINGHEAD_REQUESTED")
+        end
+    end
+    if event == "TALKINGHEAD_REQUESTED" then
+        DisableTalkingHeadFrame()
     end
     if event == "PLAYER_ENTERING_WORLD" then
         local stateWA = C_AddOns.GetAddOnEnableState("WeakAuras", UnitName("player"))
@@ -778,13 +974,13 @@ local function ProcessEvent(self, event, ...)
     end
 end
 
-eventHandlerFrame = CreateFrame('Frame')
-eventHandlerFrame:SetScript('OnEvent', ProcessEvent)
-eventHandlerFrame:RegisterEvent('PLAYER_LOGIN')
-eventHandlerFrame:RegisterEvent('ACTION_RANGE_CHECK_UPDATE')
-eventHandlerFrame:RegisterEvent('PLAYER_REGEN_DISABLED')
-eventHandlerFrame:RegisterEvent('PLAYER_REGEN_ENABLED')
-eventHandlerFrame:RegisterEvent('PLAYER_TARGET_CHANGED')
-eventHandlerFrame:RegisterEvent('UNIT_SPELLCAST_START')
-eventHandlerFrame:RegisterEvent('UNIT_SPELLCAST_STOP')
-eventHandlerFrame:RegisterEvent('PLAYER_ENTERING_WORLD')
+Addon.eventHandlerFrame = CreateFrame('Frame')
+Addon.eventHandlerFrame:SetScript('OnEvent', ProcessEvent)
+Addon.eventHandlerFrame:RegisterEvent('PLAYER_LOGIN')
+Addon.eventHandlerFrame:RegisterEvent('ACTION_RANGE_CHECK_UPDATE')
+Addon.eventHandlerFrame:RegisterEvent('PLAYER_REGEN_DISABLED')
+Addon.eventHandlerFrame:RegisterEvent('PLAYER_REGEN_ENABLED')
+Addon.eventHandlerFrame:RegisterEvent('PLAYER_TARGET_CHANGED')
+Addon.eventHandlerFrame:RegisterEvent('UNIT_SPELLCAST_START')
+Addon.eventHandlerFrame:RegisterEvent('UNIT_SPELLCAST_STOP')
+Addon.eventHandlerFrame:RegisterEvent('PLAYER_ENTERING_WORLD')

@@ -12,7 +12,11 @@
 ## X-Contributors: Hndrxuprt
 ## X-eMail: hndrxuprt@gmail.com
 
+Libs/LoadLibs.xml
+
 Locales/LoadLocales.xml
+
+SharedMedia\RegisterMedia.lua
 
 constants.lua
 frames\ActionBarsEnhanced.xml

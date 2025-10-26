@@ -153,7 +153,11 @@
 	</CheckButton>
 	<CheckButton name="OptionsButtonTextPreviewTemplate" inherits="OptionsButtonPreviewTemplate" mixin="ActionBarEnhancedButtonPreviewMixin" virtual="true">
 		<Frames>
-			<Frame parentKey="TextOverlayContainer" mixin="ActionButtonTextOverlayContainerMixin" setAllPoints="true" hidden="false">
+			<Frame parentKey="TextOverlayContainer" mixin="ActionButtonTextOverlayContainerMixin" hidden="false">
+				<Size x="45" y="45"/>
+				<Anchors>
+					<Anchor point="CENTER"/>
+				</Anchors>
 				<Layers>
 					<Layer level="OVERLAY">
 						<FontString parentKey="HotKey" inherits="NumberFontNormalSmallGray" justifyH="RIGHT">
@@ -170,6 +174,19 @@
 					</Layer>
 				</Layers>
 			</Frame>
+		</Frames>
+	</CheckButton>
+	<CheckButton name="OptionsButtonCooldownPreviewTemplate" inherits="OptionsButtonPreviewTemplate" mixin="ActionBarEnhancedButtonPreviewMixin" virtual="true">
+		<Frames>
+			<Cooldown parentKey="cooldown" inherits="CooldownFrameTemplate" drawBling="false" useParentLevel="true">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeKey="$parent.icon" x="3" y="-3"/>
+					<Anchor point="BOTTOMRIGHT" relativeKey="$parent.icon" x="-3" y="3"/>
+				</Anchors>				
+				<SwipeTexture>
+					<Color r="0" g="0" b="0" a="0.8"/>
+				</SwipeTexture>
+			</Cooldown>
 		</Frames>
 	</CheckButton>
 	<Frame name="OptionsContainerTemplate" mixin="ActionBarEnhancedContainerMixin" virtual="true">
@@ -253,6 +270,51 @@
 			</Frame>
 		</Frames>
 	</Frame>
+	<Frame name="OptionsDoubleDropdownTemplate" mixin="ActionBarEnhancedDropdownMixin" virtual="true">
+		<Size y="26"/>
+		<Anchors>
+			<Anchor point="TOPRIGHT"/>
+		</Anchors>
+		<Layers>
+			<Layer>
+				<FontString parentKey="Text" inherits="GameFontNormal" justifyH="LEFT">
+					<Anchors>
+						<Anchor point="LEFT" x="40"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="Text1" inherits="GameFontNormal" justifyH="RIGHT" text="Attach:">
+					<Anchors>
+						<Anchor point="LEFT" relativeKey="$parent" relativePoint="CENTER" x="-15" y="10"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="Text2" inherits="GameFontNormal" justifyH="RIGHT" text="To frame's:">
+					<Anchors>
+						<Anchor point="LEFT" relativeKey="$parent.Text1" relativePoint="RIGHT" x="100"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Frame parentKey="Control1" inherits="Metal2DropdownWithSteppersAndLabelTemplate">
+				<Size x="150" y="25"/>
+				<Anchors>
+					<Anchor point="TOP" relativeKey="$parent.Text1" relativePoint="BOTTOM" x="0"/>
+				</Anchors>
+			</Frame>
+			<Frame parentKey="Control2" inherits="Metal2DropdownWithSteppersAndLabelTemplate">
+				<Size x="150" y="25"/>
+				<Anchors>
+					<Anchor point="TOP" relativeKey="$parent.Text2" relativePoint="BOTTOM" x="0"/>
+				</Anchors>
+			</Frame>
+			<Frame parentKey="NewFeature" inherits="NewFeatureLabelTemplate" frameStrata="HIGH" scale=".8" frameLevel="100" hidden="true">
+				<Size x="1" y="1"/>
+				<Anchors>
+					<Anchor point="BOTTOMRIGHT" x="16" y="-10" relativeKey="$parent.Text" relativePoint="LEFT"/>
+				</Anchors>
+			</Frame>
+		</Frames>
+	</Frame>
 	<Frame name="OptionsCheckboxTemplate" mixin="ActionBarEnhancedCheckboxMixin" virtual="true">
 		<Size y="26"/>
 		<Anchors>
@@ -313,6 +375,44 @@
 				<Size x="300" y="26"/>
 				<Anchors>
 					<Anchor point="LEFT" relativeKey="$parent.Checkbox" x="2" relativePoint="RIGHT" y="0"/>
+				</Anchors>
+			</Frame>
+		</Frames>
+	</Frame>
+	<Frame name="OptionsDoubleCheckboxSliderTemplate" mixin="ActionBarEnhancedCheckboxSliderMixin" virtual="true">
+		<Size y="26"/>
+		<Anchors>
+			<Anchor point="TOPRIGHT"/>
+		</Anchors>
+		<Layers>
+			<Layer>
+				<FontString parentKey="Text" inherits="GameFontNormal" justifyH="LEFT">
+					<Anchors>
+						<Anchor point="LEFT" x="40"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Frames>
+			<CheckButton parentKey="Checkbox" inherits="UICheckButtonTemplate">
+				<Anchors>
+					<Anchor point="LEFT" relativePoint="CENTER" x="-80" y="0"/>
+				</Anchors>
+				<NormalTexture atlas="checkbox-minimal" useAtlasSize="true"/>
+				<PushedTexture atlas="checkbox-minimal" useAtlasSize="true"/>
+				<CheckedTexture atlas="checkmark-minimal" useAtlasSize="true"/>
+				<DisabledCheckedTexture atlas="checkmark-minimal-disabled" useAtlasSize="true"/>
+			</CheckButton>
+			<Frame parentKey="SliderWithSteppers1" inherits="MinimalSliderWithSteppersTemplate">
+				<Size x="150" y="26"/>
+				<Anchors>
+					<Anchor point="LEFT" relativeKey="$parent.Checkbox" x="2" relativePoint="RIGHT" y="0"/>
+				</Anchors>
+			</Frame>
+			<Frame parentKey="SliderWithSteppers2" inherits="MinimalSliderWithSteppersTemplate">
+				<Size x="150" y="26"/>
+				<Anchors>
+					<Anchor point="LEFT" relativeKey="$parent.SliderWithSteppers1" x="0" relativePoint="RIGHT" y="0"/>
 				</Anchors>
 			</Frame>
 		</Frames>
@@ -587,7 +687,7 @@
 					</Frame>
 					<Frame parentKey="MaskScale" inherits="OptionsCheckboxSliderTemplate">
 						<Anchors>
-							<Anchor point="TOP" relativeKey="$parent.IconMaskTextureOptions" relativePoint="BOTTOM" y="-2"/>
+							<Anchor point="TOP" relativeKey="$parent.IconMaskTextureOptions" relativePoint="BOTTOM" y="-8"/>
 						</Anchors>
 					</Frame>
 					<Frame parentKey="IconScale" inherits="OptionsCheckboxSliderTemplate">
@@ -676,21 +776,122 @@
 					</CheckButton>
 				</Frames>
 			</Frame>
-
-			<Frame parentKey="ColorOverrideOptionsContainer" inherits="OptionsContainerTemplate" hidden="false">
-				<Size x="720" y="210"/>
+			<Frame parentKey="CooldownOptionsContaier" inherits="OptionsContainerTemplate" hidden="false">
+				<Size x="720" y="500"/>
 				<Anchors>
 					<Anchor point="TOP" relativeKey="$parent.CheckedOptionsContainer" relativePoint="BOTTOM" x="0" y="0"/>
 				</Anchors>
 				<Frames>
-					<Frame parentKey="CustomColorCooldown" inherits="OptionsColorOverrideTemplate">
+					<Frame parentKey="SwipeTexture" inherits="OptionsDropdownTemplate">
 						<Anchors>
 							<Anchor point="TOP" relativeKey="$parent.Desc" relativePoint="BOTTOM" y="-10"/>
 						</Anchors>
 					</Frame>
+					<Frame parentKey="SwipeSize" inherits="OptionsCheckboxSliderTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.SwipeTexture" relativePoint="BOTTOM" y="-8"/>
+						</Anchors>
+					</Frame>
+					<Frame parentKey="SwipeColor" inherits="OptionsColorOverrideTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.SwipeSize" relativePoint="BOTTOM" y="-8"/>
+						</Anchors>
+					</Frame>
+					<CheckButton parentKey="PreviewSwipe" inherits="OptionsButtonCooldownPreviewTemplate" hidden="false" scale="1.8">
+						<Anchors>
+							<Anchor point="LEFT" relativeKey="$parent.SwipeSize" relativePoint="CENTER" x="150" y="0"/>
+						</Anchors>
+					</CheckButton>
+					<Frame parentKey="Divider">
+						<Size x="650" y="13"/>
+						<Anchors>
+							<Anchor point="TOP" x="0" y="-8" relativeKey="$parent.SwipeColor" relativePoint="BOTTOM"/>
+						</Anchors>
+						<Layers>
+							<Layer level="BACKGROUND" textureSubLevel="2">
+								<Texture parentKey="BG" atlas="delves-companion-divider" useAtlasSize="False">
+									<Size x="650" y="10"/>
+									<Anchors>
+										<Anchor point="CENTER" x="0" y="0" relativeKey="$parent" relativePoint="CENTER"/>
+									</Anchors>
+								</Texture>
+							</Layer>
+						</Layers>
+					</Frame>
+					<Frame parentKey="EdgeTexture" inherits="OptionsDropdownTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.Divider" relativePoint="BOTTOM" y="-8"/>
+						</Anchors>
+					</Frame>
+					<Frame parentKey="EdgeSize" inherits="OptionsCheckboxSliderTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.EdgeTexture" relativePoint="BOTTOM" y="-8"/>
+						</Anchors>
+					</Frame>
+					<Frame parentKey="EdgeColor" inherits="OptionsColorOverrideTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.EdgeSize" relativePoint="BOTTOM" y="-8"/>
+						</Anchors>
+					</Frame>
+					<Frame parentKey="EdgeAlwaysShow" inherits="OptionsCheckboxTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.EdgeColor" relativePoint="BOTTOM" y="-8"/>
+						</Anchors>
+					</Frame>
+					<CheckButton parentKey="PreviewEdge" inherits="OptionsButtonCooldownPreviewTemplate" hidden="false" scale="1.8">
+						<Anchors>
+							<Anchor point="LEFT" relativeKey="$parent.EdgeSize" relativePoint="CENTER" x="150" y="-10"/>
+						</Anchors>
+					</CheckButton>
+					<Frame parentKey="Divider2">
+						<Size x="650" y="13"/>
+						<Anchors>
+							<Anchor point="TOP" x="0" y="-8" relativeKey="$parent.EdgeAlwaysShow" relativePoint="BOTTOM"/>
+						</Anchors>
+						<Layers>
+							<Layer level="BACKGROUND" textureSubLevel="2">
+								<Texture parentKey="BG" atlas="delves-companion-divider" useAtlasSize="False">
+									<Size x="650" y="10"/>
+									<Anchors>
+										<Anchor point="CENTER" x="0" y="0" relativeKey="$parent" relativePoint="CENTER"/>
+									</Anchors>
+								</Texture>
+							</Layer>
+						</Layers>
+					</Frame>
+					<Frame parentKey="CooldownFont" inherits="OptionsDropdownTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.Divider2" relativePoint="BOTTOM" y="-8"/>
+						</Anchors>
+					</Frame>
+					<Frame parentKey="CooldownFontSize" inherits="OptionsCheckboxSliderTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.CooldownFont" relativePoint="BOTTOM" y="-8"/>
+						</Anchors>
+					</Frame>
+					<Frame parentKey="CooldownFontColor" inherits="OptionsColorOverrideTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.CooldownFontSize" relativePoint="BOTTOM" y="-8"/>
+						</Anchors>
+					</Frame>
+					<CheckButton parentKey="PreviewCooldownFont" inherits="OptionsButtonCooldownPreviewTemplate" hidden="false" scale="1.8">
+						<Anchors>
+							<Anchor point="LEFT" relativeKey="$parent.CooldownFontSize" relativePoint="CENTER" x="150" y="-10"/>
+						</Anchors>
+					</CheckButton>
+				</Frames>
+				
+			</Frame>
+
+			<Frame parentKey="ColorOverrideOptionsContainer" inherits="OptionsContainerTemplate" hidden="false">
+				<Size x="720" y="210"/>
+				<Anchors>
+					<Anchor point="TOP" relativeKey="$parent.CooldownOptionsContaier" relativePoint="BOTTOM" x="0" y="0"/>
+				</Anchors>
+				<Frames>
 					<Frame parentKey="CustomColorOOR" inherits="OptionsColorOverrideTemplate">
 						<Anchors>
-							<Anchor point="TOP" relativeKey="$parent.CustomColorCooldown" relativePoint="BOTTOM" y="-2"/>
+							<Anchor point="TOP" relativeKey="$parent.Desc" relativePoint="BOTTOM" y="-10"/>
 						</Anchors>
 					</Frame>
 					<Frame parentKey="CustomColorOOM" inherits="OptionsColorOverrideTemplate">
@@ -707,7 +908,7 @@
 			</Frame>
 
 			<Frame parentKey="HideFramesOptionsContainer" inherits="OptionsContainerTemplate" hidden="false">
-				<Size x="720" y="250"/>
+				<Size x="720" y="300"/>
 				<Anchors>
 					<Anchor point="TOP" relativeKey="$parent.ColorOverrideOptionsContainer" relativePoint="BOTTOM" x="0" y="0"/>
 				</Anchors>
@@ -727,9 +928,14 @@
 							<Anchor point="TOP" relativeKey="$parent.HideMicroMenu" relativePoint="BOTTOM" y="-2"/>
 						</Anchors>
 					</Frame>
-					<Frame parentKey="HideInterrupt" inherits="OptionsCheckboxTemplate">
+					<Frame parentKey="HideTalkingHead" inherits="OptionsCheckboxTemplate">
 						<Anchors>
 							<Anchor point="TOP" relativeKey="$parent.HideStanceBar" relativePoint="BOTTOM" y="-2"/>
+						</Anchors>
+					</Frame>
+					<Frame parentKey="HideInterrupt" inherits="OptionsCheckboxTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.HideTalkingHead" relativePoint="BOTTOM" y="-2"/>
 						</Anchors>
 					</Frame>
 					<Frame parentKey="HideCasting" inherits="OptionsCheckboxTemplate">
@@ -761,24 +967,141 @@
 			</Frame>
 
 			<Frame parentKey="FontOptionsContainer" inherits="OptionsContainerTemplate" hidden="false">
-				<Size x="720" y="310"/>
+				<Size x="720" y="800"/>
 				<Anchors>
 					<Anchor point="TOP" relativeKey="$parent.HideFramesOptionsContainer" relativePoint="BOTTOM" x="0" y="0"/>
 				</Anchors>
 				<Frames>
-					<Frame parentKey="HotkeyScale" inherits="OptionsCheckboxSliderTemplate">
+					<Frame parentKey="HotkeyFont" inherits="OptionsDropdownTemplate">
 						<Anchors>
 							<Anchor point="TOP" relativeKey="$parent.Desc" relativePoint="BOTTOM" y="-10"/>
 						</Anchors>
 					</Frame>
+					<Frame parentKey="HotkeyOutline" inherits="OptionsDropdownTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.HotkeyFont" relativePoint="BOTTOM" y="-8"/>
+						</Anchors>
+					</Frame>
+					<Frame parentKey="HotkeySize" inherits="OptionsCheckboxSliderTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.HotkeyOutline" relativePoint="BOTTOM" y="-8"/>
+						</Anchors>
+					</Frame>
+					<Frame parentKey="HotkeyColor" inherits="OptionsColorOverrideTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.HotkeySize" relativePoint="BOTTOM" y="-8"/>
+						</Anchors>
+					</Frame>
+					
+					<Frame parentKey="HotkeyPoint" inherits="OptionsDoubleDropdownTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.HotkeyColor" relativePoint="BOTTOM" y="-8"/>
+						</Anchors>
+					</Frame>
+					<Frame parentKey="HotkeyOffset" inherits="OptionsDoubleCheckboxSliderTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.HotkeyPoint" relativePoint="BOTTOM" y="-14"/>
+						</Anchors>
+					</Frame>
+
+					<Frame parentKey="HotkeyShadow" inherits="OptionsColorOverrideTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.HotkeyOffset" relativePoint="BOTTOM" y="-8"/>
+						</Anchors>
+					</Frame>
+					<Frame parentKey="HotkeyShadowOffset" inherits="OptionsDoubleCheckboxSliderTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.HotkeyShadow" relativePoint="BOTTOM" y="-14"/>
+						</Anchors>
+					</Frame>
+					
+					<Frame parentKey="HotkeyScale" inherits="OptionsCheckboxSliderTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.HotkeyShadowOffset" relativePoint="BOTTOM" y="-8"/>
+						</Anchors>
+					</Frame>
+					<Frame parentKey="Divider">
+						<Size x="650" y="13"/>
+						<Anchors>
+							<Anchor point="TOP" x="0" y="-8" relativeKey="$parent.HotkeyScale" relativePoint="BOTTOM"/>
+						</Anchors>
+						<Layers>
+							<Layer level="BACKGROUND" textureSubLevel="2">
+								<Texture parentKey="BG" atlas="delves-companion-divider" useAtlasSize="False">
+									<Size x="650" y="10"/>
+									<Anchors>
+										<Anchor point="CENTER" x="0" y="0" relativeKey="$parent" relativePoint="CENTER"/>
+									</Anchors>
+								</Texture>
+							</Layer>
+						</Layers>
+					</Frame>
+					<Frame parentKey="StacksFont" inherits="OptionsDropdownTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.Divider" relativePoint="BOTTOM" y="-8"/>
+						</Anchors>
+					</Frame>
+					<Frame parentKey="StacksOutline" inherits="OptionsDropdownTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.StacksFont" relativePoint="BOTTOM" y="-8"/>
+						</Anchors>
+					</Frame>
+					<Frame parentKey="StacksSize" inherits="OptionsCheckboxSliderTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.StacksOutline" relativePoint="BOTTOM" y="-8"/>
+						</Anchors>
+					</Frame>
+					<Frame parentKey="StacksColor" inherits="OptionsColorOverrideTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.StacksSize" relativePoint="BOTTOM" y="-8"/>
+						</Anchors>
+					</Frame>
+					<Frame parentKey="StacksPoint" inherits="OptionsDoubleDropdownTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.StacksColor" relativePoint="BOTTOM" y="-8"/>
+						</Anchors>
+					</Frame>
+					<Frame parentKey="StacksOffset" inherits="OptionsDoubleCheckboxSliderTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.StacksPoint" relativePoint="BOTTOM" y="-14"/>
+						</Anchors>
+					</Frame>
+
+					<Frame parentKey="StacksShadow" inherits="OptionsColorOverrideTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.StacksOffset" relativePoint="BOTTOM" y="-8"/>
+						</Anchors>
+					</Frame>
+					<Frame parentKey="StacksShadowOffset" inherits="OptionsDoubleCheckboxSliderTemplate">
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.StacksShadow" relativePoint="BOTTOM" y="-14"/>
+						</Anchors>
+					</Frame>
+					
 					<Frame parentKey="StacksScale" inherits="OptionsCheckboxSliderTemplate">
 						<Anchors>
-							<Anchor point="TOP" relativeKey="$parent.HotkeyScale" relativePoint="BOTTOM" y="-2"/>
+							<Anchor point="TOP" relativeKey="$parent.StacksShadowOffset" relativePoint="BOTTOM" y="-8"/>
 						</Anchors>
+					</Frame>
+					<Frame parentKey="Divider2">
+						<Size x="650" y="13"/>
+						<Anchors>
+							<Anchor point="TOP" x="0" y="-8" relativeKey="$parent.StacksScale" relativePoint="BOTTOM"/>
+						</Anchors>
+						<Layers>
+							<Layer level="BACKGROUND" textureSubLevel="2">
+								<Texture parentKey="BG" atlas="delves-companion-divider" useAtlasSize="False">
+									<Size x="650" y="10"/>
+									<Anchors>
+										<Anchor point="CENTER" x="0" y="0" relativeKey="$parent" relativePoint="CENTER"/>
+									</Anchors>
+								</Texture>
+							</Layer>
+						</Layers>
 					</Frame>
 					<Frame parentKey="NameHide" inherits="OptionsCheckboxTemplate">
 						<Anchors>
-							<Anchor point="TOP" relativeKey="$parent.StacksScale" relativePoint="BOTTOM" y="-2"/>
+							<Anchor point="TOP" relativeKey="$parent.Divider2" relativePoint="BOTTOM" y="-8"/>
 						</Anchors>
 					</Frame>
 					<Frame parentKey="NameScale" inherits="OptionsCheckboxSliderTemplate">
@@ -788,27 +1111,27 @@
 					</Frame>
 					<CheckButton parentKey="PreviewFont05" inherits="OptionsButtonTextPreviewTemplate" hidden="false" scale="0.5">
 						<Anchors>
-							<Anchor point="BOTTOM" relativeKey="$parent" relativePoint="BOTTOM" x="-250" y="43"/>
+							<Anchor point="LEFT" relativeKey="$parent.Divider" relativePoint="RIGHT" x="-50" y="-300"/>
 						</Anchors>
 					</CheckButton>
 					<CheckButton parentKey="PreviewFont075" inherits="OptionsButtonTextPreviewTemplate" hidden="false" scale="0.75">
 						<Anchors>
-							<Anchor point="BOTTOMLEFT" relativeKey="$parent.PreviewFont05" relativePoint="BOTTOMRIGHT" x="0" y="0"/>
+							<Anchor point="BOTTOM" relativeKey="$parent.PreviewFont05" relativePoint="TOP" x="0" y="5"/>
 						</Anchors>
 					</CheckButton>
 					<CheckButton parentKey="PreviewFont1" inherits="OptionsButtonTextPreviewTemplate" hidden="false" scale="1.0">
 						<Anchors>
-							<Anchor point="BOTTOMLEFT" relativeKey="$parent.PreviewFont075" relativePoint="BOTTOMRIGHT" x="0" y="0"/>
+							<Anchor point="BOTTOM" relativeKey="$parent.PreviewFont075" relativePoint="TOP" x="0" y="5"/>
 						</Anchors>
 					</CheckButton>
 					<CheckButton parentKey="PreviewFont15" inherits="OptionsButtonTextPreviewTemplate" hidden="false" scale="1.5">
 						<Anchors>
-							<Anchor point="BOTTOMLEFT" relativeKey="$parent.PreviewFont1" relativePoint="BOTTOMRIGHT" x="0" y="0"/>
+							<Anchor point="BOTTOM" relativeKey="$parent.PreviewFont1" relativePoint="TOP" x="0" y="5"/>
 						</Anchors>
 					</CheckButton>
 					<CheckButton parentKey="PreviewFont2" inherits="OptionsButtonTextPreviewTemplate" hidden="false" scale="2.0">
 						<Anchors>
-							<Anchor point="BOTTOMLEFT" relativeKey="$parent.PreviewFont15" relativePoint="BOTTOMRIGHT" x="0" y="0"/>
+							<Anchor point="BOTTOM" relativeKey="$parent.PreviewFont15" relativePoint="TOP" x="0" y="5"/>
 						</Anchors>
 					</CheckButton>
 				</Frames>

@@ -11,6 +11,26 @@ Addon.BarsToHide = {
 
 Addon.C = {}
 
+Addon.AttachPoints = {
+    [1] = "TOPLEFT",
+    [2] = "TOP",
+    [3] = "TOPRIGHT",
+    [4] = "BOTTOMLEFT",
+    [5] = "BOTTOM",
+    [6] = "BOTTOMRIGHT",
+    [7] = "LEFT",
+    [8] = "RIGHT",
+    [9] = "CENTER",
+}
+Addon.FontOutlines = {
+    [1] = "NONE",
+    [2] = "OUTLINE",
+    [3] = "THICKOUTLINE",
+    [4] = "MONOCHROME",
+    [5] = "OUTLINE, MONOCHROME",
+    [6] = "THICKOUTLINE, MONOCHROME",
+}
+
 Addon.Defaults = {
     CurrentLoopGlow = 3,
     DesaturateGlow = false,
@@ -70,9 +90,6 @@ Addon.Defaults = {
     UseCheckedColor = true,
     CheckedColor = "CLASS_COLOR",
 
-    UseCooldownColor = true,
-    CooldownColor = { r=0.0, g=0.0, b=0.0, a=0.65 },
-
     UseOORColor = true,
     OORDesaturate = true,
     OORColor = { r=0.64, g=0.15, b=0.15, a=1.0 },
@@ -88,6 +105,7 @@ Addon.Defaults = {
     HideBagsBar = false,
     HideMicroMenu = false,
     HideStanceBar = false,
+    HideTalkingHead = false,
     HideInterrupt = true,
     HideCasting = true,
     HideReticle = true,
@@ -99,6 +117,60 @@ Addon.Defaults = {
     FontHideName = false,
     FontName = true,
     FontNameScale = 1.0,
+
+    CurrentHotkeyFont = "Default",
+    CurrentHotkeyOutline = 2,
+    UseHotkeyShadow = false,
+    HotkeyShadow = { r=0.0, g=0.0, b=0.0, a=1.0 },
+    UseHotkeyShadowOffset = false,
+    HotkeyShadowOffsetX = 0,
+    HotkeyShadowOffsetY = 0,
+    UseHotkeyFontSize = false,
+    HotkeyFontSize = 11,
+    UseHotkeyOffset = false,
+    HotkeyOffsetX = -5,
+    HotkeyOffsetY = -5,
+    UseHotkeyColor = false,
+    HotkeyColor = { r=0.6, g=0.6, b=0.6, a=1.0 },
+    CurrentHotkeyPoint = 3,
+    CurrentHotkeyRelativePoint = 3,
+
+    CurrentStacksFont = "Default",
+    CurrentStacksOutline = 2,
+    UseStacksShadow = false,
+    StacksShadow = { r=0.0, g=0.0, b=0.0, a=1.0 },
+    UseStacksShadowOffset = false,
+    StacksShadowOffsetX = 0,
+    StacksShadowOffsetY = 0,
+    UseStacksFontSize = false,
+    StacksFontSize = 16,
+    UseStacksOffset = false,
+    StacksOffsetX = -5,
+    StacksOffsetY = 5,
+    UseStacksColor = false,
+    StacksColor = { r=0.6, g=0.6, b=0.6, a=1.0 },
+    CurrentStacksPoint = 6,
+    CurrentStacksRelativePoint = 6,
+
+    CurrentSwipeTexture = 1,
+    UseSwipeSize = false,
+    SwipeSize = 42,
+    UseCooldownColor = false,
+    CooldownColor = { r=0.0, g=0.0, b=0.0, a=0.65 },
+
+    CurrentEdgeTexture = 1,
+    UseEdgeSize = false,
+    EdgeSize = 42,
+    UseEdgeColor = false,
+    EdgeColor = { r=1.0, g=1.0, b=1.0, a=1.0 },
+    EdgeAlwaysShow = false,
+
+    CurrentCooldownFont = "Default",
+    UseCooldownFontSize = false,
+    CooldownFontSize = 17,
+    UseCooldownFontColor = false,
+    CooldownFontColor = { r=1.0, g=1.0, b=1.0, a=1.0 },
+
 
     ModifyWAGlow = false,
     CurrentWAProcGlow = 8,
@@ -134,7 +206,7 @@ Addon.Templates = {
         },
         {
             name = "Modern Blizzard Assist Rainbow Glow",
-            texture = "Interface/addons/ActionBarsEnhanced/assets/flipbook_rainbow2.tga",
+            texture = "Interface/addons/ActionBarsEnhanced/assets/ABE_flipbook_rainbow.png",
             rows = 6,
             columns = 10,
             frames = 60,
@@ -155,7 +227,7 @@ Addon.Templates = {
             scale = 0.85,
         },
         {
-            name = "ABE Classic-like Blizzard Glow |cff1df2a8*new*",
+            name = "ABE Classic-like Blizzard Glow",
             texture = "Interface/addons/ActionBarsEnhanced/assets/AB_ClassicLike_Glow.tga",
             rows = 6,
             columns = 5,
@@ -166,7 +238,7 @@ Addon.Templates = {
             scale = 1,
         },
         {
-            name = "ABE Star 1 |cff1df2a8*new*",
+            name = "ABE Star 1",
             texture = "Interface/addons/ActionBarsEnhanced/assets/stars_new2.tga",
             rows = 6,
             columns = 5,
@@ -177,7 +249,7 @@ Addon.Templates = {
             scale = 0.9,
         },
         {
-            name = "ABE Star 2 |cff1df2a8*new*",
+            name = "ABE Star 2",
             texture = "Interface/addons/ActionBarsEnhanced/assets/stars_new.tga",
             rows = 6,
             columns = 5,
@@ -188,7 +260,7 @@ Addon.Templates = {
             scale = 0.9,
         },
         {
-            name = "ABE Star 2 Rainbow |cff1df2a8*new*",
+            name = "ABE Star 2 Rainbow",
             texture = "Interface/addons/ActionBarsEnhanced/assets/stars_rainbow_new.tga",
             rows = 6,
             columns = 5,
@@ -215,7 +287,7 @@ Addon.Templates = {
             rows = 6,
             columns = 2,
             frames = 12,
-            duration = 0.5,
+            duration = 0.35,
             frameW = 50,
             frameH = 50,
             scale = 0.85,
@@ -329,6 +401,17 @@ Addon.Templates = {
             frameW = 100,
             frameH = 100,
             scale = 0.95,
+        },
+        {
+            name = "ABE Square Pixel-like |cff1df2a8*new*",
+            texture = "Interface/addons/ActionBarsEnhanced/assets/ABE_Square_PixelLike.png",
+            rows = 6,
+            columns = 5,
+            frames = 30,
+            duration = 0.35,
+            frameW = 100,
+            frameH = 100,
+            scale = 0.82,
         },
         {
             name = "GCD",
@@ -516,7 +599,7 @@ Addon.Templates = {
         },
         {
             name = "Modern Blizzard Rainbow Proc Short",
-            texture = "Interface/addons/ActionBarsEnhanced/assets/ProcRainbow_Short.tga",
+            texture = "Interface/addons/ActionBarsEnhanced/assets/ABE_ProcRainbow_Short.png",
             rows = 3,
             columns = 6,
             frames = 18,
@@ -525,7 +608,7 @@ Addon.Templates = {
         },
         {
             name = "Modern Blizzard Rainbow Proc Shorter",
-            texture = "Interface/addons/ActionBarsEnhanced/assets/ProcRainbow_Shorter.tga",
+            texture = "Interface/addons/ActionBarsEnhanced/assets/ABE_ProcRainbow_Shorter.png",
             rows = 2,
             columns = 5,
             frames = 10,
@@ -771,6 +854,7 @@ Addon.Templates = {
         {
             name = "Default Blizzard Highlight",
             atlas = "UI-HUD-ActionBar-IconFrame-Mouseover",
+            size = {45,45},
         },
         {
             name = "Bags Glow",
@@ -834,6 +918,20 @@ Addon.Templates = {
         {
             name = "ABE Highlight Square 3 |cff1df2a8*new*",
             texture = "Interface/addons/ActionBarsEnhanced/assets/ABE_Highlight_Square2.png",
+            point = "CENTER",
+            padding = {-0.5, 0.5},
+            size = {43,43},
+        },
+        {
+            name = "ABE Highlight CooldownManager |cff1df2a8*new*",
+            texture = "Interface/addons/ActionBarsEnhanced/assets/ABE_Highlight_CooldownManager.png",
+            point = "CENTER",
+            padding = {-0.5, 0.5},
+            size = {43,43},
+        },
+        {
+            name = "ABE Highlight CooldownManager 2 |cff1df2a8*new*",
+            texture = "Interface/addons/ActionBarsEnhanced/assets/ABE_Checked_CooldownManager.png",
             point = "CENTER",
             padding = {-0.5, 0.5},
             size = {43,43},
@@ -1108,8 +1206,15 @@ Addon.Templates = {
             size = {45,45},
         },
         {
+            name = "ABE Cooldown Manager Mask",
+            texture = "Interface/addons/ActionBarsEnhanced/assets/ABE_Mask_CooldownTracker.png",
+            point = "CENTER",
+            padding = {0, 0},
+            size = {45,45},
+        },
+        {
             name = "Square Mask",
-            atlas = "SquareMask",
+            texture = "Interface/addons/ActionBarsEnhanced/assets/ABE_Mask_Square.png",
             point = "CENTER",
             padding = {0, 0},
             size = {45,45},
@@ -1129,13 +1234,6 @@ Addon.Templates = {
             size = {60,60},
         },
         {
-            name = "Perks Mask",
-            atlas = "perks-border-square-gold-mask",
-            point = "CENTER",
-            padding = {0, 0},
-            size = {45,45},
-        },
-        {
             name = "Talent Node Mask",
             atlas = "talents-node-choiceflyout-mask",
             point = "CENTER",
@@ -1143,11 +1241,70 @@ Addon.Templates = {
             size = {45,45},
         },
         {
-            name = "Talent Circle Mask",
-            atlas = "talents-node-circle-mask",
+            name = "ABE Circle Mask",
+            texture = "Interface/addons/ActionBarsEnhanced/assets/ABE_Mask_Circle.png",
             point = "CENTER",
             padding = {0, 0},
             size = {45,45},
+        },
+    },
+    SwipeTextures = {
+        {
+            name = "Default Blizzard Swipe",
+        },
+        {
+            name = "ABE Button",
+            texture = "Interface\\addons\\ActionBarsEnhanced\\assets\\ABE_CooldownSwipe_Button.png",
+        },
+        {
+            name = "ABE Button Blured",
+            texture = "Interface\\addons\\ActionBarsEnhanced\\assets\\ABE_CooldownSwipe_Blured.png",
+        },
+        {
+            name = "ABE Sqare",
+            texture = "Interface\\addons\\ActionBarsEnhanced\\assets\\ABE_Mask_Square.png",
+        },
+        {
+            name = "ABE Cooldown Tracker",
+            texture = "Interface\\addons\\ActionBarsEnhanced\\assets\\ABE_Mask_CooldownTracker3.png",
+        },
+    },
+    EdgeTextures = {
+        {
+            name = "Default Blizzard Edge",
+            texture = "Interface\\Cooldown\\UI-HUD-ActionBar-SecondaryCooldown",
+        },
+        {
+            name = "ABE Edge White",
+            texture = "Interface/addons/ActionBarsEnhanced/assets/ABE_CooldownEdge_White.png",
+        },
+        {
+            name = "ABE Edge Black and White",
+            texture = "Interface/addons/ActionBarsEnhanced/assets/ABE_CooldownEdge_BW.png",
+        },
+        {
+            name = "ABE Edge Line",
+            texture = "Interface/addons/ActionBarsEnhanced/assets/ABE_CooldownEdge_Line.png",
+        },
+        {
+            name = "ABE Edge Line Black and White",
+            texture = "Interface/addons/ActionBarsEnhanced/assets/ABE_CooldownEdge_LineBW.png",
+        },
+        {
+            name = "ABE Edge Blade",
+            texture = "Interface/addons/ActionBarsEnhanced/assets/ABE_CooldownEdge_Blade2.png",
+        },
+        {
+            name = "ABE Edge Blade 2",
+            texture = "Interface/addons/ActionBarsEnhanced/assets/ABE_CooldownEdge_Blade.png",
+        },
+        {
+            name = "ABE Edge Blade 3",
+            texture = "Interface/addons/ActionBarsEnhanced/assets/ABE_CooldownEdge_Blade3.png",
+        },
+        {
+            name = "ABE Edge Blade RGB",
+            texture = "Interface/addons/ActionBarsEnhanced/assets/ABE_CooldownEdge_BladeRGB.png",
         },
     },
 }
