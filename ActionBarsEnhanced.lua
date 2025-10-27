@@ -278,6 +278,8 @@ local function FixKeyBindText(text)
 		text = gsub(text, KEY_BUTTON4, "M4")
 		text = gsub(text, KEY_BUTTON5, "M5")
 		text = gsub(text, KEY_BUTTON3, "MMB")
+        text = gsub(text, KEY_MOUSEWHEELUP, "MU")
+	    text = gsub(text, KEY_MOUSEWHEELDOWN, "MD")
 		text = gsub(text, KEY_NUMLOCK, "NL")
 		text = gsub(text, KEY_PAGEUP, "PU")
 		text = gsub(text, KEY_PAGEDOWN, "PD")
@@ -645,7 +647,6 @@ function Addon:UpdateIconMask(button, isStanceBar)
     end
 end
 function Addon:UpdateCooldown(button, isStanceBar)
-    button.cooldown:SetFrameStrata("HIGH")
     if Addon.C.UseSwipeSize then
         button.cooldown:ClearAllPoints()
         local size = isStanceBar and Addon.C.SwipeSize*0.69 or Addon.C.SwipeSize
@@ -666,6 +667,11 @@ function Addon:UpdateCooldown(button, isStanceBar)
     )
     button.cooldown:SetCountdownFont(fontName)
     button.cooldown:SetCountdownAbbrevThreshold(320)
+
+    if button.cooldown:IsUsingParentLevel() then
+        button.cooldown:SetUsingParentLevel(false)
+    end
+    button.cooldown:SetFrameLevel(510)
 end
 local function Hook_UpdateButton(button, isStanceBar)
     if button == ExtraActionButton1 then return end
