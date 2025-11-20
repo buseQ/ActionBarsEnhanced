@@ -137,19 +137,28 @@ function ActionBarsEnhancedProfilesMixin:SetProfile(profileName, reload)
     local playerID = Addon:GetPlayerID()
 
     local currentProfile = profileName
-
-    if Addon.P.profilesList[currentProfile] then
-        for key, defaultValue in pairs(Addon.Defaults) do
-            if Addon.P.profilesList[currentProfile][key] ~= nil then
-                Addon.C[key] = Addon.P.profilesList[currentProfile][key]
-            else
-                Addon.C[key] = type(Addon.C[key]) == "table" and CopyTable(defaultValue) or defaultValue
-            end
-        end
-    else
+    local profileData = Addon.P.profilesList[currentProfile]
+    if not profileData then
         return
     end
+    
+    if profileData.FontHotKeyScale and profileData.FontHotKeyScale < 1.0 then
+        profileData.FontHotKeyScale = 1.0
+    end
+    if profileData.FontStacksScale and profileData.FontStacksScale < 1.0 then
+        profileData.FontStacksScale = 1.0
+    end
+
+    for key, defaultValue in pairs(Addon.Defaults) do
+        if profileData[key] ~= nil then
+            Addon.C[key] = profileData[key]
+        else
+            Addon.C[key] = type(defaultValue) == "table" and CopyTable(defaultValue) or defaultValue
+        end
+    end
+
     Addon.P.mapping[playerID] = currentProfile
+
     if reload then
         StaticPopup_Show("ABE_RELOAD")
     end

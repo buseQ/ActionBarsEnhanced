@@ -235,6 +235,7 @@ local bars = {
 	"TempShapeshiftBar",
 	"OverrideBar",
     "MainMenuBar",
+    "MainActionBar",
     "MultiBarBottomLeft",
     "MultiBarBottomRight",
     "MultiBarLeft",
@@ -275,6 +276,7 @@ local function FixKeyBindText(text)
 		text = gsub(text, "(a%-)", "a")
 		text = gsub(text, "(а%-)", "a")
 		text = gsub(text, "(c%-)", "c")
+		text = gsub(text, "Capslock", "CL")
 		text = gsub(text, KEY_BUTTON4, "M4")
 		text = gsub(text, KEY_BUTTON5, "M5")
 		text = gsub(text, KEY_BUTTON3, "MMB")
