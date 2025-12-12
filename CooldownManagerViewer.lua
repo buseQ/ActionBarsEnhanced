@@ -232,8 +232,10 @@ end
 local function ApplyStandardGridLayout(self, layoutChildren, stride, padding)
     if #layoutChildren == 0 then return end
 
+    local layoutFramesGoingUp = self.__layoutFramesGoingUp or self.layoutFramesGoingUp
+
     local xMultiplier = self.layoutFramesGoingRight and 1 or -1
-    local yMultiplier = self.layoutFramesGoingUp and 1 or -1
+    local yMultiplier = layoutFramesGoingUp and 1 or -1
 
     local layout
     if self.isHorizontal then
@@ -243,7 +245,7 @@ local function ApplyStandardGridLayout(self, layoutChildren, stride, padding)
     end
 
     local anchorPoint
-    if self.layoutFramesGoingUp then
+    if layoutFramesGoingUp then
         anchorPoint = self.layoutFramesGoingRight and "BOTTOMLEFT" or "BOTTOMRIGHT"
     else
         anchorPoint = self.layoutFramesGoingRight and "TOPLEFT" or "TOPRIGHT"
@@ -266,7 +268,7 @@ local function CenteredGridLayout(self, layoutChildren, stride, padding)
 
     local spacing = padding
     local layoutFramesGoingRight = self.layoutFramesGoingRight ~= false
-    local layoutFramesGoingUp = self.layoutFramesGoingUp == true
+    local layoutFramesGoingUp =  (self.__layoutFramesGoingUp or self.layoutFramesGoingUp) == true
 
     local anchorPoint
     if layoutFramesGoingUp then
@@ -467,11 +469,11 @@ local function Hook_Layout(self)
 
     for _, child in ipairs(layoutChildren) do
 
-        CheckItemVisibility(child, child:IsVisible(), self)
-        
         if child:HasEditModeData() then
             return
         end
+
+        CheckItemVisibility(child, child:IsVisible(), self)
 
         if frameName == "BuffIconCooldownViewer" or frameName == "BuffBarCooldownViewer" then
             if not child.__hooked and Addon:GetValue("CDMEnable", nil, frameName) then
@@ -484,9 +486,6 @@ local function Hook_Layout(self)
                 if child.OnUnitAuraRemovedEvent then
                     hooksecurefunc(child, "OnUnitAuraRemovedEvent", OnButtonVisibilityChanged)
                 end
-                --[[ if child.SetIsActive then
-                    hooksecurefunc(child, "SetIsActive", OnButtonVisibilityChanged)
-                end ]]
                 child.__hooked = true
             end
         end
@@ -595,7 +594,8 @@ local function Hook_Layout(self)
         end
 
         if frameName == "BuffBarCooldownViewer" then
-            self.layoutFramesGoingUp = Addon:GetValue("CurrentCDMBarGrow", nil, frameName) == 1
+            self.__layoutFramesGoingUp = Addon:GetValue("CurrentCDMBarGrow", nil, frameName) == 1
+            --self.layoutFramesGoingUp = Addon:GetValue("CurrentCDMBarGrow", nil, frameName) == 1
 
             local invert = false
 
@@ -698,16 +698,7 @@ local function Hook_Layout(self)
             else
                 child.Bar:SetPoint("LEFT", child.Icon, "RIGHT", 2, 0)
                 child.Bar:SetPoint("RIGHT", child, "RIGHT")
-            end
-
-            --[[ if child.Icon:IsVisible() then
-                child.Bar:SetPoint("LEFT", child.Icon, "RIGHT", 2, 0)
-                child.Bar:SetPoint("RIGHT", child, "RIGHT")
-            else
-                child.Bar:SetPoint("LEFT", child, "LEFT", 0, 0)
-                child.Bar:SetPoint("RIGHT", child, "RIGHT")
-            end ]]
-            
+            end            
 
             if invert then
                 child.Icon:ClearAllPoints()
@@ -764,13 +755,13 @@ local function Hook_Layout(self)
 
             self:SetSize(fullRowWidth, totalHeight)
             CenteredGridLayout(self, self.__visibleChildren, self.stride, self.__padding)
-            ResizeLayoutMixin.Layout(self)
+            --ResizeLayoutMixin.Layout(self)
             self:CacheLayoutSettings(self.__visibleChildren)
         else
             ApplyStandardGridLayout(self, self.__visibleChildren, self.stride, self.__padding)
-            if frameName ~= "BuffIconCooldownViewer" then
+            --[[ if frameName ~= "BuffIconCooldownViewer" then
                 ResizeLayoutMixin.Layout(self)
-            end
+            end ]]
             self:CacheLayoutSettings(self.__visibleChildren)
         end
         CooldownManagerEnhanced.forced = nil
@@ -839,10 +830,6 @@ local function Hook_SetupPandemic(self, frame, cooldownItem)
                         frame.Texture:Hide()
                     end
                     frame.__pandemicRemoved = true
-                end
-            else
-                if frameName == "BuffBarCooldownViewer" then
-                    frame.Texture.Mask:SetSize(frame:GetSize())
                 end
             end
             if Addon:GetValue("UseCDMBackdropPandemicColor", nil, frameName) then

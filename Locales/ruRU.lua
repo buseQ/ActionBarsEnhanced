@@ -222,7 +222,7 @@ L.CDMReverseSwipe = "Обратное заполнение кулдауна"
 -- Status Bar Settings
 -- ==========================================
 L.CDMBarContainerTitle = "Настройки полосок"
-L.CDMBarContainerDesc = "Описание настроек полосок"
+L.CDMBarContainerDesc = "Настройте внешний вид и расположение полосок."
 L.StatusBarTextures = "Текстура статусбара"
 L.FontNameSize = "Размер шрифта названия"
 L.StatusBarBGTextures = "Текстура фона"

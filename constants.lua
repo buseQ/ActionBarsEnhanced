@@ -1452,10 +1452,6 @@ Addon.Templates = {
             texture = "_perks-dropdown-mouseover-middle",
         },
         {
-            name = "Solid 2",
-            texture = "SquareMask",
-        },
-        {
             name = "Professions Spark",
             texture = "Professions-QualityBar-Flare",
         },

@@ -218,6 +218,8 @@ L.CDMReverseSwipe = "Reverse Cooldown Fill"
 -- ==========================================
 -- Status Bar Settings
 -- ==========================================
+L.CDMBarContainerTitle = "Status Bar Settings"
+L.CDMBarContainerDesc = "Customize the appearance and layout of status bars."
 L.StatusBarTextures = "Status Bar Texture"
 L.FontNameSize = "Name Font Size"
 L.StatusBarBGTextures = "Background Texture"
