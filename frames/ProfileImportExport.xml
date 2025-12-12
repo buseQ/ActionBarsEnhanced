@@ -45,7 +45,7 @@
 							<Anchor point="BOTTOM"/>
 						</Anchors>
 						<KeyValues>
-							<KeyValue key="maxLetters" value="1000" type="number"/>
+							<KeyValue key="maxLetters" value="80000" type="number"/>
 							<KeyValue key="instructions" value="HUD_CLASS_TALENTS_IMPORT_INSTRUCTIONS" type="global"/>
 							<KeyValue key="hideCharCount" value="true" type="boolean"/>
 						</KeyValues>
@@ -149,7 +149,7 @@
 							<Anchor point="BOTTOM"/>
 						</Anchors>
 						<KeyValues>
-							<KeyValue key="maxLetters" value="1000" type="number"/>
+							<KeyValue key="maxLetters" value="80000" type="number"/>
 							<KeyValue key="hideCharCount" value="true" type="boolean"/>
 						</KeyValues>
 					</ScrollFrame>

@@ -1,0 +1,1557 @@
+local AddonName, Addon = ...
+
+local L = Addon.L
+local T = Addon.Templates
+
+Addon.Fonts = {}
+
+Addon.config = {}
+
+Addon.config.containers = {
+    GlowOptionsContainer = {
+        title = L.GlowTypeTitle,
+        desc = L.GlowTypeDesc,
+        childs = {
+            ["GlowOptions"] = {
+                type        = "dropdown",
+                setting     = T.LoopGlow,
+                name        = L.GlowType,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentLoopGlow", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentLoopGlow", id, true) end,
+                showNew     = true,
+                OnEnter     = function(id, frames) ActionBarEnhancedDropdownMixin:RefreshProcLoop(frames.ProcLoopPreview, id) end,
+                OnClose     = function() ActionBarEnhancedDropdownMixin:RefreshAllPreview() end,
+            },
+            ["CustomColorGlow"] = {
+                type            = "colorSwatch",
+                name            = L.UseCustomColor,
+                value           = "LoopGlowColor",
+                checkboxValues  = {"UseLoopGlowColor", "DesaturateGlow"},
+                alpha           = false,
+            },
+            ["ProcLoopPreview"] = {
+                type = "preview",
+                sub = "LoopGlow",
+            },
+            ["HideProc"] = {
+                type        = "checkbox",
+                name        = L.HideProcAnim,
+                value       = "HideProc",
+                callback    = false,
+            },
+            ["ProcOptions"] = {
+                type        = "dropdown",
+                setting     = T.ProcGlow,
+                name        = L.StartProcType,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentProcGlow", nil, true) end,
+                OnSelect    = function(id, frames)
+                    Addon:SaveSetting("CurrentProcGlow", id, true)
+                end,
+                showNew     = false,
+                OnEnter     = function(id, frames) ActionBarEnhancedDropdownMixin:RefreshProcStart(frames.ProcStartPreview, id) end,
+                OnClose     = function() ActionBarEnhancedDropdownMixin:RefreshAllPreview() end,
+            },
+            ["CustomColorProc"] = {
+                type            = "colorSwatch",
+                name            = L.UseCustomColor,
+                value           = "ProcColor",
+                checkboxValues  = {"UseProcColor", "DesaturateProc"},
+                alpha           = false,
+            },
+            ["ProcStartPreview"] = {
+                type = "preview",
+                sub = "ProcGlow",
+            }
+        }
+    },
+    AssistLoopOptionsContainer = {
+        title = L.AssistTitle,
+        desc = L.AssistDesc,
+        childs = {
+            ["AssistLoopType"] = {
+                type        = "dropdown",
+                setting     = T.LoopGlow,
+                name        = L.AssistType,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentAssistType", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentAssistType", id, true) end,
+                showNew     = false,
+                OnEnter     = function(id, frames) ActionBarEnhancedDropdownMixin:RefreshProcLoop(frames.ProcLoopPreview, id) end,
+                OnClose     = function() ActionBarEnhancedDropdownMixin:RefreshAllPreview() end,
+            },
+            ["CustomColorAssistLoop"] = {
+                type            = "colorSwatch",
+                name            = L.UseCustomColor,
+                value           = "AssistGlowColor",
+                checkboxValues  = {"UseAssistGlowColor", "DesaturateAssist"},
+                alpha           = false,
+            },
+            ["AssistAltGlowType"] = {
+                type        = "dropdown",
+                setting     = T.PushedTextures,
+                name        = L.AssistAltType,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentAssistAltType", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentAssistAltType", id, true) end,
+                showNew     = false,
+                OnEnter     = function(id, frames) ActionBarEnhancedDropdownMixin:RefreshAltGlow(frames.ProcLoopPreview, id) end,
+                OnClose     = function() ActionBarEnhancedDropdownMixin:RefreshAllPreview() end,
+            },
+            ["CustomColorAltGlow"] = {
+                type            = "colorSwatch",
+                name            = L.UseCustomColor,
+                value           = "AssistAltColor",
+                checkboxValues  = {"UseAssistAltColor", "DesaturateAssistAlt"},
+                alpha           = true,
+            },
+        }
+    },
+    FadeOptionsContainer = {
+        title = L.FadeTitle,
+        desc = L.FadeDesc,
+        childs = {
+            ["FadeOutBars"] = {
+                type            = "checkboxSlider",
+                name            = L.FadeOutBars,
+                checkboxValue   = "FadeBars",
+                sliderValue     = "FadeBarsAlpha",
+                min             = 0,
+                max             = 1,
+                step            = 0.1,
+                sliderName      = {top = "Fade Alpha"},
+                callback        = false,
+            },
+            ["FadeInOnCombat"] = {
+                type            = "checkbox",
+                name            = L.FadeInOnCombat,
+                value           = "FadeInOnCombat",
+                callback        = false,
+            },
+            ["FadeInOnTarget"] = {
+                type            = "checkbox",
+                name            = L.FadeInOnTarget,
+                value           = "FadeInOnTarget",
+                callback        = false,
+            },
+            ["FadeInOnCasting"] = {
+                type            = "checkbox",
+                name            = L.FadeInOnCasting,
+                value           = "FadeInOnCasting",
+                callback        = false,
+            },
+            ["FadeInOnHover"] = {
+                type            = "checkbox",
+                name            = L.FadeInOnHover,
+                value           = "FadeInOnHover",
+                callback        = false,
+            },
+        }
+    },
+    NormalOptionsContainer = {
+        title = L.NormalTitle,
+        desc = L.NormalDesc,
+        childs = {
+            ["NormalTextureOptions"] = {
+                type        = "dropdown",
+                setting     = T.NormalTextures,
+                name        = L.NormalTextureType,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentNormalTexture", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentNormalTexture", id, true) end,
+                showNew     = false,
+                OnEnter     = function(id, frames) ActionBarEnhancedDropdownMixin:RefreshNormalTexture(frames.PreviewNormal, id) end,
+                OnClose     = function() ActionBarEnhancedDropdownMixin:RefreshAllPreview() end,
+            },
+            ["CustomColorNormal"] = {
+                type            = "colorSwatch",
+                name            = L.UseCustomColor,
+                value           = "NormalTextureColor",
+                checkboxValues  = {"UseNormalTextureColor", "DesaturateNormal"},
+                alpha           = true,
+                callback        = function() ActionBarEnhancedDropdownMixin:RefreshAllPreview() end,
+            },
+            ["PreviewNormal"] = {
+                type = "preview",
+            },
+        }
+    },
+    BackdropOptionsContainer = {
+        title = L.BackdropTitle,
+        desc = L.BackdropDesc,
+        childs = {
+            ["BackdropTextureOptions"] = {
+                type        = "dropdown",
+                setting     = T.BackdropTextures,
+                name        = L.BackdropTextureType,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentBackdropTexture", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentBackdropTexture", id, true) end,
+                showNew     = false,
+                OnEnter     = function(id, frames) ActionBarEnhancedDropdownMixin:RefreshBackdropTexture(frames.PreviewBackdrop, id) end,
+                OnClose     = function() ActionBarEnhancedDropdownMixin:RefreshAllPreview() end,
+            },
+            ["CustomColorBackdrop"] = {
+                type            = "colorSwatch",
+                name            = L.UseCustomColor,
+                value           = "BackdropColor",
+                checkboxValues  = {"UseBackdropColor", "DesaturateBackdrop"},
+                alpha           = true,
+            },
+            ["PreviewBackdrop"] = {
+                type = "preview",
+                sub = "Backdrop",
+            },
+        }
+    },
+    IconOptionsContainer = {
+        title = L.IconTitle,
+        desc = L.IconDesc,
+        childs = {
+            ["IconMaskTextureOptions"] = {
+                type        = "dropdown",
+                setting     = T.IconMaskTextures,
+                name        = L.IconMaskTextureType,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentIconMaskTexture", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentIconMaskTexture", id, true) end,
+                showNew     = false,
+                OnEnter     = function(id, frames) ActionBarEnhancedDropdownMixin:RefreshIconMaskTexture(frames.PreviewIcon, id) end,
+                OnClose     = function() ActionBarEnhancedDropdownMixin:RefreshAllPreview() end,
+            },
+            ["MaskScale"] = {
+                type            = "checkboxSlider",
+                name            = L.IconMaskScale,
+                checkboxValue   = "UseIconMaskScale",
+                sliderValue     = "IconMaskScale",
+                min             = 0.5,
+                max             = 1.5,
+                step            = 0.01,
+                sliderName      = {top = "Mask Scale"},
+                callback        = function(_, frames) ActionBarEnhancedDropdownMixin:RefreshPreview(frames.PreviewIcon) end,
+            },
+            ["IconScale"] = {
+                type            = "checkboxSlider",
+                name            = L.IconScale,
+                checkboxValue   = "UseIconScale",
+                sliderValue     = "IconScale",
+                min             = 0.5,
+                max             = 1.5,
+                step            = 0.01,
+                sliderName      = {top = "Icon Scale"},
+                callback        = function(_, frames) ActionBarEnhancedDropdownMixin:RefreshPreview(frames.PreviewIcon) end,
+            },
+            ["PreviewIcon"] = {
+                type = "preview",
+            },
+        }
+    },
+    PushedOptionsContainer = {
+        title = L.PushedTitle,
+        desc = L.PushedDesc,
+        childs = {
+            ["PushedTextureOptions"] = {
+                type        = "dropdown",
+                setting     = T.PushedTextures,
+                name        = L.PushedTextureType,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentPushedTexture", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentPushedTexture", id, true) end,
+                showNew     = false,
+                OnEnter     = function(id, frames) ActionBarEnhancedDropdownMixin:RefreshPushedTexture(frames.PreviewPushed, id) end,
+                OnClose     = function() ActionBarEnhancedDropdownMixin:RefreshAllPreview() end,
+            },
+            ["CustomColorPushed"] = {
+                type            = "colorSwatch",
+                name            = L.UseCustomColor,
+                value           = "PushedColor",
+                checkboxValues  = {"UsePushedColor", "DesaturatePushed"},
+                alpha           = false,
+            },
+            ["PreviewPushed"] = {
+                type = "preview",
+                func = function(frame)
+                    frame:SetButtonState("PUSHED", true)
+                end,
+            },
+        }
+    },
+    HighlightOptionsContainer = {
+        title = L.HighlightTitle,
+        desc = L.HighlightDesc,
+        childs = {
+            ["HighlightTextureOptions"] = {
+                type        = "dropdown",
+                setting     = T.HighlightTextures,
+                name        = L.HighliteTextureType,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentHighlightTexture", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentHighlightTexture", id, true) end,
+                showNew     = false,
+                OnEnter     = function(id, frames) ActionBarEnhancedDropdownMixin:RefreshHighlightTexture(frames.PreviewHighlight, id) end,
+                OnClose     = function() ActionBarEnhancedDropdownMixin:RefreshAllPreview() end,
+            },
+            ["CustomColorHighlight"] = {
+                type            = "colorSwatch",
+                name            = L.UseCustomColor,
+                value           = "HighlightColor",
+                checkboxValues  = {"UseHighlightColor", "DesaturateHighlight"},
+                alpha           = true,
+            },
+            ["PreviewHighlight"] = {
+                type = "preview",
+                func = function(frame)
+                    frame:LockHighlight()
+                end,
+            },
+        }
+    },
+    CheckedOptionsContainer = {
+        title = L.CheckedTitle,
+        desc = L.CheckedDesc,
+        childs = {
+            ["CheckedTextureOptions"] = {
+                type        = "dropdown",
+                setting     = T.HighlightTextures,
+                name        = L.CheckedTextureType,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentCheckedTexture", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentCheckedTexture", id, true) end,
+                showNew     = false,
+                OnEnter     = function(id, frames) ActionBarEnhancedDropdownMixin:RefreshCheckedTexture(frames.PreviewChecked, id) end,
+                OnClose     = function() ActionBarEnhancedDropdownMixin:RefreshAllPreview() end,
+            },
+            ["CustomColorChecked"] = {
+                type            = "colorSwatch",
+                name            = L.UseCustomColor,
+                value           = "CheckedColor",
+                checkboxValues  = {"UseCheckedColor","DesaturateChecked"},
+                alpha           = true,
+            },
+            ["PreviewChecked"] = {
+                type = "preview",
+                func = function(frame)
+                    frame:SetChecked(true)
+                    frame:Disable(true)
+                end,
+            },
+        }
+    },
+    CooldownOptionsContainer = {
+        title = L.CooldownTitle,
+        desc = L.CooldownDesc,
+        childs = {
+            ["SwipeTexture"] = {
+                type        = "dropdown",
+                setting     = T.SwipeTextures,
+                name        = L.SwipeTextureType,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentSwipeTexture", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentSwipeTexture", id, true) end,
+                showNew     = false,
+                OnEnter     = function(id, frames)
+                    ActionBarEnhancedDropdownMixin:RefreshSwipeTexture(frames.PreviewSwipe, id)
+                end,
+                OnClose     = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
+                end,
+            },
+            ["SwipeSize"] = {
+                type            = "checkboxSlider",
+                name            = L.SwipeSize,
+                checkboxValue   = "UseSwipeSize",
+                sliderValue     = "SwipeSize",
+                min             = 10,
+                max             = 50,
+                step            = 1,
+                sliderName      = {top = "Size"},
+                callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
+                end,
+            },
+            ["SwipeColor"] = {
+                type            = "colorSwatch",
+                name            = L.UseCustomColor,
+                value           = "CooldownColor",
+                checkboxValues  = {"UseCooldownColor"},
+                alpha           = true,
+            },
+            ["PreviewSwipe"] = {
+                type = "preview",
+                sub = "CooldownSwipe",
+            },
+            ["EdgeTexture"] = {
+                type        = "dropdown",
+                setting     = T.EdgeTextures,
+                name        = L.EdgeTextureType,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentEdgeTexture", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentEdgeTexture", id, true) end,
+                showNew     = false,
+                OnEnter     = function(id, frames)
+                    ActionBarEnhancedDropdownMixin:RefreshEdgeTexture(frames.PreviewEdge, id)
+                end,
+                OnClose     = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
+                end,
+            },
+            ["EdgeSize"] = {
+                type            = "checkboxSlider",
+                name            = L.EdgeSize,
+                checkboxValue   = "UseEdgeSize",
+                sliderValue     = "EdgeSize",
+                min             = 10,
+                max             = 50,
+                step            = 1,
+                sliderName      = {top = "Size"},
+                callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
+                end,
+            },
+            ["EdgeColor"] = {
+                type            = "colorSwatch",
+                name            = L.UseCustomColor,
+                value           = "EdgeColor",
+                checkboxValues  = {"UseEdgeColor"},
+                alpha           = true,
+            },
+            ["EdgeAlwaysShow"] = {
+                type            = "checkbox",
+                name            = L.EdgeAlwaysShow,
+                value           = "EdgeAlwaysShow",
+                callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
+                end,
+            },
+            ["PreviewEdge"] = {
+                type = "preview",
+                sub    = "CooldownEdge",
+            },
+            ["CooldownFont"] = {
+                type        = "dropdown",
+                fontOption  = true,
+                setting     = function() return Addon.Fonts end,
+                name        = L.CooldownFont,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentCooldownFont", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentCooldownFont", id, true) end,
+                showNew     = false,
+                OnEnter     = function(id, frames)
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownFont(frames.PreviewCooldownFont, id)
+                end,
+                OnClose     = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
+                end,
+            },
+            ["CooldownFontSize"] = {
+                type            = "checkboxSlider",
+                name            = L.CooldownFontSize,
+                checkboxValue   = "UseCooldownFontSize",
+                sliderValue     = "CooldownFontSize",
+                min             = 5,
+                max             = 40,
+                step            = 1,
+                sliderName      = {top = "Font Size"},
+                callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
+                end,
+            },
+            ["CooldownFontColor"] = {
+                type            = "colorSwatch",
+                name            = L.FontColor,
+                value           = "CooldownFontColor",
+                checkboxValues  = {"UseCooldownFontColor"},
+                alpha           = true,
+            },
+            ["PreviewCooldownFont"] = {
+                type = "preview",
+                sub    = "CooldownFont",
+            },
+        }
+    },
+    ColorOverrideOptionsContainer = {
+        title = L.ColorOverrideTitle,
+        desc = L.ColorOverrideDesc,
+        childs = {
+            ["CustomColorOOR"] = {
+                type            = "colorSwatch",
+                name            = L.CustomColorOOR,
+                value           = "OORColor",
+                checkboxValues  = {"UseOORColor", "OORDesaturate"},
+                alpha           = false,
+            },
+            ["CustomColorOOM"] = {
+                type            = "colorSwatch",
+                name            = L.CustomColorOOM,
+                value           = "OOMColor",
+                checkboxValues  = {"UseOOMColor", "OOMDesaturate"},
+                alpha           = false,
+            },
+            ["CustomColorNotUsable"] = {
+                type            = "colorSwatch",
+                name            = L.CustomColorNoUse,
+                value           = "NoUseColor",
+                checkboxValues  = {"UseNoUseColor", "NoUseDesaturate"},
+                alpha           = false,
+            },
+        }
+    },
+    HideFramesOptionsContainer = {
+        title = L.HideFrameTitle,
+        desc = L.HideFrameDesc,
+        childs = {
+            ["HideTalkingHead"] = {
+                type            = "checkbox",
+                name            = L.HideTalkingHead,
+                value           = "HideTalkingHead",
+                callback        = function(checked)
+                    if checked then
+                        Addon.eventHandlerFrame:RegisterEvent("TALKINGHEAD_REQUESTED")
+                    else
+                        Addon.eventHandlerFrame:UnregisterEvent("TALKINGHEAD_REQUESTED")
+                    end
+                end,
+            },
+            ["HideInterrupt"] = {
+                type            = "checkbox",
+                name            = L.HideInterrupt,
+                value           = "HideInterrupt",
+                callback        = false,
+            },
+            ["HideCasting"] = {
+                type            = "checkbox",
+                name            = L.HideCasting,
+                value           = "HideCasting",
+                callback        = false,
+            },
+            ["HideReticle"] = {
+                type            = "checkbox",
+                name            = L.HideReticle,
+                value           = "HideReticle",
+                callback        = false,
+            },
+            ["PreviewInterrupt"] = {
+                type = "preview",
+                sub    = "AnimInterrupt",
+            },
+            ["PreviewCasting"] = {
+                type = "preview",
+                sub    = "AnimCasting",
+            },
+            ["PreviewReticle"] = {
+                type = "preview",
+                sub    = "AnimReticle",
+            },
+        }
+    },
+    FontOptionsContainer = {
+        new = true,
+        title = L.FontTitle,
+        desc = L.FontDesc,
+        childs = {
+            ["HotkeyFont"] = {
+                type        = "dropdown",
+                fontOption  = true,
+                setting     = function() return Addon.Fonts end,
+                name        = L.HotKeyFont,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentHotkeyFont", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentHotkeyFont", id, true) end,
+                showNew     = false,
+                OnEnter     = function(id, frames)
+                    Addon:PreviewButtons("HotkeyFont", id)
+                    ActionBarEnhancedDropdownMixin:RefreshHotkeyFont(frames.PreviewFont05, id)
+                    ActionBarEnhancedDropdownMixin:RefreshHotkeyFont(frames.PreviewFont075, id)
+                    ActionBarEnhancedDropdownMixin:RefreshHotkeyFont(frames.PreviewFont1, id)
+                    ActionBarEnhancedDropdownMixin:RefreshHotkeyFont(frames.PreviewFont15, id)
+                    ActionBarEnhancedDropdownMixin:RefreshHotkeyFont(frames.PreviewFont2, id)
+                end,
+                OnClose     = function()
+                    ActionBarEnhancedDropdownMixin:RefreshFontPreview()
+                end,
+            },
+            ["HotkeyOutline"] = {
+                type        = "dropdown",
+                setting     = Addon.FontOutlines,
+                name        = L.HotkeyOutline,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentHotkeyOutline", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentHotkeyOutline", id, true) end,
+                showNew     = false,
+                OnEnter     = function(id, frames)
+                    ActionBarEnhancedDropdownMixin:RefreshFontPreview()
+                end,
+                OnClose     = function()
+                    ActionBarEnhancedDropdownMixin:RefreshFontPreview()
+                end,
+            },
+            ["HotkeySize"] = {
+                type            = "checkboxSlider",
+                name            = L.FontHotkeySize,
+                checkboxValue   = "UseHotkeyFontSize",
+                sliderValue     = "HotkeyFontSize",
+                min             = 1,
+                max             = 40,
+                step            = 1,
+                sliderName      = {top = "Font Size"},
+                callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshFontPreview()
+                end,
+            },
+            ["HotkeyColor"] = {
+                type            = "colorSwatch",
+                name            = L.HotkeyCustomColor,
+                value           = "HotkeyColor",
+                checkboxValues  = {"UseHotkeyColor"},
+                alpha           = true,
+            },
+            ["HotkeyPoint"] = {
+                type        = "dropdown",
+                setting     = {Addon.AttachPoints, Addon.AttachPoints},
+                name        = L.HotkeyAttachPoint,
+                IsSelected  = {
+                    function(id) return id == Addon:GetValue("CurrentHotkeyPoint", nil, true) end,
+                    function(id) return id == Addon:GetValue("CurrentHotkeyRelativePoint", nil, true) end,
+                },
+                OnSelect    = {
+                    function(id) Addon:SaveSetting("CurrentHotkeyPoint", id, true) end,
+                    function(id) Addon:SaveSetting("CurrentHotkeyRelativePoint", id, true) end,
+                },
+                showNew     = false,
+                OnEnter     = {
+                    function() ActionBarEnhancedDropdownMixin:RefreshFontPreview() end,
+                    function() ActionBarEnhancedDropdownMixin:RefreshFontPreview() end,
+                },
+                OnClose     = {
+                    function() ActionBarEnhancedDropdownMixin:RefreshFontPreview() end,
+                    function() ActionBarEnhancedDropdownMixin:RefreshFontPreview() end,
+                },
+            },
+            ["HotkeyOffset"] = {
+                type            = "checkboxSlider",
+                name            = L.HotkeyOffset,
+                checkboxValue   = "UseHotkeyOffset",
+                sliderValue     = {"HotkeyOffsetX", "HotkeyOffsetY"},
+                min             = -40,
+                max             = 40,
+                step            = 1,
+                sliderName      = {{top = "offset X"}, {top = "offset Y"}},
+                callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshFontPreview()
+                end,
+            },
+            ["HotkeyShadow"] = {
+                type            = "colorSwatch",
+                name            = L.HotkeyShadowColor,
+                value           = "HotkeyShadow",
+                checkboxValues  = {"UseHotkeyShadow"},
+                alpha           = true,
+            },
+            ["HotkeyShadowOffset"] = {
+                type            = "checkboxSlider",
+                name            = L.HotkeyShadowOffset,
+                checkboxValue   = "UseHotkeyShadowOffset",
+                sliderValue     = {"HotkeyShadowOffsetX", "HotkeyShadowOffsetY"},
+                min             = -6,
+                max             = 6,
+                step            = 1,
+                sliderName      = {{top = "offset X"}, {top = "offset Y"}},
+                callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshFontPreview()
+                end,
+            },
+            ["HotkeyScale"] = {
+                type            = "checkboxSlider",
+                name            = L.FontHotKeyScale,
+                checkboxValue   = "FontHotKey",
+                sliderValue     = "FontHotKeyScale",
+                min             = 1,
+                max             = 2,
+                step            = 0.1,
+                sliderName      = {top = "Font Scale"},
+                callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshFontPreview()
+                end,
+            },
+            ["StacksFont"] = {
+                type        = "dropdown",
+                fontOption  = true,
+                setting     = function() return Addon.Fonts end,
+                name        = L.StacksFont,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentStacksFont", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentStacksFont", id, true) end,
+                showNew     = false,
+                OnEnter     = function(id, frames)
+                    ActionBarEnhancedDropdownMixin:RefreshStacksFont(frames.PreviewFont05, id)
+                    ActionBarEnhancedDropdownMixin:RefreshStacksFont(frames.PreviewFont075, id)
+                    ActionBarEnhancedDropdownMixin:RefreshStacksFont(frames.PreviewFont1, id)
+                    ActionBarEnhancedDropdownMixin:RefreshStacksFont(frames.PreviewFont15, id)
+                    ActionBarEnhancedDropdownMixin:RefreshStacksFont(frames.PreviewFont2, id)
+                end,
+                OnClose     = function()
+                    ActionBarEnhancedDropdownMixin:RefreshFontPreview()
+                end,
+            },
+            ["StacksOutline"] = {
+                type        = "dropdown",
+                setting     = Addon.FontOutlines,
+                name        = L.StacksOutline,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentStacksOutline", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentStacksOutline", id, true) end,
+                showNew     = false,
+                OnEnter     = function(id, frames)
+                    ActionBarEnhancedDropdownMixin:RefreshFontPreview()
+                end,
+                OnClose     = function()
+                    ActionBarEnhancedDropdownMixin:RefreshFontPreview()
+                end,
+            },
+            ["StacksSize"] = {
+                type            = "checkboxSlider",
+                name            = L.FontStacksSize,
+                checkboxValue   = "UseStacksFontSize",
+                sliderValue     = "StacksFontSize",
+                min             = 1,
+                max             = 40,
+                step            = 1,
+                sliderName      = {top = "Font Size"},
+                callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshFontPreview()
+                end,
+            },
+            ["StacksColor"] = {
+                type            = "colorSwatch",
+                name            = L.StacksCustomColor,
+                value           = "StacksColor",
+                checkboxValues  = {"UseStacksColor"},
+                alpha           = true,
+            },
+            ["StacksPoint"] = {
+                type        = "dropdown",
+                setting     = {Addon.AttachPoints, Addon.AttachPoints},
+                name        = L.StacksAttachPoint,
+                IsSelected  = {
+                    function(id) return id == Addon:GetValue("CurrentStacksPoint", nil, true) end,
+                    function(id) return id == Addon:GetValue("CurrentStacksRelativePoint", nil, true) end,
+                },
+                OnSelect    = {
+                    function(id) Addon:SaveSetting("CurrentStacksPoint", id, true) end,
+                    function(id) Addon:SaveSetting("CurrentStacksRelativePoint", id, true) end,
+                },
+                showNew     = false,
+                OnEnter     = {
+                    function() ActionBarEnhancedDropdownMixin:RefreshFontPreview() end,
+                    function() ActionBarEnhancedDropdownMixin:RefreshFontPreview() end,
+                },
+                OnClose     = {
+                    function() ActionBarEnhancedDropdownMixin:RefreshFontPreview() end,
+                    function() ActionBarEnhancedDropdownMixin:RefreshFontPreview() end,
+                },
+            },
+            ["StacksOffset"] = {
+                type            = "checkboxSlider",
+                name            = L.StacksOffset,
+                checkboxValue   = "UseStacksOffset",
+                sliderValue     = {"StacksOffsetX", "StacksOffsetY"},
+                min             = -40,
+                max             = 40,
+                step            = 1,
+                sliderName      = {{top = "offset X"}, {top = "offset Y"}},
+                callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshFontPreview()
+                end,
+            },
+            ["StacksShadow"] = {
+                type            = "colorSwatch",
+                name            = L.StacksShadowColor,
+                value           = "StacksShadow",
+                checkboxValues  = {"UseStacksShadow"},
+                alpha           = true,
+            },
+            ["StacksShadowOffset"] = {
+                type            = "checkboxSlider",
+                name            = L.StacksShadowOffset,
+                checkboxValue   = "UseStacksShadowOffset",
+                sliderValue     = {"StacksShadowOffsetX", "StacksShadowOffsetY"},
+                min             = -6,
+                max             = 6,
+                step            = 1,
+                sliderName      = {{top = "offset X"}, {top = "offset Y"}},
+                callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshFontPreview()
+                end,
+            },
+            ["StacksScale"] = {
+                type            = "checkboxSlider",
+                name            = L.FontStacksScale,
+                checkboxValue   = "FontStacks",
+                sliderValue     = "FontStacksScale",
+                min             = 1,
+                max             = 2,
+                step            = 0.1,
+                sliderName      = {top = "Font Scale"},
+                callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshFontPreview()
+                end,
+            },
+            ["NameHide"] = {
+                type            = "checkbox",
+                name            = L.FontHideName,
+                value           = "FontHideName",
+                callback        = function(_, frames) 
+                    ActionBarEnhancedDropdownMixin:RefreshFontPreview()
+                end,
+            },
+            ["NameScale"] = {
+                type            = "checkboxSlider",
+                name            = L.FontNameScale,
+                checkboxValue   = "FontName",
+                sliderValue     = "FontNameScale",
+                min             = 1,
+                max             = 2,
+                step            = 0.1,
+                sliderName      = {top = "Font Scale"},
+                callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshFontPreview()
+                end,
+            },
+            ["PreviewFont05"] = {
+                type = "preview",
+                sub    = "Font",
+            },
+            ["PreviewFont075"] = {
+                type = "preview",
+                sub    = "Font",
+            },
+            ["PreviewFont1"] = {
+                type = "preview",
+                sub    = "Font",
+            },
+            ["PreviewFont15"] = {
+                type = "preview",
+                sub    = "Font",
+            },
+            ["PreviewFont2"] = {
+                type = "preview",
+                sub    = "Font",
+            },
+        }
+    },
+    BarsOptionsContainer = {
+        title = "Action Bar Settings",
+        desc = "description",
+        new = true,
+        childs = {
+            ["BarOrientation"] = {
+                type        = "dropdown",
+                setting     = Addon.FontOutlines,
+                name        = "Orientation",
+                IsSelected  = function(id) return id == Addon:GetValue("BarOrientation", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("BarOrientation", id, true) end,
+                showNew     = false,
+                OnEnter     = function(id, frames)
+                    Addon:RefreshButtons()
+                end,
+                OnClose     = function()
+                    Addon:RefreshButtons()
+                end,
+            },
+            ["RowsNumber"] = {
+                type            = "checkboxSlider",
+                name            = "Rows Number",
+                checkboxValue   = "UseRowsNumber",
+                sliderValue     = "RowsNumber",
+                min             = 1,
+                max             = 12,
+                step            = 1,
+                sliderName      = {top = "Rows"},
+                callback        = function()
+                    Addon:RefreshButtons()
+                end,
+            },
+            ["ColumnsNumber"] = {
+                type            = "checkboxSlider",
+                name            = "Columns Number",
+                checkboxValue   = "UseColumnsNumber",
+                sliderValue     = "ColumnsNumber",
+                min             = 1,
+                max             = 12,
+                step            = 1,
+                sliderName      = {top = "Columns"},
+                callback        = function()
+                    Addon:RefreshButtons()
+                end,
+            },
+            ["ButtonsNumber"] = {
+                type            = "checkboxSlider",
+                name            = "Buttons Number",
+                checkboxValue   = "UseButtonsNumber",
+                sliderValue     = "ButtonsNumber",
+                min             = 1,
+                max             = 12,
+                step            = 1,
+                sliderName      = {top = "Buttons"},
+                callback        = function()
+                    Addon:RefreshButtons()
+                end,
+            },
+            ["BarsPadding"] = {
+                type            = "checkboxSlider",
+                name            = "Bar Padding",
+                checkboxValue   = "UseBarPadding",
+                sliderValue     = "CurrentBarPadding",
+                min             = -5,
+                max             = 50,
+                step            = 1,
+                sliderName      = {top = "Padding"},
+                callback        = function() Addon:RefreshButtons() end,
+            },
+            ["ButtonSize"] = {
+                type            = "checkboxSlider",
+                name            = "Button Size",
+                checkboxValue   = "UseButtonSize",
+                sliderValue     = {"ButtonSizeX", "ButtonSizeY"},
+                min             = 10,
+                max             = 50,
+                step            = 1,
+                sliderName      = {{top = "size X"}, {top = "size Y"}},
+                callback        = function() Addon:RefreshButtons() end,
+            },
+        }
+    },
+
+    ---------------------------------
+    -------------PRESETS-------------
+    ---------------------------------
+    PresetsOptionsContainer = {
+        title = "Quick Presets",
+        desc = "Quickly apply preset templates. For detailed customization, use the Advanced tab.",
+        new = true,
+        childs = {}
+    },
+
+    ---------------------------------
+    ---------COOLDOWN VIEWER---------
+    ---------------------------------
+    CooldownViewerCDContainer = {
+        title = L.CDMCooldownTitle,
+        desc = L.CDMCooldownDesc,
+        childs = {
+            ["CDMItemSize"] = {
+                type            = "checkboxSlider",
+                name            = L.CDMItemSize,
+                checkboxValue   = "CDMUseItemSize",
+                sliderValue     = "CDMItemSize",
+                min             = 10,
+                max             = 80,
+                step            = 1,
+                sliderName      = {top = "Size X"},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["CDMSwipeTexture"] = {
+                type        = "dropdown",
+                setting     = T.SwipeTextures,
+                name        = L.SwipeTextureType,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentCDMSwipeTexture", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentCDMSwipeTexture", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose     = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["CDMSwipeSize"] = {
+                type            = "checkboxSlider",
+                name            = L.SwipeSize,
+                checkboxValue   = "UseCDMSwipeSize",
+                sliderValue     = "CDMSwipeSize",
+                min             = 20,
+                max             = 60,
+                step            = 1,
+                sliderName      = {top = "Size"},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["CDMSwipeColor"] = {
+                type            = "colorSwatch",
+                name            = L.CDMSwipeColor,
+                value           = "CDMSwipeColor",
+                checkboxValues  = {"UseCDMSwipeColor"},
+                alpha           = true,
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["CDMAuraSwipeColor"] = {
+                type            = "colorSwatch",
+                name            = L.CDMAuraSwipeColor,
+                value           = "CDMAuraSwipeColor",
+                checkboxValues  = {"UseCDMAuraSwipeColor"},
+                alpha           = true,
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["CDMReverseSwipe"] = {
+                type            = "checkbox",
+                name            = L.CDMReverseSwipe,
+                value           = "CDMReverseSwipe",
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["CDMAuraReverseSwipe"] = {
+                type            = "checkbox",
+                name            = L.CDMAuraReverseSwipe,
+                value           = "CDMAuraReverseSwipe",
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["CDMRemoveGCDSwipe"] = {
+                type            = "checkbox",
+                name            = L.CDMRemoveGCDSwipe,
+                value           = "CDMRemoveGCDSwipe",
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["CDMEdgeTexture"] = {
+                type        = "dropdown",
+                setting     = T.EdgeTextures,
+                name        = L.EdgeTextureType,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentCDMEdgeTexture", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentCDMEdgeTexture", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose     = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["CDMEdgeSize"] = {
+                type            = "checkboxSlider",
+                name            = L.EdgeSize,
+                checkboxValue   = "UseCDMEdgeSize",
+                sliderValue     = "CDMEdgeSize",
+                min             = 0.5,
+                max             = 2,
+                step            = 0.1,
+                sliderName      = {top = "Scale"},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["CDMEdgeColor"] = {
+                type            = "colorSwatch",
+                name            = L.UseCustomColor,
+                value           = "CDMEdgeColor",
+                checkboxValues  = {"UseCDMEdgeColor"},
+                alpha           = true,
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["CDMEdgeAlwaysShow"] = {
+                type            = "checkbox",
+                name            = L.EdgeAlwaysShow,
+                value           = "CDMEdgeAlwaysShow",
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+        }
+    },
+    CooldownViewerFontContainer = {
+        title = L.FontTitle,
+        desc = L.FontDesc,
+        childs = {
+            ["CDMCooldownFont"] = {
+                type        = "dropdown",
+                fontOption  = true,
+                setting     = function() return Addon.Fonts end,
+                name        = L.CooldownFont,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentCDMCooldownFont", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentCDMCooldownFont", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose     = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["CDMCooldownFontSize"] = {
+                type            = "checkboxSlider",
+                name            = L.CooldownFontSize,
+                checkboxValue   = "UseCooldownCDMFontSize",
+                sliderValue     = "CooldownCDMFontSize",
+                min             = 5,
+                max             = 40,
+                step            = 1,
+                sliderName      = {top = "Font Size"},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["CDMCooldownFontColor"] = {
+                type            = "colorSwatch",
+                name            = L.FontColor,
+                value           = "CooldownCDMFontColor",
+                checkboxValues  = {"UseCooldownCDMFontColor"},
+                alpha           = true,
+            },
+            ["CDMStacksFont"] = {
+                type        = "dropdown",
+                fontOption  = true,
+                setting     = function() return Addon.Fonts end,
+                name        = L.StacksFont,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentCDMStacksFont", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentCDMStacksFont", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose     = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["CDMStacksPoint"] = {
+                type        = "dropdown",
+                setting     = {Addon.AttachPoints, Addon.AttachPoints},
+                name        = L.StacksAttachPoint,
+                IsSelected  = {
+                    function(id) return id == Addon:GetValue("CDMCurrentStacksPoint", nil, true) end,
+                    function(id) return id == Addon:GetValue("CDMCurrentStacksRelativePoint", nil, true) end,
+                },
+                OnSelect    = {
+                    function(id) Addon:SaveSetting("CDMCurrentStacksPoint", id, true) end,
+                    function(id) Addon:SaveSetting("CDMCurrentStacksRelativePoint", id, true) end,
+                },
+                showNew     = false,
+                OnEnter     = {
+                    false,
+                    false,
+                },
+                OnClose     = {
+                    function()
+                        local frameName = ABE_BarsListMixin:GetActionBar()
+                        CooldownManagerEnhanced:ForceUpdate(frameName)
+                    end,
+                    function()
+                        local frameName = ABE_BarsListMixin:GetActionBar()
+                        CooldownManagerEnhanced:ForceUpdate(frameName)
+                    end,
+                },
+            },
+            ["CDMStacksOffset"] = {
+                type            = "checkboxSlider",
+                name            = L.StacksOffset,
+                checkboxValue   = "UseCDMStacksOffset",
+                sliderValue     = {"CDMStacksOffsetX", "CDMStacksOffsetY"},
+                min             = -40,
+                max             = 40,
+                step            = 1,
+                sliderName      = {{top = "offset X"}, {top = "offset Y"}},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["CDMStacksFontSize"] = {
+                type            = "checkboxSlider",
+                name            = L.FontStacksSize,
+                checkboxValue   = "UseCDMStacksFontSize",
+                sliderValue     = "CDMStacksFontSize",
+                min             = 5,
+                max             = 40,
+                step            = 1,
+                sliderName      = {top = "Font Size"},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["CDMStacksFontColor"] = {
+                type            = "colorSwatch",
+                name            = L.FontColor,
+                value           = "CDMStacksFontColor",
+                checkboxValues  = {"UseCDMStacksFontColor"},
+                alpha           = true,
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["CDMNameFont"] = {
+                type        = "dropdown",
+                fontOption  = true,
+                setting     = function() return Addon.Fonts end,
+                name        = L.NameFont,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentCDMNameFont", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentCDMNameFont", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose     = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["CDMNameFontSize"] = {
+                type            = "checkboxSlider",
+                name            = L.FontNameSize,
+                checkboxValue   = "UseNameCDMFontSize",
+                sliderValue     = "NameCDMFontSize",
+                min             = 5,
+                max             = 40,
+                step            = 1,
+                sliderName      = {top = "Font Size"},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["CDMNameFontColor"] = {
+                type            = "colorSwatch",
+                name            = L.FontColor,
+                value           = "NameCCDMFontColor",
+                checkboxValues  = {"UseNameCDMFontColor"},
+                alpha           = true,
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+        }
+    },
+    CooldownViewerBackdropContainer = {
+        title = L.BackdropTitle,
+        desc = L.BackdropDesc,
+        childs = {
+            ["BackdropSize"] = {
+                type            = "checkboxSlider",
+                name            = L.CDMBackdrop,
+                checkboxValue   = "UseCDMBackdrop",
+                sliderValue     = "CDMBackdropSize",
+                min             = 0.5,
+                max             = 10,
+                step            = 0.5,
+                sliderName      = {top = "Border Size"},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["BackdropColor"] = {
+                type            = "colorSwatch",
+                name            = L.CDMBackdropColor,
+                value           = "CDMBackdropColor",
+                checkboxValues  = {"UseCDMBackdropColor"},
+                alpha           = true,
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["BackdropAuraColor"] = {
+                type            = "colorSwatch",
+                name            = L.CDMBackdropAuraColor,
+                value           = "CDMBackdropAuraColor",
+                checkboxValues  = {"UseCDMBackdropAuraColor"},
+                alpha           = true,
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["BackdropPandemicColor"] = {
+                type            = "colorSwatch",
+                name            = L.CDMBackdropPandemicColor,
+                value           = "CDMBackdropPandemicColor",
+                checkboxValues  = {"UseCDMBackdropPandemicColor"},
+                alpha           = true,
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+        }
+            
+    },
+    CooldownViewerBarContainer = {
+        title = L.CDMBarContainerTitle,
+        desc = L.CDMBarContainerDesc,
+        childs = {
+            ["IconSize"] = {
+                type            = "checkboxSlider",
+                name            = L.IconSize,
+                checkboxValue   = "UseCDMBarIconSize",
+                sliderValue     = "CDMBarIconSize",
+                min             = 10,
+                max             = 60,
+                step            = 1,
+                sliderName      = {top = "Size"},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["BarHeight"] = {
+                type            = "checkboxSlider",
+                name            = L.BarHeight,
+                checkboxValue   = "UseCDMBarHeight",
+                sliderValue     = "CDMBarHeight",
+                min             = 10,
+                max             = 60,
+                step            = 1,
+                sliderName      = {top = "Size"},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["BarOffset"] = {
+                type            = "checkboxSlider",
+                name            = L.BarOffset,
+                checkboxValue   = "UseCDMBarOffset",
+                sliderValue     = "CDMBarOffset",
+                min             = 0,
+                max             = 200,
+                step            = 1,
+                sliderName      = {top = "Offset"},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["CDMBarTexture"] = {
+                type        = "dropdown",
+                statusBar   = true,
+                setting     = function() return T.StatusBarTextures end,
+                name        = L.StatusBarTextures,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentCDMStatusBarTexture", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentCDMStatusBarTexture", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose     = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["CDMBarColor"] = {
+                type            = "colorSwatch",
+                name            = L.UseCustomColor,
+                value           = "CDMBarColor",
+                checkboxValues  = {"UseCDMBarColor"},
+                alpha           = true,
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["CDMBarBGTexture"] = {
+                type        = "dropdown",
+                statusBar   = true,
+                setting     = function() return T.StatusBarTextures end,
+                name        = L.StatusBarBGTextures,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentCDMBGTexture", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentCDMBGTexture", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose     = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["CDMBarBGColor"] = {
+                type            = "colorSwatch",
+                name            = L.UseCustomColor,
+                value           = "CDMBarBGColor",
+                checkboxValues  = {"UseCDMBarBGColor"},
+                alpha           = true,
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["CDMBarGrow"] = {
+                type        = "dropdown",
+                setting     = Addon.BarsVerticalGrow,
+                name        = L.BarGrow,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentCDMBarGrow", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentCDMBarGrow", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose     = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["CDMPipTexture"] = {
+                type        = "dropdown",
+                setting     = function() return T.PipTextures end,
+                name        = L.BarPipTexture,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentCDMPipTexture", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentCDMPipTexture", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose     = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["PipSize"] = {
+                type            = "checkboxSlider",
+                name            = L.BarPipSize,
+                checkboxValue   = "CDMUseBarPipSize",
+                sliderValue     = {"CDMBarPipSizeX", "CDMBarPipSizeY"},
+                min             = 1,
+                max             = 60,
+                step            = 1,
+                sliderName      = {{top = "Size X"}, {top = "Size Y"}},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+        }
+    },
+    CooldownViewerContainer = {
+        title = L.CDMOptionsTitle,
+        desc = L.CDMOptionsDesc,
+        childs = {
+            ["CDMEnable"] = {
+                type            = "checkbox",
+                name            = L.Enable,
+                value           = "CDMEnable",
+            },
+            
+            ["IconPadding"] = {
+                type            = "checkboxSlider",
+                name            = L.IconPadding,
+                checkboxValue   = "UseCDMIconPadding",
+                sliderValue     = "CDMIconPadding",
+                min             = -10,
+                max             = 50,
+                step            = 1,
+                sliderName      = {top = "Padding"},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["CenteredGrid"] = {
+                type            = "checkbox",
+                name            = L.CDMCenteredGrid,
+                value           = "CDMCentered",
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+                
+            },
+            ["RemoveIconMask"] = {
+                type            = "checkbox",
+                name            = L.CDMRemoveIconMask,
+                value           = "CDMRemoveIconMask",
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["RemovePandemicAnims"] = {
+                type            = "checkbox",
+                name            = L.CDMRemovePandemic,
+                value           = "CDMRemovePandemic",
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            
+            
+            
+            ["RemoveDesaturation"] = {
+                type            = "checkbox",
+                name            = L.RemoveDesaturation,
+                value           = "CDMRemoveDesaturation",
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+        }
+    }
+}
+
+function Addon:BuildPresetsPreview()
+    local profilesList = ActionBarsEnhancedProfilesMixin:GetProfiles()
+    for i=1, #profilesList do
+        local profileName = profilesList[i]
+        local contaierCfg = Addon.config.containers.PresetsOptionsContainer
+        local containerLayout
+        for i, layout in ipairs(Addon.layoutPresets) do
+            if layout.name == "PresetsOptionsContainer" then
+                containerLayout = Addon.layoutPresets[i]
+            end
+        end
+
+        local presetName = "Preset_"..i
+        if containerLayout then
+            table.insert(containerLayout.childs, { name = presetName, template = "OptionsPresetsTemplate", scale="1.8" })
+
+            contaierCfg.childs[presetName] = {
+                type = "previewPreset",
+                sub = "Font",
+                text = profileName,
+                preset = profileName,
+            }
+        end
+    end
+end
+
+function Addon:BuildContainerChildren(container, containerDef, containerConfig)
+
+    local frames = {}
+    frames[containerDef.name] = container
+
+    for k, childDef in ipairs(containerDef.childs) do
+        local childType = childDef.template:find("Button") and "CheckButton" or "Frame"
+
+        local child = CreateFrame(childType, nil, container, childDef.template)
+
+        if childDef.point then
+            local parentName = childDef.point[2]
+            local parent
+            if parentName == "container" then
+                parent = container
+            elseif parentName == "desc" then
+                parent = container.Desc
+            elseif parentName == "title" then
+                parent = container.Title
+            else
+                parent = frames[parentName]
+            end 
+            child:SetPoint(childDef.point[1], parent, childDef.point[3], childDef.point[4], childDef.point[5])
+        else
+            if k == 1 then
+                child:SetPoint("TOP", container.Desc, "BOTTOM", 0, -10)
+            else
+                local prev = containerDef.childs[k-1]
+                child:SetPoint("TOP", frames[prev.name], "BOTTOM", 0, -10)
+            end
+        end
+
+        if childDef.scale then
+            child:SetScale(childDef.scale)
+        end
+
+        frames[childDef.name] = child
+
+        if containerConfig and containerConfig.childs then
+            local childConfig = containerConfig.childs[childDef.name]
+            if childConfig then
+                Addon:InitChildElement(child, childConfig, frames)
+            end
+        end
+    end
+end

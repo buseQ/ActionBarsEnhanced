@@ -4,12 +4,14 @@ Addon.command = "ActionBarsEnhanced"
 Addon.shortCommand = "abe"
 
 Addon.BarsToHide = {
-    "BagsBar",
-    "MicroMenu",
-    "StanceBar",
+    --"BagsBar",
+    --"MicroMenu",
+    --"StanceBar",
 }
 
-Addon.C = {}
+Addon.C = {
+    ["GlobalSettings"] = {}
+}
 
 Addon.AttachPoints = {
     [1] = "TOPLEFT",
@@ -26,19 +28,24 @@ Addon.FontOutlines = {
     [1] = "NONE",
     [2] = "OUTLINE",
     [3] = "THICKOUTLINE",
-    [4] = "MONOCHROME",
-    [5] = "OUTLINE, MONOCHROME",
-    [6] = "THICKOUTLINE, MONOCHROME",
+}
+Addon.BarsVerticalGrow = {
+    [1] = "Up",
+    [2] = "Down",
+}
+Addon.BarsHorizontalGrow = {
+    [1] = "Left",
+    [2] = "Right",
 }
 
 Addon.Defaults = {
-    CurrentLoopGlow = 3,
+    CurrentLoopGlow = 1,
     DesaturateGlow = false,
     UseLoopGlowColor = false,
     LoopGlowColor = { r=1.0, g=1.0, b=1.0, a=1.0 },
 
     HideProc = false,
-    CurrentProcGlow = 8,
+    CurrentProcGlow = 1,
     DesaturateProc = false,
     UseProcColor = false,
     ProcColor = { r=1.0, g=1.0, b=1.0, a=1.0 },
@@ -53,7 +60,7 @@ Addon.Defaults = {
     AssistAltColor = { r=1.0, g=1.0, b=1.0, a=1.0 },
 
     FadeBars = false,
-    FadeBarsAlpha = 0.45,
+    FadeBarsAlpha = 1,
     FadeInOnCombat = false,
     FadeInOnTarget = false,
     FadeInOnCasting = false,
@@ -184,6 +191,122 @@ Addon.Defaults = {
     DesaturateWALoop = false,
 
     AddWAMask = false,
+
+    UseBarPadding = false,
+    CurrentBarPadding = 2,
+
+    UseButtonSize = false,
+    ButtonSizeX = 42,
+    ButtonSizeY = 42,
+
+    BarOrientation = 1,
+    UseRowsNumber = false,
+    RowsNumber = 1,
+
+    UseColumnsNumber = false,
+    ColumnsNumber = 12,
+
+    UseButtonsNumber = false,
+    ButtonsNumber = 12,
+
+    CDMEnable = false,
+    UseCDMIconPadding = false,
+    CDMIconPadding = 2,
+
+    CDMReverseSwipe = false,
+    CDMAuraReverseSwipe = false,
+
+    UseCDMBackdrop = false,
+    CDMBackdropSize = 1,
+
+    CDMCentered = false,
+    CDMRemoveIconMask = false,
+    CDMRemovePandemic = false,
+
+    UseCDMSwipeColor = false,
+    CDMSwipeColor = { r=0.0, g=0.0, b=0.0, a=0.5 },
+
+    UseCDMAuraSwipeColor = false,
+    CDMAuraSwipeColor = { r=0.0, g=0.0, b=0.0, a=0.5 },
+
+    UseCDMBackdropColor = false,
+    CDMBackdropColor = { r=0.0, g=0.0, b=0.0, a=1.0 },
+    UseCDMBackdropAuraColor = false,
+    CDMBackdropAuraColor = { r=0.3, g=0.8, b=0.0, a=1.0 },
+    UseCDMBackdropPandemicColor = false,
+    CDMBackdropPandemicColor = { r=0.8, g=0.3, b=0.0, a=1.0 },
+
+    CurrentCDMSwipeTexture = 1,
+    
+    UseCDMSwipeSize = false,
+    CDMSwipeSize = 36,
+
+    CurrentCDMCooldownFont = "Default",
+    UseCooldownCDMFontSize = false,
+    CooldownCDMFontSize = 17,
+    UseCooldownCDMFontColor = false,
+    CooldownCDMFontColor = { r=1.0, g=1.0, b=1.0, a=1.0 },
+
+    CurrentCDMStacksFont = "Default",
+    UseCDMStacksFontSize = false,
+    CDMStacksFontSize = 17,
+    UseCDMStacksFontColor = false,
+    CDMStacksFontColor = { r=1.0, g=1.0, b=1.0, a=1.0 },
+
+    CurrentCDMStatusBarTexture = 1,
+    UseCDMBarColor = false,
+    CDMBarColor = { r=1.0, g=1.0, b=1.0, a=1.0 },
+
+    CurrentCDMNameFont = "Default",
+    UseNameCDMFontSize = false,
+    NameCDMFontSize = 17,
+    UseNameCDMFontColor = false,
+    NameCDMFontColor = { r=1.0, g=1.0, b=1.0, a=1.0 },
+
+    CurrentCDMBGTexture = 1,
+    UseCDMBarBGColor = true,
+    CDMBarBGColor = { r=0.0, g=0.0, b=0.0, a=0.5 },
+
+    CurrentCDMBarGrow = 2,
+
+    UseCDMBarIconSize = false,
+    CDMBarIconSize = 30,
+
+    UseCDMBarHeight = false,
+    CDMBarHeight = 19,
+
+    UseCDMStacksOffset = false,
+    CDMStacksOffsetX = 0,
+    CDMStacksOffsetY = 0,
+    CDMCurrentStacksPoint = 6,
+    CDMCurrentStacksRelativePoint = 6,
+
+    CurrentCDMEdgeTexture = 1,
+    UseCDMEdgeSize = false,
+    CDMEdgeSize = 1,
+    UseCDMEdgeColor = false,
+    CDMEdgeColor = { r=1.0, g=1.0, b=1.0, a=1.0 },
+    CDMEdgeAlwaysShow = false,
+
+    CDMRemoveOORColor = false,
+    CDMRemoveOOMColor = false,
+    CDMRemoveNUColor = false,
+    CDMRemoveDesaturation = false,
+
+    CDMUseBarPipSize = false,
+    CDMBarPipSizeX = 10,
+    CDMBarPipSizeY = 40,
+
+    CurrentCDMPipTexture = 1,
+
+    UseCDMBarOffset = false,
+    CDMBarOffset = 0,
+
+    CDMUseItemSize = false,
+    CDMItemSize = 40,
+
+    CDMRemoveGCDSwipe = false,
+
 }
 
 Addon.Templates = {
@@ -403,7 +526,7 @@ Addon.Templates = {
             scale = 0.95,
         },
         {
-            name = "ABE Square Pixel-like |cff1df2a8*new*",
+            name = "ABE Square Pixel-like",
             texture = "Interface/addons/ActionBarsEnhanced/assets/ABE_Square_PixelLike.png",
             rows = 6,
             columns = 5,
@@ -412,6 +535,17 @@ Addon.Templates = {
             frameW = 100,
             frameH = 100,
             scale = 0.82,
+        },
+        {
+            name = "ABE Arc Raiders |cff1df2a8*new*",
+            texture = "Interface/addons/ActionBarsEnhanced/assets/ABE_ArcRaiders.png",
+            rows = 10,
+            columns = 6,
+            frames = 60,
+            duration = 1,
+            frameW = 100,
+            frameH = 100,
+            scale = 1,
         },
         {
             name = "GCD",
@@ -854,7 +988,7 @@ Addon.Templates = {
         {
             name = "Default Blizzard Highlight",
             atlas = "UI-HUD-ActionBar-IconFrame-Mouseover",
-            size = {45,45},
+            point = "CENTER",
         },
         {
             name = "Bags Glow",
@@ -1261,7 +1395,7 @@ Addon.Templates = {
             texture = "Interface\\addons\\ActionBarsEnhanced\\assets\\ABE_CooldownSwipe_Blured.png",
         },
         {
-            name = "ABE Sqare",
+            name = "ABE Square",
             texture = "Interface\\addons\\ActionBarsEnhanced\\assets\\ABE_Mask_Square.png",
         },
         {
@@ -1307,4 +1441,39 @@ Addon.Templates = {
             texture = "Interface/addons/ActionBarsEnhanced/assets/ABE_CooldownEdge_BladeRGB.png",
         },
     },
+    StatusBarTextures = {},
+    PipTextures = {
+        {
+            name = "Default Blizzard Spark",
+            texture = "UI-HUD-CoolDownManager-Bar-Pip",
+        },
+        {
+            name = "Solid",
+            texture = "_perks-dropdown-mouseover-middle",
+        },
+        {
+            name = "Solid 2",
+            texture = "SquareMask",
+        },
+        {
+            name = "Professions Spark",
+            texture = "Professions-QualityBar-Flare",
+        },
+        {
+            name = "Professions Spark 2",
+            texture = "Professions-QualityBar-DividerGlow",
+        },
+        {
+            name = "Professions Spark 3",
+            texture = "Skillbar_Flare_Blacksmithing",
+        },
+        {
+            name = "Plunderstorm",
+            texture = "plunderstorm-stormbar-spark",
+        },
+        {
+            name = "Junkyard",
+            texture = "junkyard-scorebar-spark",
+        },
+    }
 }
