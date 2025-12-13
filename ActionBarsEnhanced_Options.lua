@@ -3,6 +3,33 @@ local AddonName, Addon = ...
 local L = Addon.L
 local T = Addon.Templates
 
+local printCount = 0
+local lastCallTime = nil
+
+function Addon:DebugPrint(...)
+
+
+    local currentTime = GetTime()
+    local timeStr = ""
+
+    if lastCallTime then
+        local timeDiff = currentTime - lastCallTime
+        if timeDiff <= 10 then
+            timeStr = string.format(" [%.2fs]", timeDiff)
+        else
+            printCount = 0
+            lastCallTime = nil
+        end
+    end
+
+    printCount = printCount + 1
+    
+    local prefix = string.format("[%d]%s ", printCount, timeStr)
+    print(prefix, ...)
+    
+    lastCallTime = currentTime
+end
+
 function Addon:GetFontsList()
     local fontList = {"Default"}
     local LSMFonts = LibStub("LibSharedMedia-3.0"):List("font")
@@ -442,7 +469,7 @@ function Addon:GetValue(valueName, profileName, config)
     if value == nil then
         value = Addon.Defaults[valueName]
     end
-
+    
     return value
 end
 
@@ -589,12 +616,8 @@ function ActionBarEnhancedMixin:InitOptions()
             if normalAtlas.hide then
                 button.NormalTexture:Hide()
             else
-                if normalAtlas.atlas then
-                    button:SetNormalAtlas(normalAtlas.atlas)
-                end
-                if normalAtlas.texture then
-                    button.NormalTexture:SetTexture(normalAtlas.texture)
-                end
+                Addon:SetTexture(button.NormalTexture, normalAtlas.texture)
+
                 if normalAtlas.point then
                     button.NormalTexture:ClearAllPoints()
                     button.NormalTexture:SetPoint(normalAtlas.point, button, normalAtlas.point)
@@ -761,11 +784,7 @@ function ActionBarEnhancedMixin:InitOptions()
             if Addon:GetValue("CurrentIconMaskTexture", profileName, barName) > 1 then
                 button.IconMask:SetHorizTile(false)
 	            button.IconMask:SetVertTile(false)
-                if iconMaskAtlas.atlas then
-                    button.IconMask:SetAtlas(iconMaskAtlas.atlas)
-                elseif iconMaskAtlas.texture then
-                    button.IconMask:SetTexture(iconMaskAtlas.texture)
-                end
+                Addon:SetTexture(button.IconMask,iconMaskAtlas.texture)
                 if iconMaskAtlas.point then
                     button.IconMask:ClearAllPoints()
                     button.IconMask:SetPoint(iconMaskAtlas.point, button.icon, iconMaskAtlas.point)
@@ -1068,8 +1087,15 @@ function ActionBarEnhancedMixin:InitOptions()
             slider:RegisterCallback("OnValueChanged",
                 function(self, value)
                     Addon:SaveSetting(sliderValue, value, true)
-                    if callback and type(callback) == "function" then
-                        callback(_, frames)
+
+                    if not self._debounce then
+                        self._debounce = true
+                        C_Timer.After(0.1, function()
+                            if callback and type(callback) == "function" then
+                                callback(_, frames)
+                            end
+                            self._debounce = false
+                        end)
                     end
                 end,
                 slider
@@ -1161,6 +1187,7 @@ function ActionBarEnhancedMixin:InitOptions()
                 okayButton._okayScript(self)
 
                 if callback and type(callback) == "function" then
+                    print("callback")
                     callback()
                 end
             end)
@@ -1283,10 +1310,10 @@ function ActionBarEnhancedMixin:InitOptions()
         frame.ApplyButton.preset = config.preset
 
         if config.preset == currentProfile then
-            frame.ApplyButton:SetText("Активно")
+            frame.ApplyButton:SetText(L.PresetActive)
             frame.ApplyButton:Disable()
         else
-            frame.ApplyButton:SetText("Выбрать")
+            frame.ApplyButton:SetText(L.PresetSelect)
             frame.ApplyButton:Enable()
         end
 

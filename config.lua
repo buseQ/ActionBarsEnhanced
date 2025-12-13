@@ -28,6 +28,9 @@ Addon.config.containers = {
                 value           = "LoopGlowColor",
                 checkboxValues  = {"UseLoopGlowColor", "DesaturateGlow"},
                 alpha           = false,
+                callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshAllPreview()
+                end,
             },
             ["ProcLoopPreview"] = {
                 type = "preview",
@@ -57,6 +60,9 @@ Addon.config.containers = {
                 value           = "ProcColor",
                 checkboxValues  = {"UseProcColor", "DesaturateProc"},
                 alpha           = false,
+                callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshAllPreview()
+                end,
             },
             ["ProcStartPreview"] = {
                 type = "preview",
@@ -84,6 +90,9 @@ Addon.config.containers = {
                 value           = "AssistGlowColor",
                 checkboxValues  = {"UseAssistGlowColor", "DesaturateAssist"},
                 alpha           = false,
+                callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshAllPreview()
+                end,
             },
             ["AssistAltGlowType"] = {
                 type        = "dropdown",
@@ -101,6 +110,9 @@ Addon.config.containers = {
                 value           = "AssistAltColor",
                 checkboxValues  = {"UseAssistAltColor", "DesaturateAssistAlt"},
                 alpha           = true,
+                callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshAllPreview()
+                end,
             },
         }
     },
@@ -192,6 +204,7 @@ Addon.config.containers = {
                 value           = "BackdropColor",
                 checkboxValues  = {"UseBackdropColor", "DesaturateBackdrop"},
                 alpha           = true,
+                callback        = function() ActionBarEnhancedDropdownMixin:RefreshAllPreview() end,
             },
             ["PreviewBackdrop"] = {
                 type = "preview",
@@ -260,6 +273,7 @@ Addon.config.containers = {
                 value           = "PushedColor",
                 checkboxValues  = {"UsePushedColor", "DesaturatePushed"},
                 alpha           = false,
+                callback        = function() ActionBarEnhancedDropdownMixin:RefreshAllPreview() end,
             },
             ["PreviewPushed"] = {
                 type = "preview",
@@ -289,6 +303,7 @@ Addon.config.containers = {
                 value           = "HighlightColor",
                 checkboxValues  = {"UseHighlightColor", "DesaturateHighlight"},
                 alpha           = true,
+                callback        = function() ActionBarEnhancedDropdownMixin:RefreshAllPreview() end,
             },
             ["PreviewHighlight"] = {
                 type = "preview",
@@ -318,6 +333,7 @@ Addon.config.containers = {
                 value           = "CheckedColor",
                 checkboxValues  = {"UseCheckedColor","DesaturateChecked"},
                 alpha           = true,
+                callback        = function() ActionBarEnhancedDropdownMixin:RefreshAllPreview() end,
             },
             ["PreviewChecked"] = {
                 type = "preview",
@@ -365,6 +381,7 @@ Addon.config.containers = {
                 value           = "CooldownColor",
                 checkboxValues  = {"UseCooldownColor"},
                 alpha           = true,
+                callback        = function() ActionBarEnhancedDropdownMixin:RefreshCooldownPreview() end,
             },
             ["PreviewSwipe"] = {
                 type = "preview",
@@ -403,6 +420,7 @@ Addon.config.containers = {
                 value           = "EdgeColor",
                 checkboxValues  = {"UseEdgeColor"},
                 alpha           = true,
+                callback        = function() ActionBarEnhancedDropdownMixin:RefreshCooldownPreview() end,
             },
             ["EdgeAlwaysShow"] = {
                 type            = "checkbox",
@@ -450,6 +468,7 @@ Addon.config.containers = {
                 value           = "CooldownFontColor",
                 checkboxValues  = {"UseCooldownFontColor"},
                 alpha           = true,
+                callback        = function() ActionBarEnhancedDropdownMixin:RefreshCooldownPreview() end,
             },
             ["PreviewCooldownFont"] = {
                 type = "preview",
@@ -590,6 +609,7 @@ Addon.config.containers = {
                 value           = "HotkeyColor",
                 checkboxValues  = {"UseHotkeyColor"},
                 alpha           = true,
+                callback        = function() ActionBarEnhancedDropdownMixin:RefreshFontPreview() end,
             },
             ["HotkeyPoint"] = {
                 type        = "dropdown",
@@ -632,6 +652,7 @@ Addon.config.containers = {
                 value           = "HotkeyShadow",
                 checkboxValues  = {"UseHotkeyShadow"},
                 alpha           = true,
+                callback        = function() ActionBarEnhancedDropdownMixin:RefreshFontPreview() end,
             },
             ["HotkeyShadowOffset"] = {
                 type            = "checkboxSlider",
@@ -711,6 +732,7 @@ Addon.config.containers = {
                 value           = "StacksColor",
                 checkboxValues  = {"UseStacksColor"},
                 alpha           = true,
+                callback        = function() ActionBarEnhancedDropdownMixin:RefreshFontPreview() end,
             },
             ["StacksPoint"] = {
                 type        = "dropdown",
@@ -753,6 +775,7 @@ Addon.config.containers = {
                 value           = "StacksShadow",
                 checkboxValues  = {"UseStacksShadow"},
                 alpha           = true,
+                callback        = function() ActionBarEnhancedDropdownMixin:RefreshFontPreview() end,
             },
             ["StacksShadowOffset"] = {
                 type            = "checkboxSlider",
@@ -1100,6 +1123,10 @@ Addon.config.containers = {
                 value           = "CooldownCDMFontColor",
                 checkboxValues  = {"UseCooldownCDMFontColor"},
                 alpha           = true,
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
             },
             ["CDMStacksFont"] = {
                 type        = "dropdown",
@@ -1474,6 +1501,53 @@ Addon.config.containers = {
                 type            = "checkbox",
                 name            = L.RemoveDesaturation,
                 value           = "CDMRemoveDesaturation",
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+        }
+    },
+    CooldownViewerIconContainer = {
+        title = L.IconTitle,
+        desc = L.IconDesc,
+        childs = {
+            ["IconMaskTextureOptions"] = {
+                type        = "dropdown",
+                setting     = T.IconMaskTextures,
+                name        = L.IconMaskTextureType,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentIconMaskTexture", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentIconMaskTexture", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose     = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["MaskScale"] = {
+                type            = "checkboxSlider",
+                name            = L.IconMaskScale,
+                checkboxValue   = "UseIconMaskScale",
+                sliderValue     = "IconMaskScale",
+                min             = 0.5,
+                max             = 1.5,
+                step            = 0.01,
+                sliderName      = {top = "Mask Scale"},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["IconScale"] = {
+                type            = "checkboxSlider",
+                name            = L.IconScale,
+                checkboxValue   = "UseIconScale",
+                sliderValue     = "IconScale",
+                min             = 0.5,
+                max             = 1.5,
+                step            = 0.01,
+                sliderName      = {top = "Icon Scale"},
                 callback        = function()
                     local frameName = ABE_BarsListMixin:GetActionBar()
                     CooldownManagerEnhanced:ForceUpdate(frameName)

@@ -279,7 +279,9 @@ function ABE_BarsListMixin:InitButtons(buttons, frame)
             ABE_BarsListMixin.label = buttonData.label
             if ABE_BarsListMixin.bar then
                 if ABE_BarsListMixin.bar.ShouldHide then
-                    ABE_BarsListMixin.bar:Hide()
+                    if not InCombatLockdown() then
+                        ABE_BarsListMixin.bar:Hide()
+                    end
                 end
                 Addon:SetFrameAlpha(ABE_BarsListMixin.bar)
             end
@@ -287,7 +289,9 @@ function ABE_BarsListMixin:InitButtons(buttons, frame)
             ABE_BarsListMixin.bar = (buttonData.label ~= "GlobalSettings" and not tContains(CDMFrames, buttonData.label)) and _G[buttonData.label] or nil
             if ABE_BarsListMixin.bar then
                 ABE_BarsListMixin.bar.ShouldHide = not ABE_BarsListMixin.bar:IsVisible()
-                ABE_BarsListMixin.bar:Show()
+                if not InCombatLockdown() then
+                    ABE_BarsListMixin.bar:Show()
+                end
                 Addon:SetFrameAlpha(ABE_BarsListMixin.bar, 1)
             end
 

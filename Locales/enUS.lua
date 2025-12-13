@@ -184,6 +184,12 @@ L.WALoopType = "WA Loop Type"
 L.AddWAMask = "Add mask to WA icons"
 
 -- ==========================================
+-- Quick Presets
+-- ==========================================
+L.PresetActive = "Active"
+L.PresetSelect = "Select"
+
+-- ==========================================
 -- Copy/Paste Functions
 -- ==========================================
 L["Copied: %s"] = "Copied: %s"

@@ -589,12 +589,7 @@ function Addon:UpdateNormalTexture(button, isStanceBar, previewValue)
 
     if button.NormalTexture then
         if normalAtlas then
-            if normalAtlas.atlas then
-                button:SetNormalAtlas(normalAtlas.atlas)
-            end
-            if normalAtlas.texture then
-                button.NormalTexture:SetTexture(normalAtlas.texture)
-            end
+            Addon:SetTexture(button.NormalTexture, normalAtlas.texture)
             if normalAtlas.point then
                 button.NormalTexture:ClearAllPoints()
                 button.NormalTexture:SetPoint(normalAtlas.point, button, normalAtlas.point)
@@ -785,11 +780,9 @@ function Addon:UpdateIconMask(button, isStanceBar, previewValue)
         if Addon:GetValue("CurrentIconMaskTexture", nil, configName) > 1 then
             button.IconMask:SetHorizTile(false)
             button.IconMask:SetVertTile(false)
-            if iconMaskAtlas.atlas then
-                button.IconMask:SetAtlas(iconMaskAtlas.atlas)
-            elseif iconMaskAtlas.texture then
-                button.IconMask:SetTexture(iconMaskAtlas.texture)
-            end
+
+            Addon:SetTexture(button.IconMask,iconMaskAtlas.texture)
+            
             if iconMaskAtlas.point then
                 button.IconMask:ClearAllPoints()
                 button.IconMask:SetPoint(iconMaskAtlas.point, button.icon, iconMaskAtlas.point)
@@ -1070,7 +1063,9 @@ end
 
 hooksecurefunc(ActionButtonSpellAlertManager, "ShowAlert", Hook_UpdateFlipbook)
 hooksecurefunc("CooldownFrame_Set", Hook_CooldownFrame_Set)
-hooksecurefunc("ActionButton_ApplyCooldown", Hook_ActionButton_ApplyCooldown)
+if ActionButton_ApplyCooldown then
+    hooksecurefunc("ActionButton_ApplyCooldown", Hook_ActionButton_ApplyCooldown)
+end
 
 hooksecurefunc(AssistedCombatManager, "SetAssistedHighlightFrameShown", Hook_Assist)
 

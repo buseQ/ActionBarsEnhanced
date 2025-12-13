@@ -3,6 +3,8 @@ local AddonName, Addon = ...
 local L = Addon.L
 local T = Addon.Templates
 
+local debugPrint = Addon.DebugPrint
+
 CooldownManagerEnhanced = {}
 CooldownManagerEnhanced.constants = {
     OORColor = {0.64, 0.15, 0.15, 1.0},
@@ -19,33 +21,6 @@ function CooldownManagerEnhanced:ForceUpdate(frameName)
     frame:Layout()
     --frame:RefreshData()
     --frame:UpdateShownState()
-end
-
-local printCount = 0
-local lastCallTime = nil
-
-local function debugPrint(...)
-
-
-    local currentTime = GetTime()
-    local timeStr = ""
-
-    if lastCallTime then
-        local timeDiff = currentTime - lastCallTime
-        if timeDiff <= 10 then
-            timeStr = string.format(" [%.2fs]", timeDiff)
-        else
-            printCount = 0
-            lastCallTime = nil
-        end
-    end
-
-    printCount = printCount + 1
-    
-    local prefix = string.format("[%d]%s ", printCount, timeStr)
-    print(prefix, ...)
-    
-    lastCallTime = currentTime
 end
 
 local COLOR_PRIORITY = {
@@ -165,11 +140,6 @@ local function Hook_CooldownFrame_Set(self)
     if bar and tContains(CooldownManagerFrames, barName) then
         if not Addon:GetValue("CDMEnable", nil, barName) then return end
         button.__cooldownSet = true
-
-        if button.isOnGCD and Addon:GetValue("CDMRemoveGCDSwipe", nil, barName) then
-            button.Cooldown:Hide()
-        end
-
         if button.cooldownUseAuraDisplayTime or button.pandemicAlertTriggerTime then
             --[[ button.Cooldown:ClearAllPoints()
             button.Cooldown:SetPoint("CENTER", button, "CENTER")
@@ -185,6 +155,9 @@ local function Hook_CooldownFrame_Set(self)
 
             button.Cooldown:SetReverse(Addon:GetValue("CDMAuraReverseSwipe", nil, barName))
         else
+            if (button.isOnGCD and not button.isOnActualCooldown) and Addon:GetValue("CDMRemoveGCDSwipe", nil, barName) then
+                button.Cooldown:Hide()
+            end
             if Addon:GetValue("UseCDMSwipeColor", nil, barName) then
                 button.Cooldown:SetSwipeColor(Addon:GetRGBA("CDMSwipeColor", nil, barName))
             end
@@ -404,6 +377,8 @@ local function OnButtonRefreshIconColor(self)
         --iconTexture:SetDesaturated(Addon:GetValue("NoUseDesaturate", nil, frameName))
     end ]]
 
+    local desaturated = self.cooldownDesaturated
+
     local iconColor = {iconTexture:GetVertexColor()}
     if iconColor then
         for i, number in pairs(iconColor) do
@@ -417,13 +392,19 @@ local function OnButtonRefreshIconColor(self)
     if Addon:GetValue("UseOORColor", nil, frameName) and (iconColor[1] == OORColor[1] and iconColor[2] == OORColor[2] and iconColor[3] == OORColor[3]) then
         iconTexture:SetVertexColor(Addon:GetRGBA("OORColor", nil, frameName))
         outOfRangeTexture:SetShown(false)
-        iconTexture:SetDesaturated(Addon:GetValue("OORDesaturate", nil, frameName))
+        --iconTexture:SetDesaturated(Addon:GetValue("OORDesaturate", nil, frameName))
     elseif Addon:GetValue("UseOOMColor", nil, frameName) and (iconColor[1] == OOMColor[1] and iconColor[2] == OOMColor[2] and iconColor[3] == OOMColor[3]) then
         iconTexture:SetVertexColor(Addon:GetRGBA("OOMColor", nil, frameName))
-        iconTexture:SetDesaturated(Addon:GetValue("OOMDesaturate", nil, frameName))
+        --iconTexture:SetDesaturated(Addon:GetValue("OOMDesaturate", nil, frameName))
     elseif Addon:GetValue("UseNoUseColor", nil, frameName) and (iconColor[1] == NUColor[1] and iconColor[2] == NUColor[2] and iconColor[3] == NUColor[3]) then
         iconTexture:SetVertexColor(Addon:GetRGBA("NoUseColor", nil, frameName))
-        iconTexture:SetDesaturated(Addon:GetValue("NoUseDesaturate", nil, frameName))
+        --iconTexture:SetDesaturated(Addon:GetValue("NoUseDesaturate", nil, frameName))
+    else
+        --[[ if Addon:GetValue("CDMRemoveDesaturation", nil, frameName) then
+            iconTexture:SetDesaturated(false)
+        else
+            iconTexture:SetDesaturated(desaturated)
+        end ]]
     end
 end
 local function OnButtonRefreshIconDesaturation(self)
@@ -442,12 +423,17 @@ local function Hook_OnItemSetScale(frame, scale)
 end
 
 local function Hook_Layout(self)
+    if self.__locked then
+        return
+    end
+    self.__locked = true
     --[[ if EditModeManagerFrame:IsEditModeActive() or CooldownViewerSettings:IsVisible() then
         return
     end ]]
 
     local frameName = self:GetName()
     if not frameName or not tContains(CooldownManagerFrames, frameName) then
+        self.__locked = false
         return
     end
 
@@ -464,12 +450,14 @@ local function Hook_Layout(self)
 
     local layoutChildren = self:GetLayoutChildren()
     if not self:ShouldUpdateLayout(layoutChildren) then
+        self.__locked = false
         return
     end
 
     for _, child in ipairs(layoutChildren) do
 
         if child:HasEditModeData() then
+            self.__locked = false
             return
         end
 
@@ -573,7 +561,7 @@ local function Hook_Layout(self)
             child.__stacksString = true
         end
 
-        if Addon:GetValue("CDMRemoveIconMask", nil, frameName) then
+        --[[ if Addon:GetValue("CDMRemoveIconMask", nil, frameName) then
             if not child.__removedMask or forceUpdate then
                 local icon = (frameName ~= "BuffBarCooldownViewer") and child.Icon or child.Icon.Icon
                 local mask = icon:GetMaskTexture(1)
@@ -582,7 +570,53 @@ local function Hook_Layout(self)
                 end
                 child.__removedMask = true
             end
+        end ]]
+        
+        if Addon:GetValue("CurrentIconMaskTexture", nil, frameName) > 1 and (not child.__iconHooked or forceUpdate) then
+
+            local iconMaskAtlas = T.IconMaskTextures[Addon:GetValue("CurrentIconMaskTexture", nil, frameName)]
+
+            local icon = (frameName ~= "BuffBarCooldownViewer") and child.Icon or child.Icon.Icon
+            local mask = icon:GetMaskTexture(1)
+
+            mask:SetHorizTile(false)
+            mask:SetVertTile(false)
+
+            Addon:SetTexture(mask, iconMaskAtlas.texture)
+            
+            if iconMaskAtlas.point then
+                mask:ClearAllPoints()
+                mask:SetPoint(iconMaskAtlas.point, mask:GetParent(), iconMaskAtlas.point)
+            end
+
+            if Addon:GetValue("UseIconMaskScale", nil, frameName) then
+                mask:SetSize(mask:GetParent():GetSize())
+                mask:SetScale(Addon:GetValue("IconMaskScale", nil, frameName))
+            end
+
+            if Addon:GetValue("UseIconScale", nil, frameName) then
+                icon:ClearAllPoints()
+                icon:SetPoint("CENTER", icon:GetParent(), "CENTER")
+                icon:SetSize(icon:GetParent():GetSize())
+                icon:SetScale(Addon:GetValue("IconScale", nil, frameName))
+            end
+
+             if not child.__iconOverlay then
+                local regions = (frameName ~= "BuffBarCooldownViewer") and { child:GetRegions() } or { child.Icon:GetRegions() }
+                for k, region in ipairs(regions) do
+                    if region:IsObjectType("Texture") then
+                        local atlas = region:GetAtlas()
+                        if atlas == "UI-HUD-CoolDownManager-IconOverlay" then
+                            child.__iconOverlay = region
+                        end
+                    end
+                end
+                child.__iconOverlay:Hide()
+            end
+
+            child.__iconHooked = true
         end
+        
 
         if Addon:GetValue("CDMUseItemSize", nil, frameName) and (not child.__sizeHooked or forceUpdate) then
             local size = Addon:GetValue("CDMItemSize", nil, frameName)
@@ -711,19 +745,6 @@ local function Hook_Layout(self)
                 child.Bar.Pip:ClearAllPoints()
                 child.Bar.Pip:SetPoint("CENTER", statusBarTexture, "LEFT")
             end        
-        else
-            if not child.__iconOverlay then
-                local regions = { child:GetRegions() }
-                for k, region in ipairs(regions) do
-                    if region:IsObjectType("Texture") then
-                        local atlas = region:GetAtlas()
-                        if atlas == "UI-HUD-CoolDownManager-IconOverlay" then
-                            child.__iconOverlay = region
-                        end
-                    end
-                end
-                child.__iconOverlay:Hide()
-            end
         end
     end
 
@@ -737,6 +758,7 @@ local function Hook_Layout(self)
             return
         end ]]
         if not self.__visibleChildren or #self.__visibleChildren == 0 then
+            self.__locked = false
             return
         end
         --debugPrint(self:GetName(), #self.__visibleChildren)
@@ -759,17 +781,17 @@ local function Hook_Layout(self)
             self:CacheLayoutSettings(self.__visibleChildren)
         else
             ApplyStandardGridLayout(self, self.__visibleChildren, self.stride, self.__padding)
-            --[[ if frameName ~= "BuffIconCooldownViewer" then
-                ResizeLayoutMixin.Layout(self)
-            end ]]
+            --ResizeLayoutMixin.Layout(self)
             self:CacheLayoutSettings(self.__visibleChildren)
         end
         CooldownManagerEnhanced.forced = nil
+        self.__locked = false
         return
     end
 
     if #layoutChildren == 0 then
         CooldownManagerEnhanced.forced = nil
+        self.__locked = false
         return
     end
 
@@ -794,6 +816,7 @@ local function Hook_Layout(self)
         self:CacheLayoutSettings(layoutChildren)
     end
 
+    self.__locked = false
     CooldownManagerEnhanced.forced = nil
 end
 

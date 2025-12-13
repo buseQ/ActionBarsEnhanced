@@ -1,5 +1,7 @@
 local AddonName, Addon = ...
 
+local debugPrint = Addon.DebugPrint
+
 local fadeBars = {
     "MultiActionBar",
 	"StanceBar",
@@ -110,21 +112,27 @@ local function FrameFadeOut(frame, duration, fromAlpha, toAlpha)
 end
 
 local function IsFrameFocused(frame)
+    if not frame or not frame.IsMouseOver then return false end
+    if frame:IsMouseOver() then
+        return true
+    end
+
     local focusedFrames = GetMouseFoci()
-    local focusedFrame
-    if focusedFrames then
-        if focusedFrames[1] then
-            if focusedFrames[1]:GetParent() then
-                focusedFrame = focusedFrames[1]:GetParent()
-                if focusedFrame == frame then
-                    return true
-                else
-                    focusedFrame = focusedFrames[1]:GetParent():GetParent()
-                end
+    if not focusedFrames then return false end
+    
+    for _, focusedFrame in ipairs(focusedFrames) do
+        if focusedFrame == frame then
+            return true
+        end
+        local parent = focusedFrame:GetParent()
+        while parent do
+            if parent == frame then
+                return true
             end
+            parent = parent:GetParent()
         end
     end
-    return focusedFrames and focusedFrame == frame
+    return false
 end
 
 local function ShouldFadeIn(frame)
@@ -167,10 +175,10 @@ end
 
 function Addon:SetFrameAlpha(frame, toAlpha)
     local frameName = frame:GetName()
-    toAlpha = toAlpha or Addon:GetValue("FadeBarsAlpha", nil, frameName)
-
-    if not toAlpha and Addon.externalFadeBars[frameName] then
+    if Addon.externalFadeBars[frameName] and not toAlpha then
         toAlpha = Addon.externalFadeBars[frameName].alpha
+    else
+        toAlpha = toAlpha or Addon:GetValue("FadeBarsAlpha", nil, frameName)
     end
 
     local currentAlpha = frame:GetAlpha()
@@ -215,21 +223,22 @@ function Addon:ExternalBarsFadeAnim(frame, options)
         for barName, options in pairs(Addon.externalFadeBars) do
             frame = _G[barName]
             if frame and ShouldFadeInExternal(frame, options) then
-                Addon:SetFrameAlpha(frame, options.alpha)
+                Addon:SetFrameAlpha(frame, 1)
             else
-                Addon:SetFrameAlpha(frame)
+                Addon:SetFrameAlpha(frame, options.alpha)
             end
         end
     else
         if ShouldFadeInExternal(frame, options) then
-            Addon:SetFrameAlpha(frame, options.alpha)
+            Addon:SetFrameAlpha(frame, 1)
         else
-            Addon:SetFrameAlpha(frame)
+            Addon:SetFrameAlpha(frame, options.alpha)
         end
     end
 end
 
 --/run ABE_RegisterFrameForFading("Minimap", { alpha = 0 })
+--/run ABE_RegisterFrameForFading("PlayerFrame.PlayerFrameContent", { alpha = 0 })
 
 function ABE_RegisterFrameForFading(frame, options)
     if not frame then return end
@@ -258,7 +267,7 @@ function ABE_RegisterFrameForFading(frame, options)
     if frame and Addon.externalFadeBars[frameName].onHover then
         Addon:HookExternalFrameForHover(frame)
     end
-    Addon.Print("Frame "..frameName.." registered for fading")
+    Addon.Print("Frame "..frameName.." registered for fading", Addon.externalFadeBars[frameName].alpha)
     Addon:ExternalBarsFadeAnim(frame, Addon.externalFadeBars[frameName])
 end
 

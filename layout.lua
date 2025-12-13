@@ -323,7 +323,6 @@ Addon.EssentialCooldownViewer = {
             {name = "CDMEnable", template = "OptionsCheckboxTemplate"},
             {name = "IconPadding", template = "OptionsCheckboxSliderTemplate"},
             {name = "CenteredGrid", template = "OptionsCheckboxTemplate"},
-            {name = "RemoveIconMask", template = "OptionsCheckboxTemplate"},
             {name = "RemovePandemicAnims", template = "OptionsCheckboxTemplate"},
             {name = "RemoveDesaturation", template = "OptionsCheckboxTemplate"},
         }
@@ -340,6 +339,14 @@ Addon.EssentialCooldownViewer = {
             {name = "ProcLoopPreview", template = "OptionsButtonGlowPreviewTemplate", point = {"TOP", "desc", "BOTTOM", 180, 4}, scale="1.8"},
             {name = "ProcStartPreview", template = "OptionsButtonGlowPreviewTemplate", point = {"TOP", "Divider", "BOTTOM", 180, -10}, scale="1.8"},
         
+        }
+    },
+    {
+        name = "CooldownViewerIconContainer",
+        childs = {
+            {name = "IconMaskTextureOptions", template = "OptionsDropdownTemplate"},
+            {name = "MaskScale", template = "OptionsCheckboxSliderTemplate"},
+            {name = "IconScale", template = "OptionsCheckboxSliderTemplate"},
         }
     },
     {
@@ -399,9 +406,16 @@ Addon.BuffIconCooldownViewer = {
             {name = "CDMEnable", template = "OptionsCheckboxTemplate"},
             {name = "IconPadding", template = "OptionsCheckboxSliderTemplate"},
             {name = "CenteredGrid", template = "OptionsCheckboxTemplate"},
-            {name = "RemoveIconMask", template = "OptionsCheckboxTemplate"},
             {name = "RemovePandemicAnims", template = "OptionsCheckboxTemplate"},
             {name = "RemoveDesaturation", template = "OptionsCheckboxTemplate"},
+        }
+    },
+    {
+        name = "CooldownViewerIconContainer",
+        childs = {
+            {name = "IconMaskTextureOptions", template = "OptionsDropdownTemplate"},
+            {name = "MaskScale", template = "OptionsCheckboxSliderTemplate"},
+            {name = "IconScale", template = "OptionsCheckboxSliderTemplate"},
         }
     },
     {
@@ -460,8 +474,15 @@ Addon.BuffBarCooldownViewer = {
         childs = {
             {name = "CDMEnable", template = "OptionsCheckboxTemplate"},
             {name = "IconPadding", template = "OptionsCheckboxSliderTemplate"},
-            {name = "RemoveIconMask", template = "OptionsCheckboxTemplate"},
             {name = "RemovePandemicAnims", template = "OptionsCheckboxTemplate"},
+        }
+    },
+    {
+        name = "CooldownViewerIconContainer",
+        childs = {
+            {name = "IconMaskTextureOptions", template = "OptionsDropdownTemplate"},
+            {name = "MaskScale", template = "OptionsCheckboxSliderTemplate"},
+            {name = "IconScale", template = "OptionsCheckboxSliderTemplate"},
         }
     },
     {
