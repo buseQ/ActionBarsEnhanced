@@ -3,6 +3,33 @@ local AddonName, Addon = ...
 local L = Addon.L
 local T = Addon.Templates
 
+local printCount = 0
+local lastCallTime = nil
+
+function Addon:DebugPrint(...)
+
+
+    local currentTime = GetTime()
+    local timeStr = ""
+
+    if lastCallTime then
+        local timeDiff = currentTime - lastCallTime
+        if timeDiff <= 10 then
+            timeStr = string.format(" [%.2fs]", timeDiff)
+        else
+            printCount = 0
+            lastCallTime = nil
+        end
+    end
+
+    printCount = printCount + 1
+    
+    local prefix = string.format("[%d]%s ", printCount, timeStr)
+    print(prefix, ...)
+    
+    lastCallTime = currentTime
+end
+
 function Addon:GetFontsList()
     local fontList = {"Default"}
     local LSMFonts = LibStub("LibSharedMedia-3.0"):List("font")
@@ -11,14 +38,54 @@ function Addon:GetFontsList()
     end
     return fontList
 end
-function Addon:GetFontObject(fontName, outline, color, size, isStanceBar)
+
+function Addon:GetStatusBarTextures()
+    local tbl = {
+        {
+            name = "Blizzard BuffBar",
+            texture = "UI-HUD-CoolDownManager-Bar"
+        },
+        {
+            name = "Blizzard BuffBar BG",
+            texture = "UI-HUD-CoolDownManager-Bar-BG"
+        },
+        {
+            name = "Blizzard Widget White",
+            texture = "widgetstatusbar-fill-white"
+        },
+        {
+            name = "Blizzard Widget Glow",
+            texture = "widgetstatusbar-glowcenter"
+        },
+        {
+            name = "Blizzard Widget BG",
+            texture = "widgetstatusbar-bgcenter"
+        },
+
+    }
+    local LSM = LibStub("LibSharedMedia-3.0")
+    local LSMStatusBarTextures = LSM:List("statusbar")
+    for i, name in ipairs(LSMStatusBarTextures) do
+        table.insert(tbl, { name = name, texture = LSM:Fetch("statusbar", name) })
+    end
+    return tbl
+end
+
+function Addon:GetFontObject(fontName, outline, color, size, isStanceBar, frameName)
+    --print("GetFontObject", fontName, outline, color, size, isStanceBar)
     if fontName == "Default" then
         fontName = "Fonts\\ARIALN.TTF"
     end
     outline = outline or ""
+    if color then
+        color.r = RoundToSignificantDigits(color.r, 2)
+        color.g = RoundToSignificantDigits(color.g, 2)
+        color.b = RoundToSignificantDigits(color.b, 2)
+    end
+
     color = color or {r = 1.0, g = 1.0, b = 1.0, a = 1.0}
     size = (size or 17) * (isStanceBar and 0.69 or 1.0)
-    local fontNameKey = (isStanceBar and "ABECD_Small_" or "ABECD_") .. fontName
+    local fontNameKey = (frameName or (isStanceBar and "ABECD_Small_" or "ABECD_")).. fontName
     if not Addon.CooldownFont[fontNameKey] then
         Addon.CooldownFont[fontNameKey] = CreateFont(fontNameKey)
     end
@@ -29,6 +96,36 @@ function Addon:GetFontObject(fontName, outline, color, size, isStanceBar)
     fontObject:SetTextColor(color.r, color.g, color.b, color.a)
 
     return fontObject, fontNameKey
+end
+
+local EditModeIconDataProvider = nil;
+
+function Addon:GetRandomClassSpellIcon()
+	if not EditModeIconDataProvider then
+		local spellIconsOnly = true;
+		EditModeIconDataProvider = CreateAndInitFromMixin(IconDataProviderMixin, IconDataProviderExtraType.Spellbook, spellIconsOnly);
+	end
+
+    local numIcons = EditModeIconDataProvider:GetNumIcons()
+
+	return EditModeIconDataProvider:GetIconByIndex(math.random(2, numIcons));
+end
+
+function Addon:SetTexture(frame, texture, useAtlasSize)
+    if not frame then return end
+    if not texture then texture = "" end
+    useAtlasSize = useAtlasSize or false
+
+    if not C_Texture.GetAtlasInfo(texture) then
+        frame:SetTexture(texture)
+        return
+    else
+        frame:SetAtlas(texture, useAtlasSize)
+    end
+end
+
+function Addon:UpdateButtons()
+
 end
 
 local function LightenHexColor(hex, factor)
@@ -90,7 +187,6 @@ local function GetGradientTextUTF8(text, startHex, endHex)
     return table.concat(parts)
 end
 
-Addon.Fonts = {}
 Addon.FontObjects = {}
 Addon.CooldownFont = {}
 
@@ -105,6 +201,17 @@ StaticPopupDialogs["ABE_RELOAD"] = {
     whileDead = true,
     hideOnEscape = true,
 }
+StaticPopupDialogs["ABE_RESET_CAT"] = {
+    text = "Are you sure you want to reset the settings for this action bar?",
+    button1 = "Yes",
+    button2 = "Cancel",
+    OnAccept = function(dialog, barName)
+        ABE_BarsListMixin:ResetBarSettings(barName);
+    end,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+}
 
 ActionBarEnhancedMixin = {}
 ActionBarEnhancedDropdownMixin = {}
@@ -114,6 +221,37 @@ ActionBarEnhancedButtonPreviewMixin = {}
 ActionBarEnhancedContainerMixin = {}
 ActionBarEnhancedOptionsContentMixin = {}
 ActionBarEnhancedCheckboxSliderMixin = {}
+
+ABE_BarsFrameMixin = {}
+
+function ABE_BarsFrameMixin:OnClick()
+    ABE_BarsFrameMixin:Toggle()
+end
+function ABE_BarsFrameMixin:OnLoad()
+    ABE_BarsFrameMixin:Collapse()
+end
+
+function ABE_BarsFrameMixin:Toggle()
+	if ABE_BarsFrameMixin.collapsed then
+		ABE_BarsFrameMixin:Expand()
+	else
+		ABE_BarsFrameMixin:Collapse()
+	end
+end
+function ABE_BarsFrameMixin:Expand()
+    ABE_BarsFrameMixin.collapsed = false
+    ActionBarEnhancedOptionsAdvancedFrame:SetPoint("LEFT", ActionBarEnhancedOptionsFrame, "RIGHT", -5, 0)
+end
+function ABE_BarsFrameMixin:Collapse()
+    ABE_BarsFrameMixin.collapsed = true
+    ActionBarEnhancedOptionsAdvancedFrame:SetPoint("LEFT", ActionBarEnhancedOptionsFrame, "RIGHT", -205, 0)
+end
+
+ActionBarEnhancedApplyPresetButtonMixin = {}
+
+function ActionBarEnhancedApplyPresetButtonMixin:OnClick()
+    ActionBarsEnhancedProfilesMixin:SetProfile(self.preset, true)
+end
 
 function Addon:Welcome()
     print(L.welcomeMessage1)
@@ -135,30 +273,30 @@ function ActionBarEnhanced_UpdateScrollFrame(self, delta)
     self:SetVerticalScroll(newValue);
 end
 
-function Addon:GetRGB(settingName)
-    local color = Addon.C[settingName]
+local function GetColorRGBA(settingName, profileName, context)
+    local color = Addon:GetValue(settingName, profileName, context)
 
     if color == "CLASS_COLOR" then
-        local r,g,b,a = PlayerUtil.GetClassColor():GetRGB()
-        return r, g, b
+        local classColor = PlayerUtil.GetClassColor()
+        local r, g, b = classColor:GetRGB()
+        local a = classColor.a or 1.0
+        return r, g, b, a
     elseif type(color) == "table" then
-        return color.r, color.g, color.b
-    else
-        return 1.0, 1.0, 1.0
-    end
-end
-function Addon:GetRGBA(settingName)
-    local color = Addon.C[settingName]
-
-    if color == "CLASS_COLOR" then
-        local r,g,b,a = PlayerUtil.GetClassColor():GetRGB()
-        return r, g, b, a or 1.0
-    elseif type(color) == "table" then
-        return color.r, color.g, color.b, color.a
+        return color.r or 1.0, color.g or 1.0, color.b or 1.0, color.a or 1.0
     else
         return 1.0, 1.0, 1.0, 1.0
     end
 end
+
+function Addon:GetRGB(settingName, profileName, context)
+    local r, g, b = GetColorRGBA(settingName, profileName, context)
+    return r, g, b
+end
+
+function Addon:GetRGBA(settingName, profileName, context)
+    return GetColorRGBA(settingName, profileName, context)
+end
+
 local toReload = {
     ["FadeBars"] = true,
     ["CurrentNormalTexture"] = true,
@@ -252,31 +390,89 @@ local toReload = {
     ["CurrentCooldownFont"] = true,
     ["UseCooldownFontSize"] = true,
     ["CooldownFontSize"] = true,
-}
 
-function Addon:SaveSetting(key, value)
-    local currentProfile = ActionBarsEnhancedProfilesMixin:GetPlayerProfile()
-    Addon.C[key] = value
-    ABDB.Profiles.profilesList[currentProfile][key] = value
+    ["CurrentBarPadding"] = true,
+
+    ["CDMEnable"] = true,
+    ["CDMBackdropSize"] = true,
+    ["UseCDMBackdrop"] = true,
+}
+function Addon:GetCurrentProfile()
+    return ActionBarsEnhancedProfilesMixin:GetPlayerProfile()
+end
+
+function Addon:SaveSetting(key, value, config)
+    local barName
+    if config then
+        if config == true then
+            barName = ABE_BarsListMixin:GetActionBar()
+            if barName then
+                config = barName
+            else
+                config = "GlobalSettings"
+            end
+        end
+    end
+    config = config or "GlobalSettings"
+
+    local currentProfile = Addon:GetCurrentProfile()
+
+    --[[ if config then
+        Addon.C[config][key] = value
+        if not ABDB.Profiles.profilesList[currentProfile][config] then
+            ABDB.Profiles.profilesList[currentProfile][config] = {}
+        end
+        ABDB.Profiles.profilesList[currentProfile][config][key] = value
+    else
+        Addon.C[key] = value
+        ABDB.Profiles.profilesList[currentProfile][key] = value
+    end ]]
+
+    if not Addon.C[config] then
+        Addon.C[config] = {}
+    end
+    Addon.C[config][key] = value
+    if not ABDB.Profiles.profilesList[currentProfile][config] then
+        ABDB.Profiles.profilesList[currentProfile][config] = {}
+    end
+    ABDB.Profiles.profilesList[currentProfile][config][key] = value
+
     if toReload[key] then
         if not StaticPopup_Visible("ABE_RELOAD") then
             StaticPopup_Show("ABE_RELOAD")
         end
     end
 end
+function Addon:GetValue(valueName, profileName, config)
+    local configName
 
-function Addon:HideBars(barName)
-    local bar = _G[barName]
-    if bar then
-        if Addon.C["Hide"..barName] then
-            if barName == "StanceBar" and InCombatLockdown() then return end
-            bar:Hide()
-        else
-            if barName == "StanceBar" and not StanceBar:ShouldShow() then return end
-            bar:Show()
-        end
+    if config == true then
+        local barName = ABE_BarsListMixin and ABE_BarsListMixin:GetActionBar()
+        configName = barName or "GlobalSettings"
+    elseif type(config) == "string" then
+        configName = config
+    else
+        configName = "GlobalSettings"
     end
+
+    local profile = profileName and ABDB.Profiles.profilesList[profileName] or Addon.C
+
+    local value
+    if profile and profile[configName] then
+        value = profile[configName][valueName]
+    end
+
+    if value == nil and configName ~= "GlobalSettings" and profile and profile["GlobalSettings"] then
+        value = profile["GlobalSettings"][valueName]
+    end
+
+    if value == nil then
+        value = Addon.Defaults[valueName]
+    end
+    
+    return value
 end
+
 function ActionBarEnhancedMixin:Reset()
     if ABDB then
         wipe(ABDB)
@@ -294,9 +490,12 @@ function ActionBarEnhancedMixin:InitOptions()
         return
     end
 
+    Addon:BuildPresetsPreview()
+
     local optionsFrame = CreateFrame("Frame", "ActionBarEnhancedOptionsFrame", UIParent, "ActionBarEnhancedOptionsFrameTemplate")
     optionsFrame:SetParent(UIParent)
     optionsFrame:SetPoint("LEFT", UIParent, "LEFT", 0, 0)
+
     optionsFrame:SetMovable(true)
     optionsFrame:EnableMouse(true)
     optionsFrame:EnableMouseWheel(true)
@@ -308,7 +507,7 @@ function ActionBarEnhancedMixin:InitOptions()
         self:StopMovingOrSizing()
     end)
     optionsFrame:SetUserPlaced(true)
-    optionsFrame.TitleContainer.TitleText:SetText("Options")
+    optionsFrame.TitleContainer.TitleText:SetText("ActionBarsEnhanced")
     --optionsFrame.Inset.Bg:SetAtlas("auctionhouse-background-auctions", true)
     optionsFrame.Inset.Bg:SetAtlas("auctionhouse-background-index", true)
     optionsFrame.Inset.Bg:SetHorizTile(false)
@@ -319,10 +518,13 @@ function ActionBarEnhancedMixin:InitOptions()
     optionsFrame.CloseButton:SetScript("OnClick", function()
         optionsFrame:Hide()
     end)
-    
 
-    local function RefreshProcLoop(button, value)
-        local loopAnim = value and T.LoopGlow[value] or (T.LoopGlow[Addon.C.CurrentLoopGlow] or nil)
+    ABE_BarsFrameMixin:Init()
+
+    function ActionBarEnhancedDropdownMixin:RefreshProcLoop(button, value, profileName, barName)
+        
+        local loopAnim = value and T.LoopGlow[value] or (T.LoopGlow[Addon:GetValue("CurrentLoopGlow", profileName, barName)] or nil)
+
         local region = button.ProcGlow
         if loopAnim.atlas then
             region.ProcLoopFlipbook:SetAtlas(loopAnim.atlas)    
@@ -342,14 +544,14 @@ function ActionBarEnhancedMixin:InitOptions()
             region.ProcLoopFlipbook:SetScale(loopAnim.scale or 1)
         end
         --region.ProcLoopFlipbook:SetTexCoords(333, 400, 0.412598, 0.575195, 0.393555, 0.78418, false, false)
-        region.ProcLoopFlipbook:SetDesaturated(Addon.C.DesaturateGlow)
-        if Addon.C.UseLoopGlowColor then
-            region.ProcLoopFlipbook:SetVertexColor(Addon:GetRGB("LoopGlowColor"))
+        region.ProcLoopFlipbook:SetDesaturated(Addon:GetValue("DesaturateGlow", profileName, barName)) --Addon.C.DesaturateGlow
+        if Addon:GetValue("UseLoopGlowColor", profileName, barName) then
+            region.ProcLoopFlipbook:SetVertexColor(Addon:GetRGB("LoopGlowColor", profileName, barName))
         else
             region.ProcLoopFlipbook:SetVertexColor(1.0, 1.0, 1.0)
         end
     end
-    local function RefreshProcStart(button, value)
+    function ActionBarEnhancedDropdownMixin:RefreshProcStart(button, value, profileName, barName)
         local function GetFlipBook(...)
             local Animations = {...}
 
@@ -360,13 +562,13 @@ function ActionBarEnhancedMixin:InitOptions()
                 end
             end
         end
-        local procAnim = value and T.ProcGlow[value] or (T.ProcGlow[Addon.C.CurrentProcGlow] or nil)
+        local procAnim = value and T.ProcGlow[value] or (T.ProcGlow[Addon:GetValue("CurrentProcGlow", profileName, barName)] or nil)
         local region = button.ProcGlow
         local startProc = region.ProcStartAnim.FlipAnim or GetFlipBook(region.ProcStartAnim:GetAnimations())
             
         if startProc and region.ProcStartFlipbook:IsVisible() then
             
-            if Addon.C.HideProc then
+            if Addon:GetValue("HideProc", profileName, barName) then
                 startProc:SetDuration(0)
                 region.ProcStartFlipbook:Hide()
             else
@@ -385,41 +587,37 @@ function ActionBarEnhancedMixin:InitOptions()
                     startProc:SetFlipBookFrameHeight(procAnim.frameH or 0.0)
                     region.ProcStartFlipbook:SetScale(procAnim.scale or 1)
                 end
-                region.ProcStartFlipbook:SetDesaturated(Addon.C.DesaturateProc)
+                region.ProcStartFlipbook:SetDesaturated(Addon:GetValue("DesaturateProc", profileName, barName)) --Addon.C.DesaturateProc
 
-                if Addon.C.UseProcColor then
-                    region.ProcStartFlipbook:SetVertexColor(Addon:GetRGB("ProcColor"))
+                if Addon:GetValue("UseProcColor", profileName, barName) then
+                    region.ProcStartFlipbook:SetVertexColor(Addon:GetRGB("ProcColor", profileName, barName))
                 else
                     region.ProcStartFlipbook:SetVertexColor(1.0, 1.0, 1.0)
                 end
             end
         end
     end
-    local function RefreshAltGlow(button, value)
-        local altGlowAtlas = value and T.PushedTextures[value] or (T.PushedTextures[Addon.C.CurrentAssistAltType] or nil)
+    function ActionBarEnhancedDropdownMixin:RefreshAltGlow(button, value, profileName, barName)
+        local altGlowAtlas = value and T.PushedTextures[value] or (T.PushedTextures[Addon:GetValue("CurrentAssistAltType", profileName, barName)] or nil)
         local region = button.ProcGlow
         if altGlowAtlas then
             region.ProcAltGlow:SetAtlas(altGlowAtlas.atlas)
         end
-        region.ProcAltGlow:SetDesaturated(Addon.C.DesaturateAssistAlt)
-        if Addon.C.UseAssistAltColor then
+        region.ProcAltGlow:SetDesaturated(Addon:GetValue("DesaturateAssistAlt", profileName, barName))
+        if Addon:GetValue("UseAssistAltColor", profileName, barName) then
             region.ProcAltGlow:SetVertexColor(Addon:GetRGB("AssistAltColor"))
         else
             region.ProcAltGlow:SetVertexColor(1.0, 1.0, 1.0)
         end
     end
-    local function RefreshNormalTexture(button, value)
-        local normalAtlas = value and T.NormalTextures[value] or (T.NormalTextures[Addon.C.CurrentNormalTexture] or nil)
+    function ActionBarEnhancedDropdownMixin:RefreshNormalTexture(button, value, profileName, barName)
+        local normalAtlas = value and T.NormalTextures[value] or (T.NormalTextures[Addon:GetValue("CurrentNormalTexture", profileName, barName)] or nil)
         if normalAtlas then
             if normalAtlas.hide then
                 button.NormalTexture:Hide()
             else
-                if normalAtlas.atlas then
-                    button:SetNormalAtlas(normalAtlas.atlas)
-                end
-                if normalAtlas.texture then
-                    button.NormalTexture:SetTexture(normalAtlas.texture)
-                end
+                Addon:SetTexture(button.NormalTexture, normalAtlas.texture)
+
                 if normalAtlas.point then
                     button.NormalTexture:ClearAllPoints()
                     button.NormalTexture:SetPoint(normalAtlas.point, button, normalAtlas.point)
@@ -440,14 +638,14 @@ function ActionBarEnhancedMixin:InitOptions()
                 button.NormalTexture:SetDrawLayer("OVERLAY")
             end
         end
-        button.NormalTexture:SetDesaturated(Addon.C.DesaturateNormal)
-        if Addon.C.UseNormalTextureColor then
-            button.NormalTexture:SetVertexColor(Addon:GetRGBA("NormalTextureColor"))
+        button.NormalTexture:SetDesaturated(Addon:GetValue("DesaturateNormal", profileName, barName)) --Addon.C.DesaturateNormal)
+        if Addon:GetValue("UseNormalTextureColor", profileName, barName) then
+            button.NormalTexture:SetVertexColor(Addon:GetRGBA("NormalTextureColor", profileName, barName))
         end
     end
-    local function RefreshBackdropTexture(button, value)
+    function ActionBarEnhancedDropdownMixin:RefreshBackdropTexture(button, value, profileName, barName)
         button.icon:Hide()
-        local backdropAtlas = value and T.BackdropTextures[value] or (T.BackdropTextures[Addon.C.CurrentBackdropTexture] or nil)
+        local backdropAtlas = value and T.BackdropTextures[value] or (T.BackdropTextures[Addon:GetValue("CurrentBackdropTexture", profileName, barName)] or nil)
         if button.SlotBackground then
             if backdropAtlas then
                 if backdropAtlas.hide then
@@ -478,15 +676,15 @@ function ActionBarEnhancedMixin:InitOptions()
                     end
                 end
             end
-            button.SlotBackground:SetDesaturated(Addon.C.DesaturateBackdrop)
-            if Addon.C.UseBackdropColor then
-                button.SlotBackground:SetVertexColor(Addon:GetRGBA("BackdropColor"))
+            button.SlotBackground:SetDesaturated(Addon:GetValue("DesaturateBackdrop", profileName, barName))
+            if Addon:GetValue("UseBackdropColor", profileName, barName) then
+                button.SlotBackground:SetVertexColor(Addon:GetRGBA("BackdropColor", profileName, barName))
             end
         end
     end
     local defaultSizes = {}
-    local function RefreshPushedTexture(button, value)
-        local pushedAtlas = value and T.PushedTextures[value] or (T.PushedTextures[Addon.C.CurrentPushedTexture] or nil)
+    function ActionBarEnhancedDropdownMixin:RefreshPushedTexture(button, value, profileName, barName)
+        local pushedAtlas = value and T.PushedTextures[value] or (T.PushedTextures[Addon:GetValue("CurrentPushedTexture", profileName, barName)] or nil)
         if pushedAtlas then
             if pushedAtlas.atlas then
                 button:SetPushedAtlas(pushedAtlas.atlas)
@@ -504,13 +702,13 @@ function ActionBarEnhancedMixin:InitOptions()
                 button.PushedTexture:SetSize(defaultSizes.PushedTexture[1], defaultSizes.PushedTexture[2])
             end
         end
-        button.PushedTexture:SetDesaturated(Addon.C.DesaturatePushed)
-        if Addon.C.UsePushedColor then
-            button.PushedTexture:SetVertexColor(Addon:GetRGBA("PushedColor"))
+        button.PushedTexture:SetDesaturated(Addon:GetValue("DesaturatePushed", profileName, barName))
+        if Addon:GetValue("UsePushedColor", profileName, barName) then
+            button.PushedTexture:SetVertexColor(Addon:GetRGBA("PushedColor", profileName, barName))
         end
     end
-    local function RefreshHighlightTexture(button, value)
-        local highlightAtlas = value and T.HighlightTextures[value] or (T.HighlightTextures[Addon.C.CurrentHighlightTexture] or nil)
+    function ActionBarEnhancedDropdownMixin:RefreshHighlightTexture(button, value, profileName, barName)
+        local highlightAtlas = value and T.HighlightTextures[value] or (T.HighlightTextures[Addon:GetValue("CurrentHighlightTexture", profileName, barName)] or nil)
         if highlightAtlas and highlightAtlas.hide then
             button.HighlightTexture:SetAtlas("")
             button.HighlightTexture:Hide()
@@ -534,14 +732,14 @@ function ActionBarEnhancedMixin:InitOptions()
                 end
             end
 
-            button.HighlightTexture:SetDesaturated(Addon.C.DesaturateHighlight)
-            if Addon.C.UseHighlightColor then
-                button.HighlightTexture:SetVertexColor(Addon:GetRGBA("HighlightColor"))
+            button.HighlightTexture:SetDesaturated(Addon:GetValue("DesaturateHighlight", profileName, barName))
+            if Addon:GetValue("UseHighlightColor", profileName, barName) then
+                button.HighlightTexture:SetVertexColor(Addon:GetRGBA("HighlightColor", profileName, barName))
             end
         end
     end
-    local function RefreshCheckedTexture(button, value)
-        local checkedAtlas = value and T.HighlightTextures[value] or (T.HighlightTextures[Addon.C.CurrentCheckedTexture] or nil)
+    function ActionBarEnhancedDropdownMixin:RefreshCheckedTexture(button, value, profileName, barName)
+        local checkedAtlas = value and T.HighlightTextures[value] or (T.HighlightTextures[Addon:GetValue("CurrentCheckedTexture", profileName, barName)] or nil)
         if checkedAtlas and checkedAtlas.hide then
             button.CheckedTexture:SetAtlas("")
         else
@@ -563,23 +761,30 @@ function ActionBarEnhancedMixin:InitOptions()
                 end
             end
 
-            button.CheckedTexture:SetDesaturated(Addon.C.DesaturateChecked)
-            if Addon.C.UseCheckedColor then
-                button.CheckedTexture:SetVertexColor(Addon:GetRGBA("CheckedColor"))
+            button.CheckedTexture:SetDesaturated(Addon:GetValue("DesaturateChecked", profileName, barName))
+            if Addon:GetValue("UseCheckedColor", profileName, barName) then
+                button.CheckedTexture:SetVertexColor(Addon:GetRGBA("CheckedColor", profileName, barName))
             end
         end
     end
-    local function RefreshIconMaskTexture(button, value)
-        local iconMaskAtlas = value and T.IconMaskTextures[value] or (T.IconMaskTextures[Addon.C.CurrentIconMaskTexture] or nil)
+    function ActionBarEnhancedDropdownMixin:RefreshIconTexture(button, value, profileName, barName)
+        button.icon:ClearAllPoints()
+        button.icon:SetPoint("CENTER", button, "CENTER", -0.5, 0.5)
+        if isStanceBar then
+            button.icon:SetSize(31,31)
+            button.icon:SetScale(Addon:GetValue("UseIconScale", profileName, barName) and Addon:GetValue("IconScale", profileName, barName) * 0.69 or 1.0)
+        else
+            button.icon:SetSize(46,45)
+            button.icon:SetScale(Addon:GetValue("UseIconScale", profileName, barName) and Addon:GetValue("IconScale", profileName, barName) or 1.0)
+        end
+    end
+    function ActionBarEnhancedDropdownMixin:RefreshIconMaskTexture(button, value, profileName, barName)
+        local iconMaskAtlas = value and T.IconMaskTextures[value] or (T.IconMaskTextures[Addon:GetValue("CurrentIconMaskTexture", profileName, barName)] or nil)
         if iconMaskAtlas then
-            if Addon.C.CurrentIconMaskTexture > 1 then
+            if Addon:GetValue("CurrentIconMaskTexture", profileName, barName) > 1 then
                 button.IconMask:SetHorizTile(false)
 	            button.IconMask:SetVertTile(false)
-                if iconMaskAtlas.atlas then
-                    button.IconMask:SetAtlas(iconMaskAtlas.atlas)
-                elseif iconMaskAtlas.texture then
-                    button.IconMask:SetTexture(iconMaskAtlas.texture)
-                end
+                Addon:SetTexture(button.IconMask,iconMaskAtlas.texture)
                 if iconMaskAtlas.point then
                     button.IconMask:ClearAllPoints()
                     button.IconMask:SetPoint(iconMaskAtlas.point, button.icon, iconMaskAtlas.point)
@@ -592,166 +797,160 @@ function ActionBarEnhancedMixin:InitOptions()
                 end
             end
             if isStanceBar then
-                button.IconMask:SetScale(Addon.C.UseIconMaskScale and Addon.C.IconMaskScale * 0.69 or 1.0)
+                button.IconMask:SetScale(Addon:GetValue("UseIconMaskScale", profileName, barName) and Addon:GetValue("IconMaskScale", profileName, barName) * 0.69 or 1.0)
             else
-                button.IconMask:SetScale(Addon.C.UseIconMaskScale and Addon.C.IconMaskScale or 1.0)
+                button.IconMask:SetScale(Addon:GetValue("UseIconMaskScale", profileName, barName) and Addon:GetValue("IconMaskScale", profileName, barName) or 1.0)
             end
         end
     end
-    local function RefreshHotkeyFont(button, value)
-        local font = value or Addon.C.CurrentHotkeyFont
+    function ActionBarEnhancedDropdownMixin:RefreshHotkeyFont(button, value, profileName, barName)
+        local font = value or Addon:GetValue("CurrentHotkeyFont", profileName, barName)
         button.TextOverlayContainer.HotKey:SetFont(
             font ~= "Default" and LibStub("LibSharedMedia-3.0"):Fetch("font", font) or "Fonts\\ARIALN.TTF",
-            (Addon.C.UseHotkeyFontSize and Addon.C.HotkeyFontSize or 11),
-            Addon.C.CurrentHotkeyOutline > 1 and Addon.FontOutlines[Addon.C.CurrentHotkeyOutline] or ""
+            (Addon:GetValue("UseHotkeyFontSize", profileName, barName) and Addon:GetValue("HotkeyFontSize", profileName, barName) or 11),
+            Addon:GetValue("CurrentHotkeyOutline", profileName, barName) > 1 and Addon.FontOutlines[Addon:GetValue("CurrentHotkeyOutline", profileName, barName)] or ""
         )
 
         button.TextOverlayContainer.HotKey:ClearAllPoints()
-        local fontSize = Addon.C.UseHotkeyFontSize and Addon.C.HotkeyFontSize or 11
+        local fontSize = Addon:GetValue("UseHotkeyFontSize", profileName, barName) and Addon:GetValue("HotkeyFontSize", profileName, barName) or 11
         button.TextOverlayContainer.HotKey:SetFontHeight(fontSize)
         button.TextOverlayContainer.HotKey:SetWidth(0)
         button.TextOverlayContainer.HotKey:SetPoint(
-            Addon.AttachPoints[Addon.C.CurrentHotkeyPoint],
+            Addon.AttachPoints[Addon:GetValue("CurrentHotkeyPoint", profileName, barName)],
             button.TextOverlayContainer,
-            Addon.AttachPoints[Addon.C.CurrentHotkeyRelativePoint],
-            Addon.C.UseHotkeyOffset and Addon.C.HotkeyOffsetX or -5,
-            Addon.C.UseHotkeyOffset and Addon.C.HotkeyOffsetY or -5
+            Addon.AttachPoints[Addon:GetValue("CurrentHotkeyRelativePoint", profileName, barName)],
+            Addon:GetValue("UseHotkeyOffset", profileName, barName) and Addon:GetValue("HotkeyOffsetX", profileName, barName) or -5,
+            Addon:GetValue("UseHotkeyOffset", profileName, barName) and Addon:GetValue("HotkeyOffsetY", profileName, barName) or -5
         )
-        if Addon.C.UseHotkeyColor then
-            button.TextOverlayContainer.HotKey:SetVertexColor(Addon:GetRGBA("HotkeyColor"))
+        if Addon:GetValue("UseHotkeyColor", profileName, barName) then
+            button.TextOverlayContainer.HotKey:SetVertexColor(Addon:GetRGBA("HotkeyColor", profileName, barName))
         end
-        if Addon.C.UseHotkeyShadow then
-            button.TextOverlayContainer.HotKey:SetShadowColor(Addon:GetRGBA("HotkeyShadow"))
+        if Addon:GetValue("UseHotkeyShadow", profileName, barName) then
+            button.TextOverlayContainer.HotKey:SetShadowColor(Addon:GetRGBA("HotkeyShadow", profileName, barName))
         else
             button.TextOverlayContainer.HotKey:SetShadowColor(0,0,0,0)
         end
-        if Addon.C.UseHotkeyShadowOffset then
-            button.TextOverlayContainer.HotKey:SetShadowOffset(Addon.C.HotkeyShadowOffsetX, Addon.C.HotkeyShadowOffsetY)
+        if Addon:GetValue("UseHotkeyShadowOffset", profileName, barName) then
+            button.TextOverlayContainer.HotKey:SetShadowOffset(Addon:GetValue("HotkeyShadowOffsetX", profileName, barName), Addon:GetValue("HotkeyShadowOffsetY", profileName, barName))
         else
             button.TextOverlayContainer.HotKey:SetShadowOffset(0,0)
         end
     end
-    local function RefreshStacksFont(button, value)
-        local font = value or Addon.C.CurrentStacksFont
+    function ActionBarEnhancedDropdownMixin:RefreshStacksFont(button, value, profileName, barName)
+        local font = value or Addon:GetValue("CurrentStacksFont", profileName, barName)
         button.TextOverlayContainer.Count:SetFont(
             font ~= "Default" and LibStub("LibSharedMedia-3.0"):Fetch("font", font) or "Fonts\\ARIALN.TTF",
-            (Addon.C.UseStacksFontSize and Addon.C.StacksFontSize or 16),
-            Addon.C.CurrentStacksOutline > 1 and Addon.FontOutlines[Addon.C.CurrentStacksOutline] or ""
+            (Addon:GetValue("UseStacksFontSize", profileName, barName) and Addon:GetValue("StacksFontSize", profileName, barName) or 16),
+            Addon:GetValue("CurrentStacksOutline", profileName, barName) > 1 and Addon.FontOutlines[Addon:GetValue("CurrentStacksOutline", profileName, barName)] or ""
         )
         button.TextOverlayContainer.Count:ClearAllPoints()
-        local fontSize = Addon.C.UseStacksFontSize and Addon.C.StacksFontSize or 16
+        local fontSize = Addon:GetValue("UseStacksFontSize", profileName, barName) and Addon:GetValue("StacksFontSize", profileName, barName) or 16
         button.TextOverlayContainer.Count:SetFontHeight(fontSize)
         button.TextOverlayContainer.Count:SetPoint(
-            Addon.AttachPoints[Addon.C.CurrentStacksPoint],
+            Addon.AttachPoints[Addon:GetValue("CurrentStacksPoint", profileName, barName)],
             button.TextOverlayContainer,
-            Addon.AttachPoints[Addon.C.CurrentStacksRelativePoint],
-            Addon.C.UseStacksOffset and Addon.C.StacksOffsetX or -5,
-            Addon.C.UseStacksOffset and Addon.C.StacksOffsetY or 5
+            Addon.AttachPoints[Addon:GetValue("CurrentStacksRelativePoint", profileName, barName)],
+            Addon:GetValue("UseStacksOffset", profileName, barName) and Addon:GetValue("StacksOffsetX", profileName, barName) or -5,
+            Addon:GetValue("UseStacksOffset", profileName, barName) and Addon:GetValue("StacksOffsetY", profileName, barName) or 5
         )
-        if Addon.C.UseStacksColor then
-            button.TextOverlayContainer.Count:SetVertexColor(Addon:GetRGBA("StacksColor"))
+        if Addon:GetValue("UseStacksColor", profileName, barName) then
+            button.TextOverlayContainer.Count:SetVertexColor(Addon:GetRGBA("StacksColor", profileName, barName))
         end
-        if Addon.C.UseStacksShadow then
-            button.TextOverlayContainer.Count:SetShadowColor(Addon:GetRGBA("StacksShadow"))
+        if Addon:GetValue("UseStacksShadow", profileName, barName) then
+            button.TextOverlayContainer.Count:SetShadowColor(Addon:GetRGBA("StacksShadow", profileName, barName))
         else
             button.TextOverlayContainer.Count:SetShadowColor(0,0,0,0)
         end
-        if Addon.C.UseStacksShadowOffset then
-            button.TextOverlayContainer.Count:SetShadowOffset(Addon.C.StacksShadowOffsetX, Addon.C.StacksShadowOffsetY)
+        if Addon:GetValue("UseStacksShadowOffset", profileName, barName) then
+            button.TextOverlayContainer.Count:SetShadowOffset(Addon:GetValue("StacksShadowOffsetX", profileName, barName), Addon:GetValue("StacksShadowOffsetY", profileName, barName))
         else
             button.TextOverlayContainer.Count:SetShadowOffset(0,0)
         end
     end
-    local function RefreshSwipeTexture(button, value)
-        value = value or Addon.C.CurrentSwipeTexture
+    function ActionBarEnhancedDropdownMixin:RefreshSwipeTexture(button, value, profileName, barName)
+        value = value or Addon:GetValue("CurrentSwipeTexture", profileName, barName)
         local textureSet = T.SwipeTextures[value]
         if value > 1 then
             button.cooldown:SetSwipeTexture(textureSet.texture)
         end
-        if Addon.C.UseSwipeSize then
+        if Addon:GetValue("UseSwipeSize", profileName, barName) then
             button.cooldown:ClearAllPoints()
             button.cooldown:SetPoint("CENTER", button.icon, "CENTER", 0, 0)
-            button.cooldown:SetSize(Addon.C.SwipeSize, Addon.C.SwipeSize)
+            button.cooldown:SetSize(Addon:GetValue("SwipeSize", profileName, barName), Addon:GetValue("SwipeSize", profileName, barName))
         end
 
-        if Addon.C.UseCooldownColor then
+        if Addon:GetValue("UseCooldownColor", profileName, barName) then
             button.cooldown:SetSwipeColor(Addon:GetRGBA("CooldownColor"))
         end
     end
-    local function RefreshEdgeTexture(button, value)
-        value = value or Addon.C.CurrentEdgeTexture
+    function ActionBarEnhancedDropdownMixin:RefreshEdgeTexture(button, value, profileName, barName)
+        value = value or Addon:GetValue("CurrentEdgeTexture", profileName, barName)
         local textureSet = T.EdgeTextures[value]
         button.cooldownEdge:SetEdgeTexture(textureSet.texture)
-        if Addon.C.UseEdgeSize then
+        if Addon:GetValue("UseEdgeSize", profileName, barName) then
             button.cooldownEdge:ClearAllPoints()
             button.cooldownEdge:SetPoint("CENTER", button.icon, "CENTER", 0, 0)
-            button.cooldownEdge:SetSize(Addon.C.EdgeSize, Addon.C.EdgeSize)
+            button.cooldownEdge:SetSize(Addon:GetValue("EdgeSize", profileName, barName), Addon:GetValue("EdgeSize", profileName, barName))
         end
 
-        if Addon.C.UseEdgeColor then
+        if Addon:GetValue("UseEdgeColor", profileName, barName) then
             button.cooldownEdge:SetEdgeColor(Addon:GetRGBA("EdgeColor"))
         end
     end
-    local function RefreshCooldownFont(button, value)
-        local font = value or Addon.C.CurrentCooldownFont
+    function ActionBarEnhancedDropdownMixin:RefreshCooldownFont(button, value, profileName, barName)
+        local font = value or Addon:GetValue("CurrentCooldownFont", profileName, barName)
         local color = {r = 1.0, g = 1.0, b = 1.0, a = 1.0}
-        if Addon.C.UseCooldownFontColor then
+        if Addon:GetValue("UseCooldownFontColor", profileName, barName) then
             color.r,color.g,color.b,color.a = Addon:GetRGBA("CooldownFontColor")
         end
         local _, fontName = Addon:GetFontObject(
             font,
             "OUTLINE",
             color,
-            Addon.C.UseCooldownFontSize and Addon.C.CooldownFontSize or 17
+            Addon:GetValue("UseCooldownFontSize", profileName, barName) and Addon:GetValue("CooldownFontSize", profileName, barName) or 17
         )
         button.cooldown:SetCountdownFont(fontName)
     end
 
-    function ActionBarEnhancedDropdownMixin:RefreshPreview(button, value)
+    function ActionBarEnhancedDropdownMixin:RefreshPreview(button, profileName, barName)
+
+        if not barName then barName = ABE_BarsListMixin:GetActionBar() end
 
         if not button then return end
 
         local region = button.ProcGlow
         if region then                
-            RefreshProcStart(button)
+            ActionBarEnhancedDropdownMixin:RefreshProcStart(button, nil, profileName, barName)
 
-            RefreshProcLoop(button)
+            ActionBarEnhancedDropdownMixin:RefreshProcLoop(button, nil, profileName, barName)
 
-            RefreshAltGlow(button)
+            ActionBarEnhancedDropdownMixin:RefreshAltGlow(button, nil, profileName, barName)
         end
 
         if button.NormalTexture then
-            RefreshNormalTexture(button)
+            ActionBarEnhancedDropdownMixin:RefreshNormalTexture(button, nil, profileName, barName)
         end
 
         if button.backdropPreview then
-            RefreshBackdropTexture(button)
+            ActionBarEnhancedDropdownMixin:RefreshBackdropTexture(button, nil, profileName, barName)
         end
 
-        RefreshPushedTexture(button)
+        ActionBarEnhancedDropdownMixin:RefreshPushedTexture(button, nil, profileName, barName)
 
-        RefreshHighlightTexture(button)
+        ActionBarEnhancedDropdownMixin:RefreshHighlightTexture(button, nil, profileName, barName)
         if button.CheckedTexture then
-            RefreshCheckedTexture(button)
+            ActionBarEnhancedDropdownMixin:RefreshCheckedTexture(button, nil, profileName, barName)
         end
         if button.IconMask then
-            RefreshIconMaskTexture(button)
+            ActionBarEnhancedDropdownMixin:RefreshIconMaskTexture(button, nil, profileName, barName)
         end
 
         if button.icon then
-            button.icon:ClearAllPoints()
-            button.icon:SetPoint("CENTER", button, "CENTER", -0.5, 0.5)
-            if isStanceBar then
-                button.icon:SetSize(31,31)
-                button.icon:SetScale(Addon.C.UseIconScale and Addon.C.IconScale * 0.69 or 1.0)
-            else
-                button.icon:SetSize(46,45)
-                button.icon:SetScale(Addon.C.UseIconScale and Addon.C.IconScale or 1.0)
-            end
+            ActionBarEnhancedDropdownMixin:RefreshIconTexture(button, nil, profileName, barName)
         end
 
         if button.Name then
-            if Addon.C.FontHideName then
+            if Addon:GetValue("FontHideName", profileName, barName) then
                 button.Name:Hide()
             else
                 button.Name:Show()
@@ -759,77 +958,103 @@ function ActionBarEnhancedMixin:InitOptions()
         end
         local textScaleMult = button:GetScale()
         if textScaleMult < 1 then
-            button.Name:SetScale(Addon.C.FontName and (textScaleMult + Addon.C.FontNameScale) or 1.0)
-            button.TextOverlayContainer.HotKey:SetScale(Addon.C.FontHotKey and Addon.C.FontHotKeyScale or 1.0)
-            button.TextOverlayContainer.Count:SetScale(Addon.C.FontStacks and Addon.C.FontStacksScale or 1.0)
+            button.Name:SetScale(Addon:GetValue("FontName", profileName, barName) and (textScaleMult + Addon:GetValue("FontNameScale", profileName, barName)) or 1.0)
+            button.TextOverlayContainer.HotKey:SetScale(Addon:GetValue("FontHotKey", profileName, barName) and Addon:GetValue("FontHotKeyScale", profileName, barName) or 1.0)
+            button.TextOverlayContainer.Count:SetScale(Addon:GetValue("FontStacks", profileName, barName) and Addon:GetValue("FontStacksScale", profileName, barName) or 1.0)
         end
 
         
         if button.TextOverlayContainer then
-            RefreshHotkeyFont(button)
+            ActionBarEnhancedDropdownMixin:RefreshHotkeyFont(button, nil, profileName, barName)
 
-            RefreshStacksFont(button)
+            ActionBarEnhancedDropdownMixin:RefreshStacksFont(button, nil, profileName, barName)
         end
 
         if button.cooldown then
-            RefreshSwipeTexture(button)
-            RefreshCooldownFont(button)
+            ActionBarEnhancedDropdownMixin:RefreshSwipeTexture(button, nil, profileName, barName)
+            ActionBarEnhancedDropdownMixin:RefreshCooldownFont(button, nil, profileName, barName)
             if not button.cooldownEdge then
-                button.cooldown:SetDrawEdge(Addon.C.EdgeAlwaysShow)
+                button.cooldown:SetDrawEdge(Addon:GetValue("EdgeAlwaysShow", profileName, barName))
             end
         end
         if button.cooldownEdge then
-            RefreshEdgeTexture(button)
+            ActionBarEnhancedDropdownMixin:RefreshEdgeTexture(button, nil, profileName, barName)
         end
     end
 
-    function ActionBarEnhancedDropdownMixin:SetupDropdown(control, setting, name, IsSelected, OnSelect, showNew, OnEnter, OnClose)
-        local frame = control:GetParent()
-        local menuGenerator = function(_, rootDescription)
-            rootDescription:CreateTitle(name)
-            local extent = 20
-			local maxEntrys = 25
-			local maxScrollExtent = extent * maxEntrys
-			rootDescription:SetScrollMode(maxScrollExtent)
-            
-            for i = 1, #setting do
-                local categoryName = setting[i].name or setting[i]
-                local categoryID = frame.isFontOption and categoryName or i
-                local radio = rootDescription:CreateRadio(categoryName, IsSelected, OnSelect, categoryID)
-                if frame.isFontOption then
-                    if i > 1 then
-                        if not Addon.FontObjects["ABE_"..categoryName] then
-                            local fontObject = CreateFont("ABE_"..categoryName)
-                            local fontPath = LibStub("LibSharedMedia-3.0"):Fetch("font", categoryName)
-                            fontObject:SetFont(fontPath, 11, "")
-                            Addon.FontObjects["ABE_"..categoryName] = fontObject
+    function ActionBarEnhancedDropdownMixin:SetupDropdown(control, setting, name, IsSelected, OnSelect, showNew, OnEnter, OnClose,frames)
+        local function SetupSingleDropdown(control, setting, name, IsSelected, OnSelect, showNew, OnEnter, OnClose, frames)
+            local frame = control:GetParent()
+            local menuGenerator = function(_, rootDescription)
+                rootDescription:CreateTitle(name)
+                local extent = 20
+                local maxEntrys = 25
+                local maxScrollExtent = extent * maxEntrys
+                rootDescription:SetScrollMode(maxScrollExtent)
+                
+                if type(setting) == "function" then
+                    setting = setting()
+                end
+                for i = 1, #setting do
+                    local categoryName = setting[i].name or setting[i]
+                    local categoryID = frame.isFontOption and categoryName or i
+                    local radio = rootDescription:CreateRadio(categoryName, IsSelected, OnSelect, categoryID)
+                    if frame.isFontOption then
+                        if i > 1 then
+                            if not Addon.FontObjects["ABE_"..categoryName] then
+                                local fontObject = CreateFont("ABE_"..categoryName)
+                                local fontPath = LibStub("LibSharedMedia-3.0"):Fetch("font", categoryName)
+                                fontObject:SetFont(fontPath, 11, "")
+                                Addon.FontObjects["ABE_"..categoryName] = fontObject
+                            end
+                            radio:AddInitializer(function(button, description, menu)
+                                button.fontString:SetFontObject(Addon.FontObjects["ABE_"..categoryName])
+                            end)
                         end
+                    end
+                    if frame.isStatusBar then
                         radio:AddInitializer(function(button, description, menu)
-                            button.fontString:SetFontObject(Addon.FontObjects["ABE_"..categoryName])
+                            local texture = button:AttachTexture()
+                            texture:SetHeight(18)
+                            texture:SetPoint("LEFT", button, "LEFT", 15, 0)
+                            texture:SetPoint("RIGHT", button, "RIGHT")
+                            texture:SetDrawLayer("BACKGROUND")
+                            Addon:SetTexture(texture, setting[i].texture)
+                        end)
+                    end
+                    if OnEnter then
+                        radio:SetOnEnter(function(button)
+                            OnEnter(categoryID, frames)
                         end)
                     end
                 end
-                if OnEnter then
-                    radio:SetOnEnter(function(button)
-                        OnEnter(categoryID)
-                    end)
-                end
             end
-        end
-        if showNew then
-            frame.NewFeature:Show()
-        else
-            frame.NewFeature:Hide()
-        end
-        if OnClose then
-            control.Dropdown:RegisterCallback(DropdownButtonMixin.Event.OnMenuClose, OnClose)
+            if showNew then
+                frame.NewFeature:Show()
+            else
+                frame.NewFeature:Hide()
+            end
+            if OnClose then
+                control.Dropdown:RegisterCallback(DropdownButtonMixin.Event.OnMenuClose, function() OnClose(_, frames) end)
+            end
+
+            frame.Text:SetText(name)
+            control.Dropdown:SetupMenu(menuGenerator)
+            control.IncrementButton:Hide()
+            control.DecrementButton:Hide()
         end
 
-        frame.Text:SetText(name)
-        control.Dropdown:SetupMenu(menuGenerator)
-        control.Dropdown:SetWidth(300)
-        control.IncrementButton:Hide()
-        control.DecrementButton:Hide()
+        local isDouble = control.Control1 and control.Control2
+        
+        if isDouble then
+            SetupSingleDropdown(control.Control1, setting[1] or setting, name[1] or name, IsSelected[1], OnSelect[1], nil, OnEnter[1], OnClose[1],frames)
+            SetupSingleDropdown(control.Control2, setting[2] or setting, name[2] or name, IsSelected[2], OnSelect[2], nil, OnEnter[2], OnClose[2],frames)
+            control.Control1.Dropdown:SetWidth(140)
+            control.Control2.Dropdown:SetWidth(140)
+        else
+            SetupSingleDropdown(control.Control, setting, name, IsSelected, OnSelect, showNew, OnEnter, OnClose,frames)
+            control.Control.Dropdown:SetWidth(300)
+        end
     end
 
     function ActionBarEnhancedDropdownMixin:SetupCheckbox(checkboxFrame, name, value, callback)
@@ -839,53 +1064,73 @@ function ActionBarEnhancedMixin:InitOptions()
             checkboxFrame.NewFeature:Hide()
         end
         checkboxFrame.Text:SetText(name)
-        checkboxFrame.Checkbox:SetChecked(Addon.C[value])
+        checkboxFrame.Checkbox:SetChecked(Addon:GetValue(value, nil, true))
         checkboxFrame.Checkbox:SetScript("OnClick",
-            function()
-                Addon:SaveSetting(value, not Addon.C[value])
+            function(button, buttonName, down)
+                Addon:SaveSetting(value, not Addon:GetValue(value, nil, true), true)
                 if callback and type(callback) == "function" then
-                    callback(Addon.C[value])
+                    callback(button:GetChecked())
                 end
             end
         )
     end
 
-    function ActionBarEnhancedCheckboxSliderMixin:SetupCheckboxSlider(slider, name, checkboxValue, sliderValue, min, max, step, sliderName, callback)
-        local checkboxFrame = slider:GetParent()
+    function ActionBarEnhancedCheckboxSliderMixin:SetupCheckboxSlider(checkboxFrame, name, checkboxValue, sliderValue, min, max, step, sliderName, callback, frames)
         checkboxFrame.Text:SetText(name)
-        local options = Settings.CreateSliderOptions(min or 0, max or 1, step or 0.1)
-        options:SetLabelFormatter(MinimalSliderWithSteppersMixin.Label.Top, function(value) return sliderName.top and sliderName.top..": |cffcccccc"..RoundToSignificantDigits(value, 2) or "" end)
-        options:SetLabelFormatter(MinimalSliderWithSteppersMixin.Label.Right, function(value) return sliderName.right and RoundToSignificantDigits(value, 2) or "" end)
-        slider:Init(Addon.C[sliderValue], options.minValue, options.maxValue, options.steps, options.formatters)
-        slider:RegisterCallback("OnValueChanged",
-            function(self, value)
-                Addon:SaveSetting(sliderValue, value)
-                if callback and type(callback) == "function" then
-                    callback()
-                end
-            end,
-            slider
-        )
-        slider:SetEnabled(Addon.C[checkboxValue])
-        checkboxFrame.Checkbox:SetChecked(Addon.C[checkboxValue])
-        checkboxFrame.Checkbox:SetScript("OnClick",
-            function()
-                Addon:SaveSetting(checkboxValue, not Addon.C[checkboxValue])
-                if checkboxFrame.SliderWithSteppers then
-                    checkboxFrame.SliderWithSteppers:SetEnabled(Addon.C[checkboxValue])
-                end
-                if checkboxFrame.SliderWithSteppers1 then
-                    checkboxFrame.SliderWithSteppers1:SetEnabled(Addon.C[checkboxValue])
-                end
-                if checkboxFrame.SliderWithSteppers2 then
-                    checkboxFrame.SliderWithSteppers2:SetEnabled(Addon.C[checkboxValue])
-                end
 
-            end
-        )
+        local function SetupSingleSlider(slider, name, checkboxValue, sliderValue, min, max, step, sliderName, callback, frames)
+            local checkboxFrame = slider:GetParent()
+            local options = Settings.CreateSliderOptions(min or 0, max or 1, step or 0.1)
+            options:SetLabelFormatter(MinimalSliderWithSteppersMixin.Label.Top, function(value) return sliderName.top and sliderName.top..": |cffcccccc"..RoundToSignificantDigits(value, 2) or "" end)
+            options:SetLabelFormatter(MinimalSliderWithSteppersMixin.Label.Right, function(value) return sliderName.right and RoundToSignificantDigits(value, 2) or "" end)
+            slider:Init(Addon:GetValue(sliderValue, nil, true), options.minValue, options.maxValue, options.steps, options.formatters)
+            slider:RegisterCallback("OnValueChanged",
+                function(self, value)
+                    Addon:SaveSetting(sliderValue, value, true)
+
+                    if not self._debounce then
+                        self._debounce = true
+                        C_Timer.After(0.1, function()
+                            if callback and type(callback) == "function" then
+                                callback(_, frames)
+                            end
+                            self._debounce = false
+                        end)
+                    end
+                end,
+                slider
+            )
+            slider:SetEnabled(Addon:GetValue(checkboxValue, nil, true))
+            checkboxFrame.Checkbox:SetChecked(Addon:GetValue(checkboxValue, nil, true))
+            checkboxFrame.Checkbox:SetScript("OnClick",
+                function()
+                    Addon:SaveSetting(checkboxValue, not Addon:GetValue(checkboxValue, nil, true), true)
+                    if checkboxFrame.SliderWithSteppers then
+                        checkboxFrame.SliderWithSteppers:SetEnabled(Addon:GetValue(checkboxValue, nil, true))
+                    end
+                    if checkboxFrame.SliderWithSteppers1 then
+                        checkboxFrame.SliderWithSteppers1:SetEnabled(Addon:GetValue(checkboxValue, nil, true))
+                    end
+                    if checkboxFrame.SliderWithSteppers2 then
+                        checkboxFrame.SliderWithSteppers2:SetEnabled(Addon:GetValue(checkboxValue, nil, true))
+                    end
+
+                end
+            )
+        end
+
+        local isDouble = checkboxFrame.SliderWithSteppers1 and checkboxFrame.SliderWithSteppers2
+
+        if isDouble then
+            SetupSingleSlider(checkboxFrame.SliderWithSteppers1, name, checkboxValue, sliderValue[1], min, max, step, sliderName[1], callback, frames)
+            SetupSingleSlider(checkboxFrame.SliderWithSteppers2, name, checkboxValue, sliderValue[2], min, max, step, sliderName[2], callback, frames)
+        else
+            SetupSingleSlider(checkboxFrame.SliderWithSteppers, name, checkboxValue, sliderValue, min, max, step, sliderName, callback, frames)
+        end
+
     end
 
-    function ActionBarEnhancedDropdownMixin:SetupColorSwatch(frame, name, value, checkboxValues, alpha)
+    function ActionBarEnhancedDropdownMixin:SetupColorSwatch(frame, name, value, checkboxValues, alpha, callback)
         frame.Text:SetText(name)
         if checkboxValues then
             for k, checkValue in pairs(checkboxValues) do
@@ -894,27 +1139,27 @@ function ActionBarEnhancedMixin:InitOptions()
                     frame[frameName].text:SetText(L.Desaturate)
                 end
                 frame[frameName]:Show()
-                frame[frameName]:SetChecked(Addon.C[checkValue])
+                frame[frameName]:SetChecked(Addon:GetValue(checkValue, nil, true))
                 frame[frameName]:SetScript("OnClick",
                     function()
-                        Addon:SaveSetting(checkValue, not Addon.C[checkValue])
+                        Addon:SaveSetting(checkValue, not Addon:GetValue(checkValue, nil, true), true)
                     end
                 )
             end
         end
 
-        frame.ColorSwatch.Color:SetVertexColor(Addon:GetRGBA(value))
+        frame.ColorSwatch.Color:SetVertexColor(Addon:GetRGBA(value, nil, true))
         
         frame.ColorSwatch:SetScript("OnClick", function(button, buttonName, down)
-            self:OpenColorPicker(frame, value, alpha)
+            self:OpenColorPicker(frame, value, alpha, callback)
         end)
     end
 
-    function ActionBarEnhancedDropdownMixin:OpenColorPicker(frame, value, alpha)
+    function ActionBarEnhancedDropdownMixin:OpenColorPicker(frame, value, alpha, callback)
 
         local info = UIDropDownMenu_CreateInfo()
 
-        info.r, info.g, info.b, info.opacity = Addon:GetRGBA(value)
+        info.r, info.g, info.b, info.opacity = Addon:GetRGBA(value, nil, true)
 
         info.hasOpacity = alpha
 
@@ -933,1139 +1178,304 @@ function ActionBarEnhancedMixin:InitOptions()
                 ColorPickerFrame:SetupColorPickerAndShow(info)
             end)
         end
+        local okayButton = ColorPickerFrame.Footer.OkayButton
+        if not okayButton._okayScript then
+            okayButton._okayScript = okayButton:GetScript("OnClick")
+        end
+        if okayButton then
+            okayButton:SetScript("OnClick", function(self)
+                okayButton._okayScript(self)
+
+                if callback and type(callback) == "function" then
+                    print("callback")
+                    callback()
+                end
+            end)
+        end
 
         info.swatchFunc = function ()
             local r,g,b = ColorPickerFrame:GetColorRGB()
             local a = ColorPickerFrame:GetColorAlpha()
             frame.ColorSwatch.Color:SetVertexColor(r,g,b)
-            Addon:SaveSetting(value, { r=r, g=g, b=b, a=a })
+            Addon:SaveSetting(value, { r=r, g=g, b=b, a=a }, true)
         end
 
         info.cancelFunc = function ()
             local r,g,b,a = ColorPickerFrame:GetPreviousValues()
             frame.ColorSwatch.Color:SetVertexColor(r,g,b)
 
-            Addon:SaveSetting(value, { r=r, g=g, b=b, a=a })
+            Addon:SaveSetting(value, { r=r, g=g, b=b, a=a }, true)
+            if type(callback) == "function" then
+                callback()
+            end
         end
 
         ColorPickerFrame:SetupColorPickerAndShow(info)
     end
 
     ---------------------------------------------
-    local loopContainer = optionsFrame.ScrollFrame.ScrollChild.GlowOptionsContainer
-    local procContainer = optionsFrame.ScrollFrame.ScrollChild.ProcOptionsContainer
-    local normalContainer = optionsFrame.ScrollFrame.ScrollChild.NormalOptionsContainer
-    local backdropContainer = optionsFrame.ScrollFrame.ScrollChild.BackdropOptionsContainer
-    local iconContaiter = optionsFrame.ScrollFrame.ScrollChild.IconOptionsContainer
-    local pushedContainer = optionsFrame.ScrollFrame.ScrollChild.PushedOptionsContainer
-    local highlightContainer = optionsFrame.ScrollFrame.ScrollChild.HighlightOptionsContainer
-    local checkedContainer = optionsFrame.ScrollFrame.ScrollChild.CheckedOptionsContainer
-    local cooldownContainer = optionsFrame.ScrollFrame.ScrollChild.CooldownOptionsContaier
-    local hideContainer = optionsFrame.ScrollFrame.ScrollChild.HideFramesOptionsContainer
-    local fontContainer = optionsFrame.ScrollFrame.ScrollChild.FontOptionsContainer
-    local fadeContainer = optionsFrame.ScrollFrame.ScrollChild.FadeOptionsContainer
 
-    --[[ local content = optionsFrame.ScrollFrame.ScrollChild
-    local containers = {
-        loopContainer = content.GlowOptionsContainer
-        procContainer = content.ProcOptionsContainer
-        normalContainer = content.NormalOptionsContainer
-        backdropContainer = content.BackdropOptionsContainer
-        iconContaiter = content.IconOptionsContainer
-        pushedContainer = content.PushedOptionsContainer
-        highlightContainer = content.HighlightOptionsContainer
-        checkedContainer = content.CheckedOptionsContainer
-        cooldownContainer = content.CooldownOptionsContaier
-        hideContainer = content.HideFramesOptionsContainer
-        fontContainer = content.FontOptionsContainer
-        fadeContainer = content.FadeOptionsContainer
-    }
-    local previews = {
-        ProcLoopPreview = content.GlowOptionsContainer.ProcLoopPreview
-        ProcStartPreview = content.ProcOptionsContainer.ProcStartPreview
-        PreviewNormal = content.NormalOptionsContainer.PreviewNormal
-        PreviewBackdrop = content.BackdropOptionsContainerPreviewBackdrop
-        PreviewIcon = content.IconOptionsContainer.PreviewIcon
-        PreviewPushed = content.PushedOptionsContainer.PreviewPushed
-        PreviewHighlight = content.HighlightOptionsContainer.PreviewHighlight
-        PreviewChecked = content.CheckedOptionsContainer.PreviewChecked
-        PreviewSwipe = content.CooldownOptionsContaier.PreviewSwipe
-        PreviewInterrupt = content.HideFramesOptionsContainer.PreviewInterrupt
-        PreviewCasting = content.HideFramesOptionsContainer.PreviewCasting
-        PreviewReticle = content.HideFramesOptionsContainer.PreviewReticle
-        PreviewFont05 = content.FontOptionsContainer.PreviewFont05
-        PreviewFont075 = content.FontOptionsContainer.PreviewFont075
-        PreviewFont1 = content.FontOptionsContainer.PreviewFont1
-        PreviewFont15 = content.FontOptionsContainer.PreviewFont15
-        PreviewFont2 = content.FontOptionsContainer.PreviewFont2
-    } ]]
+    ActionBarEnhancedDropdownMixin.AllPreview = {}
+    ActionBarEnhancedDropdownMixin.CooldownPreview = {}
+    ActionBarEnhancedDropdownMixin.FontPreview = {}
 
-    ---------------------------------------------
-    -----------------GLOW OPTIONS----------------
-    ---------------------------------------------
-    loopContainer.Title:SetText(GetGradientTextUTF8(L.GlowTypeTitle, "ffb536", "ffd68f"))
-    loopContainer.Desc:SetText(L.GlowTypeDesc)
-    ActionBarEnhancedDropdownMixin:SetupDropdown(
-        loopContainer.GlowOptions.Control,
-        T.LoopGlow,
-        L.GlowType,
-        function(id) return id == Addon.C.CurrentLoopGlow end,
-        function(id)
-            Addon:SaveSetting("CurrentLoopGlow", id)
-        end,
-        true,
-        function(id)
-            RefreshProcLoop(loopContainer.ProcLoopPreview, id)
-        end,
-        function()
-            ActionBarEnhancedDropdownMixin:RefreshPreview(loopContainer.ProcLoopPreview)
+    function ActionBarEnhancedDropdownMixin:SetupPreview(button, config)
+
+        button.icon:SetTexture(Addon:GetRandomClassSpellIcon())
+
+        if config.sub == "LoopGlow" then
+            button.ProcGlow.ProcStartFlipbook:Hide()
+            button.ProcGlow.ProcAltGlow:Hide()
+            button.ProcGlow.ProcLoop:Play()
+        elseif config.sub == "ProcGlow" then
+            button.ProcGlow.ProcLoopFlipbook:Hide()
+            button.ProcGlow.ProcAltGlow:Hide()
+            button.ProcGlow.ProcStartAnim:Play()
+        elseif config.sub == "Backdrop" then
+            button.backdropPreview = true
+        elseif config.sub == "CooldownSwipe" then
+            table.insert(self.CooldownPreview, button)
+            button.cooldown:SetHideCountdownNumbers(true)
+            CooldownFrame_Set(button.cooldown, GetTime(), math.random(10,120), true, false, 1)
+            button.cooldown:SetScript("OnCooldownDone", function()
+                CooldownFrame_Set(button.cooldown, GetTime(), math.random(10, 120), true, false, 1)
+            end)
+        elseif config.sub == "CooldownEdge" then
+            table.insert(self.CooldownPreview, button)
+            button.cooldownEdge = button.cooldown
+            button.cooldownEdge:SetHideCountdownNumbers(true)
+            button.cooldownEdge:SetDrawSwipe(false)
+            CooldownFrame_Set(button.cooldownEdge, GetTime(), math.random(2, 15), true, true, 1)
+            button.cooldownEdge:SetScript("OnCooldownDone", function()
+                CooldownFrame_Set(button.cooldownEdge, GetTime(), math.random(2, 15), true, true, 1)
+            end)
+        elseif config.sub == "CooldownFont" then
+            table.insert(self.CooldownPreview, button)
+            CooldownFrame_Set(button.cooldown, GetTime(), math.random(10,120), true, false, 1)
+            button.cooldown:SetScript("OnCooldownDone", function()
+                CooldownFrame_Set(button.cooldown, GetTime(), math.random(10,120), true, false, 1)
+            end)
+        elseif config.sub == "AnimInterrupt" then
+            button.InterruptDisplay:Show()
+            button.InterruptDisplay.Base.AnimIn:SetLooping("REPEAT")
+            button.InterruptDisplay.Highlight.AnimIn:SetLooping("REPEAT")
+            button.InterruptDisplay.Base.AnimIn:Play()
+            button.InterruptDisplay.Highlight.AnimIn:Play()
+            button.Title.TitleText:SetText("Interrupt")
+        elseif config.sub == "AnimCasting" then
+            button.SpellCastAnimFrame:Show()
+            button.SpellCastAnimFrame.Fill.CastingAnim:SetLooping("REPEAT")
+            button.SpellCastAnimFrame.EndBurst.FinishCastAnim:SetLooping("REPEAT")
+            button.SpellCastAnimFrame.Fill.CastingAnim:Play()
+            button.SpellCastAnimFrame.EndBurst.FinishCastAnim:Play()
+            button.Title.TitleText:SetText("Casting")
+        elseif config.sub == "AnimReticle" then
+            button.TargetReticleAnimFrame:Show()
+            button.TargetReticleAnimFrame.HighlightAnim:SetLooping("REPEAT")
+            button.TargetReticleAnimFrame.HighlightAnim:Play()
+            button.Title.TitleText:SetText("Reticle")
+        elseif config.sub == "Font" then
+            table.insert(self.FontPreview, button)
+            button.TextOverlayContainer.HotKey:SetText(config.hotkey or (math.random(1,10)-1))
+            button.TextOverlayContainer.Count:SetText(config.stacks or (math.random(1,100)-1))
+            button.Name:SetText(config.name or "Name")
         end
-    )
-    ActionBarEnhancedDropdownMixin:SetupColorSwatch(
-        loopContainer.CustomColorGlow,
-        L.UseCustomColor,
-        "LoopGlowColor",
-        {"UseLoopGlowColor", "DesaturateGlow"}
-    )
-
-    ---------------------------------------------
-    -----------------PROC OPTIONS----------------
-    ---------------------------------------------
-    procContainer.Title:SetText(GetGradientTextUTF8(L.ProcStartTitle, "ffb536", "ffd68f"))
-    procContainer.Desc:SetText(L.ProcStartDesc)
-    ActionBarEnhancedDropdownMixin:SetupCheckbox(
-        procContainer.HideProc,
-        L.HideProcAnim,
-        "HideProc"
-    )
-    ActionBarEnhancedDropdownMixin:SetupDropdown(
-        procContainer.ProcOptions.Control,
-        T.ProcGlow,
-        L.StartProcType,
-        function(id) return id == Addon.C.CurrentProcGlow end,
-        function(id) 
-            Addon:SaveSetting("CurrentProcGlow", id)
-            ActionBarEnhancedDropdownMixin:RefreshPreview(procContainer.ProcStartPreview)
-        end,
-        false,
-        function(id)
-            RefreshProcStart(procContainer.ProcStartPreview, id)
-        end,
-        function()
-            ActionBarEnhancedDropdownMixin:RefreshPreview(procContainer.ProcStartPreview)
+        if config.func then
+            config.func(button)
         end
-    )
-    ActionBarEnhancedDropdownMixin:SetupColorSwatch(
-        procContainer.CustomColorProc,
-        L.UseCustomColor,
-        "ProcColor",
-        {"UseProcColor", "DesaturateProc"}
-    )
+        table.insert(self.AllPreview, button)
 
-    ---------------------------------------------
-    ----------------ASSIST OPTIONS---------------
-    ---------------------------------------------
-    optionsFrame.ScrollFrame.ScrollChild.AssistLoopOptionsContainer.Title:SetText(GetGradientTextUTF8(L.AssistTitle, "ffb536", "ffd68f"))
-    optionsFrame.ScrollFrame.ScrollChild.AssistLoopOptionsContainer.Desc:SetText(L.AssistDesc)
-    ActionBarEnhancedDropdownMixin:SetupDropdown(
-        optionsFrame.ScrollFrame.ScrollChild.AssistLoopOptionsContainer.AssistLoopType.Control,
-        T.LoopGlow,
-        L.AssistType,
-        function(id) return id == Addon.C.CurrentAssistType end,
-        function(id)
-            Addon:SaveSetting("CurrentAssistType", id)
-        end
-    )
-    ActionBarEnhancedDropdownMixin:SetupColorSwatch(
-        optionsFrame.ScrollFrame.ScrollChild.AssistLoopOptionsContainer.CustomColorAssistLoop,
-        L.UseCustomColor,
-        "AssistGlowColor",
-        {"UseAssistGlowColor", "DesaturateAssist"}
-    )
-    ActionBarEnhancedDropdownMixin:SetupDropdown(
-        optionsFrame.ScrollFrame.ScrollChild.AssistLoopOptionsContainer.AssistAltGlowType.Control,
-        T.PushedTextures,
-        L.AssistAltType,
-        function(id) return id == Addon.C.CurrentAssistAltType end,
-        function(id)
-            Addon:SaveSetting("CurrentAssistAltType", id)
-        end
-    )
-    ActionBarEnhancedDropdownMixin:SetupColorSwatch(
-        optionsFrame.ScrollFrame.ScrollChild.AssistLoopOptionsContainer.CustomColorAltGlow,
-        L.UseCustomColor,
-        "AssistAltColor",
-        {"UseAssistAltColor", "DesaturateAssistAlt"},
-        true
-    )
-
-    ---------------------------------------------
-    ------------WA INTEGRATION OPTIONS-----------
-    ---------------------------------------------
-    local WAIntegrationContainer = optionsFrame.ScrollFrame.ScrollChild.WAIntegrationContainer
-    WAIntegrationContainer.Title:SetText(GetGradientTextUTF8(L.WAIntTitle, "ffb536", "ffd68f"))
-    WAIntegrationContainer.Desc:SetText(L.WAIntDesc)
-    ActionBarEnhancedDropdownMixin:SetupCheckbox(
-        WAIntegrationContainer.ModifyWAGlow,
-        L.ModifyWAGlow,
-        "ModifyWAGlow"
-    )
-    ActionBarEnhancedDropdownMixin:SetupDropdown(
-        WAIntegrationContainer.WAProcType.Control,
-        T.ProcGlow,
-        L.WAProcType,
-        function(id) return id == Addon.C.CurrentWAProcGlow end,
-        function(id) 
-            Addon:SaveSetting("CurrentWAProcGlow", id)
-        end
-    )
-    ActionBarEnhancedDropdownMixin:SetupColorSwatch(
-        WAIntegrationContainer.WACustomColorProc,
-        L.UseCustomColor,
-        "WAProcColor",
-        {"UseWAProcColor", "DesaturateWAProc"}
-    )
-
-    ActionBarEnhancedDropdownMixin:SetupDropdown(
-        WAIntegrationContainer.WALoopType.Control,
-        T.LoopGlow,
-        L.WALoopType,
-        function(id) return id == Addon.C.CurrentWALoopGlow end,
-        function(id) 
-            Addon:SaveSetting("CurrentWALoopGlow", id)
-        end
-    )
-    ActionBarEnhancedDropdownMixin:SetupColorSwatch(
-        WAIntegrationContainer.WACustomColorLoop,
-        L.UseCustomColor,
-        "WALoopColor",
-        {"UseWALoopColor", "DesaturateWALoop"}
-    )
-    ActionBarEnhancedDropdownMixin:SetupCheckbox(
-        WAIntegrationContainer.AddWAMask,
-        L.AddWAMask,
-        "AddWAMask"
-    )
-
-    local stateWA = C_AddOns.GetAddOnEnableState("WeakAuras", UnitName("player"))
-    if stateWA < 1 then
-        WAIntegrationContainer.ModifyWAGlow.Checkbox:SetEnabled(false)
-        WAIntegrationContainer.ModifyWAGlow.Text:SetVertexColor(0.6,0.6,0.6,1)
-    else
-        WAIntegrationContainer.ModifyWAGlow.Checkbox:SetEnabled(true)
+        ActionBarEnhancedDropdownMixin:RefreshPreview(button)
     end
-    ---------------------------------------------
-    -----------------FADE OPTIONS----------------
-    ---------------------------------------------
-    fadeContainer.Title:SetText(GetGradientTextUTF8(L.FadeTitle, "ffb536", "ffd68f"))
-    fadeContainer.Desc:SetText(L.FadeDesc)
 
-    ActionBarEnhancedCheckboxSliderMixin:SetupCheckboxSlider(
-        fadeContainer.FadeOutBars.SliderWithSteppers,
-        L.FadeOutBars,
-        "FadeBars",
-        "FadeBarsAlpha",
-        0, 1, 0.1, {top = "Fade Alpha"}
-    )
-    ActionBarEnhancedDropdownMixin:SetupCheckbox(
-        fadeContainer.FadeInOnCombat,
-        L.FadeInOnCombat,
-        "FadeInOnCombat"
-    )
-    ActionBarEnhancedDropdownMixin:SetupCheckbox(
-        fadeContainer.FadeInOnTarget,
-        L.FadeInOnTarget,
-        "FadeInOnTarget"
-    )
-    ActionBarEnhancedDropdownMixin:SetupCheckbox(
-        fadeContainer.FadeInOnCasting,
-        L.FadeInOnCasting,
-        "FadeInOnCasting"
-    )
-    ActionBarEnhancedDropdownMixin:SetupCheckbox(
-        fadeContainer.FadeInOnHover,
-        L.FadeInOnHover,
-        "FadeInOnHover"
-    )
+    function ActionBarEnhancedDropdownMixin:SetupPreviewPreset(frame, config)
+        local currentProfile = Addon:GetCurrentProfile()
+        local buttons = { frame.Button1, frame.Button2, frame.Button3, frame.Button4 }
 
-    ---------------------------------------------
-    ------------NORMAL TEXTURE OPTIONS-----------
-    ---------------------------------------------
-    normalContainer.Title:SetText(GetGradientTextUTF8(L.NormalTitle, "ffb536", "ffd68f"))
-    normalContainer.Desc:SetText(L.NormalDesc)
-    ActionBarEnhancedDropdownMixin:SetupDropdown(
-        normalContainer.NormalTextureOptions.Control,
-        T.NormalTextures,
-        L.NormalTextureType,
-        function(id) return id == Addon.C.CurrentNormalTexture end,
-        function(id)
-            Addon:SaveSetting("CurrentNormalTexture", id)
-        end,
-        false,
-        function(id)
-            RefreshNormalTexture(normalContainer.PreviewNormal, id)
-        end,
-        function()
-            ActionBarEnhancedDropdownMixin:RefreshAllPreview()
-        end
-    )
-    ActionBarEnhancedDropdownMixin:SetupColorSwatch(
-        normalContainer.CustomColorNormal,
-        L.UseCustomColor,
-        "NormalTextureColor",
-        {"UseNormalTextureColor", "DesaturateNormal"},
-        true
-    )
-
-    ---------------------------------------------
-    -----------BACKDROP TEXTURE OPTIONS----------
-    ---------------------------------------------
-    backdropContainer.Title:SetText(GetGradientTextUTF8(L.BackdropTitle, "ffb536", "ffd68f"))
-    backdropContainer.Desc:SetText(L.BackdropDesc)
-    backdropContainer.PreviewBackdrop.backdropPreview = true
-    ActionBarEnhancedDropdownMixin:SetupDropdown(
-        backdropContainer.BackdropTextureOptions.Control,
-        T.BackdropTextures,
-        L.BackdropTextureType,
-        function(id) return id == Addon.C.CurrentBackdropTexture end,
-        function(id)
-            Addon:SaveSetting("CurrentBackdropTexture", id)
-        end,
-        false,
-        function(id)
-            RefreshBackdropTexture(backdropContainer.PreviewBackdrop, id)
-        end,
-        function()
-            ActionBarEnhancedDropdownMixin:RefreshAllPreview()
-        end
-    )
-    ActionBarEnhancedDropdownMixin:SetupColorSwatch(
-        backdropContainer.CustomColorBackdrop,
-        L.UseCustomColor,
-        "BackdropColor",
-        {"UseBackdropColor", "DesaturateBackdrop"},
-        true
-    )
-
-    ---------------------------------------------
-    -----------------ICON OPTIONS----------------
-    ---------------------------------------------
-    iconContaiter.Title:SetText(GetGradientTextUTF8(L.IconTitle, "ffb536", "ffd68f"))
-    iconContaiter.Desc:SetText(L.IconDesc)
-    ActionBarEnhancedDropdownMixin:SetupDropdown(
-        iconContaiter.IconMaskTextureOptions.Control,
-        T.IconMaskTextures,
-        L.IconMaskTextureType,
-        function(id) return id == Addon.C.CurrentIconMaskTexture end,
-        function(id)
-            Addon:SaveSetting("CurrentIconMaskTexture", id)
-        end,
-        false,
-        function(id)
-            RefreshIconMaskTexture(iconContaiter.PreviewIcon, id)
-        end,
-        function()
-            ActionBarEnhancedDropdownMixin:RefreshAllPreview()
-        end
-    )
-    ActionBarEnhancedCheckboxSliderMixin:SetupCheckboxSlider(
-        iconContaiter.MaskScale.SliderWithSteppers,
-        L.IconMaskScale,
-        "UseIconMaskScale",
-        "IconMaskScale",
-        0.5, 1.5, 0.01, {top="Mask Scale"},
-        function()
-            ActionBarEnhancedDropdownMixin:RefreshPreview(iconContaiter.PreviewIcon)
-        end
-    )
-    ActionBarEnhancedCheckboxSliderMixin:SetupCheckboxSlider(
-        iconContaiter.IconScale.SliderWithSteppers,
-        L.IconScale,
-        "UseIconScale",
-        "IconScale",
-        0.5, 1.5, 0.01, {top="Icon Scale"},
-        function()
-            ActionBarEnhancedDropdownMixin:RefreshPreview(iconContaiter.PreviewIcon)
-        end
-    )
-
-    ---------------------------------------------
-    ------------PUSHED TEXTURE OPTIONS-----------
-    ---------------------------------------------
-    pushedContainer.Title:SetText(GetGradientTextUTF8(L.PushedTitle, "ffb536", "ffd68f"))
-    pushedContainer.Desc:SetText(L.PushedDesc)
-    ActionBarEnhancedDropdownMixin:SetupDropdown(
-        pushedContainer.PushedTextureOptions.Control,
-        T.PushedTextures,
-        L.PushedTextureType,
-        function(id) return id == Addon.C.CurrentPushedTexture end,
-        function(id)
-            Addon:SaveSetting("CurrentPushedTexture", id)
-        end,
-        false,
-        function(id)
-            pushedContainer.PreviewPushed.NormalTexture:Hide()
-            RefreshPushedTexture(pushedContainer.PreviewPushed, id)
-            pushedContainer.PreviewPushed.PushedTexture:Show()
-        end,
-        function()
-            pushedContainer.PreviewPushed.PushedTexture:Hide()
-            pushedContainer.PreviewPushed.NormalTexture:Show()
-            ActionBarEnhancedDropdownMixin:RefreshAllPreview()
-        end
-    )
-    ActionBarEnhancedDropdownMixin:SetupColorSwatch(
-        pushedContainer.CustomColorPushed,
-        L.UseCustomColor,
-        "PushedColor",
-        {"UsePushedColor", "DesaturatePushed"}
-    )
-    ---------------------------------------------
-    ----------HIGHLIGHT TEXTURE OPTIONS----------
-    ---------------------------------------------
-    highlightContainer.Title:SetText(GetGradientTextUTF8(L.HighlightTitle, "ffb536", "ffd68f"))
-    highlightContainer.Desc:SetText(L.HighlightDesc)
-    ActionBarEnhancedDropdownMixin:SetupDropdown(
-        highlightContainer.HighlightTextureOptions.Control,
-        T.HighlightTextures,
-        L.HighliteTextureType,
-        function(id) return id == Addon.C.CurrentHighlightTexture end,
-        function(id)
-            Addon:SaveSetting("CurrentHighlightTexture", id)
-        end,
-        false,
-        function(id)
-            RefreshHighlightTexture(highlightContainer.PreviewHighlight, id)
-            highlightContainer.PreviewHighlight:LockHighlight()
-        end,
-        function()
-            highlightContainer.PreviewHighlight:UnlockHighlight()
-            ActionBarEnhancedDropdownMixin:RefreshAllPreview()
-        end
-    )
-    ActionBarEnhancedDropdownMixin:SetupColorSwatch(
-        highlightContainer.CustomColorHighlight,
-        L.UseCustomColor,
-        "HighlightColor",
-        {"UseHighlightColor", "DesaturateHighlight"},
-        true
-    )
-    ---------------------------------------------
-    -----------CHECKED TEXTURE OPTIONS-----------
-    ---------------------------------------------
-    checkedContainer.Title:SetText(GetGradientTextUTF8(L.CheckedTitle, "ffb536", "ffd68f"))
-    checkedContainer.Desc:SetText(L.CheckedDesc)
-    ActionBarEnhancedDropdownMixin:SetupDropdown(
-        checkedContainer.CheckedTextureOptions.Control,
-        T.HighlightTextures,
-        L.CheckedTextureType,
-        function(id) return id == Addon.C.CurrentCheckedTexture end,
-        function(id)
-            Addon:SaveSetting("CurrentCheckedTexture", id)
-        end,
-        false,
-        function(id)
-            RefreshCheckedTexture(checkedContainer.PreviewChecked, id)
-            checkedContainer.PreviewChecked.CheckedTexture:Show()
-        end,
-        function()
-            checkedContainer.PreviewChecked.CheckedTexture:Hide()
-            ActionBarEnhancedDropdownMixin:RefreshAllPreview()
-        end
-    )
-    ActionBarEnhancedDropdownMixin:SetupColorSwatch(
-        checkedContainer.CustomColorChecked,
-        L.UseCustomColor,
-        "CheckedColor",
-        {"UseCheckedColor","DesaturateChecked"},
-        true
-    )
-    ---------------------------------------------
-    ------------COOLDOWN SWIPE OPTIONS-----------
-    ---------------------------------------------
-    cooldownContainer.NewFeature:Show()
-    cooldownContainer.Title:SetText(GetGradientTextUTF8(L.CooldownTitle, "84faea", "d8e4ed"))
-    cooldownContainer.Desc:SetText(L.CooldownDesc)
-    ActionBarEnhancedDropdownMixin:SetupDropdown(
-        cooldownContainer.SwipeTexture.Control,
-        T.SwipeTextures,
-        L.SwipeTextureType,
-        function(id) return id == Addon.C.CurrentSwipeTexture end,
-        function(id)
-            Addon:SaveSetting("CurrentSwipeTexture", id)
-        end,
-        false,
-        function(id)
-            RefreshSwipeTexture(cooldownContainer.PreviewSwipe, id)
-        end,
-        function()
-            ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
-        end
-    )
-    ActionBarEnhancedCheckboxSliderMixin:SetupCheckboxSlider(
-        cooldownContainer.SwipeSize.SliderWithSteppers,
-        L.SwipeSize,
-        "UseSwipeSize",
-        "SwipeSize",
-        10, 50, 1, {top="Size"},
-        function()
-            ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
-        end
-    )
-    ActionBarEnhancedDropdownMixin:SetupColorSwatch(
-        cooldownContainer.SwipeColor,
-        L.CustomSwipeColor,
-        "CooldownColor",
-        {"UseCooldownColor"},
-        true
-    )
-
-    ActionBarEnhancedDropdownMixin:SetupDropdown(
-        cooldownContainer.EdgeTexture.Control,
-        T.EdgeTextures,
-        L.EdgeTextureType,
-        function(id) return id == Addon.C.CurrentEdgeTexture end,
-        function(id)
-            Addon:SaveSetting("CurrentEdgeTexture", id)
-        end,
-        false,
-        function(id)
-            RefreshEdgeTexture(cooldownContainer.PreviewEdge, id)
-        end,
-        function()
-            ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
-        end
-    )
-    ActionBarEnhancedCheckboxSliderMixin:SetupCheckboxSlider(
-        cooldownContainer.EdgeSize.SliderWithSteppers,
-        L.EdgeSize,
-        "UseEdgeSize",
-        "EdgeSize",
-        10, 50, 1, {top="Size"},
-        function()
-            ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
-        end
-    )
-    ActionBarEnhancedDropdownMixin:SetupColorSwatch(
-        cooldownContainer.EdgeColor,
-        L.CustomEdgeColor,
-        "EdgeColor",
-        {"UseEdgeColor"},
-        true
-    )
-    ActionBarEnhancedDropdownMixin:SetupCheckbox(
-        cooldownContainer.EdgeAlwaysShow,
-        L.EdgeAlwaysShow,
-        "EdgeAlwaysShow",
-        function()
-            ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
-        end
-    )
-
-    cooldownContainer.CooldownFont.isFontOption = true
-    ActionBarEnhancedDropdownMixin:SetupDropdown(
-        cooldownContainer.CooldownFont.Control,
-        Addon.Fonts,
-        L.CooldownFont,
-        function(id) return id == Addon.C.CurrentCooldownFont end,
-        function(id)
-            Addon:SaveSetting("CurrentCooldownFont", id)
-        end,
-        false,
-        function(id)
-            RefreshCooldownFont(cooldownContainer.PreviewCooldownFont, id)
-        end,
-        function()
-            ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
-        end
-    )
-    ActionBarEnhancedCheckboxSliderMixin:SetupCheckboxSlider(
-        cooldownContainer.CooldownFontSize.SliderWithSteppers,
-        L.CooldownFontSize,
-        "UseCooldownFontSize",
-        "CooldownFontSize",
-        5, 40, 1, {top="Font Size"},
-        function()
-            ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
-        end
-    )
-    ActionBarEnhancedDropdownMixin:SetupColorSwatch(
-        cooldownContainer.CooldownFontColor,
-        L.CooldownFontColor,
-        "CooldownFontColor",
-        {"UseCooldownFontColor"},
-        true
-    )
-
-    ---------------------------------------------
-    ------------COLOR OVERRIDE OPTIONS-----------
-    ---------------------------------------------
-    optionsFrame.ScrollFrame.ScrollChild.ColorOverrideOptionsContainer.Title:SetText(GetGradientTextUTF8(L.ColorOverrideTitle, "ffb536", "ffd68f"))
-    optionsFrame.ScrollFrame.ScrollChild.ColorOverrideOptionsContainer.Desc:SetText(L.ColorOverrideDesc)
-
-    ---------------------------------------------
-    -------------SPELL USABLE OPTIONS------------
-    ---------------------------------------------
-    ActionBarEnhancedDropdownMixin:SetupColorSwatch(
-        optionsFrame.ScrollFrame.ScrollChild.ColorOverrideOptionsContainer.CustomColorOOR,
-        L.CustomColorOOR,
-        "OORColor",
-        {"UseOORColor", "OORDesaturate"}
-    )
-    ActionBarEnhancedDropdownMixin:SetupColorSwatch(
-        optionsFrame.ScrollFrame.ScrollChild.ColorOverrideOptionsContainer.CustomColorOOM,
-        L.CustomColorOOM,
-        "OOMColor",
-        {"UseOOMColor", "OOMDesaturate"}
-    )
-    ActionBarEnhancedDropdownMixin:SetupColorSwatch(
-        optionsFrame.ScrollFrame.ScrollChild.ColorOverrideOptionsContainer.CustomColorNotUsable,
-        L.CustomColorNoUse,
-        "NoUseColor",
-        {"UseNoUseColor", "NoUseDesaturate"}
-    )
-
-    ---------------------------------------------
-    --------------HIDE FRAMES OPTIONS------------
-    ---------------------------------------------
-    hideContainer.Title:SetText(GetGradientTextUTF8(L.HideFrameTitle, "ffb536", "ffd68f"))
-    hideContainer.Desc:SetText(L.HideFrameDesc)
-    ActionBarEnhancedDropdownMixin:SetupCheckbox(
-        hideContainer.HideBagBars,
-        L.HideBagsBar,
-        "HideBagsBar",
-        function() Addon:HideBars("BagsBar") end
-        
-    )
-    ActionBarEnhancedDropdownMixin:SetupCheckbox(
-        hideContainer.HideMicroMenu,
-        L.HideMicroMenuBar,
-        "HideMicroMenu",
-        function() Addon:HideBars("MicroMenu") end
-    )
-    ActionBarEnhancedDropdownMixin:SetupCheckbox(
-        hideContainer.HideStanceBar,
-        L.HideStanceBar,
-        "HideStanceBar",
-        function() Addon:HideBars("StanceBar") end
-    )
-    hideContainer.HideTalkingHead.new = true
-    ActionBarEnhancedDropdownMixin:SetupCheckbox(
-        hideContainer.HideTalkingHead,
-        L.HideTalkingHead,
-        "HideTalkingHead",
-        function(checked) 
-            if checked then
-                Addon.eventHandlerFrame:RegisterEvent("TALKINGHEAD_REQUESTED")
-            else
-                Addon.eventHandlerFrame:UnregisterEvent("TALKINGHEAD_REQUESTED")
+        for i, button in pairs(buttons) do
+            if i == 1 then
+                button.ProcGlow.ProcStartFlipbook:Hide()
+                button.ProcGlow.ProcAltGlow:Hide()
+                button.ProcGlow.ProcLoop:Play()
             end
-        end
-    )
-    ActionBarEnhancedDropdownMixin:SetupCheckbox(
-        hideContainer.HideInterrupt,
-        L.HideInterrupt,
-        "HideInterrupt"
-    )
-    ActionBarEnhancedDropdownMixin:SetupCheckbox(
-        hideContainer.HideCasting,
-        L.HideCasting,
-        "HideCasting"
-    )
-    ActionBarEnhancedDropdownMixin:SetupCheckbox(
-        hideContainer.HideReticle,
-        L.HideReticle,
-        "HideReticle"
-    )
-
-    ---------------------------------------------
-    -----------------FONT OPTIONS----------------
-    ---------------------------------------------
-    fontContainer.NewFeature:Show()
-    fontContainer.Title:SetText(GetGradientTextUTF8(L.FontTitle, "84faea", "d8e4ed"))
-    fontContainer.Desc:SetText(L.FontDesc)
-    fontContainer.HotkeyPoint.Control1.Dropdown.Background:SetParent(fontContainer.HotkeyPoint.Control1)
-    fontContainer.HotkeyPoint.Control1.Dropdown.Background:SetAllPoints()
-    fontContainer.HotkeyPoint.Control1.Dropdown:SetAllPoints()
-    fontContainer.HotkeyPoint.Control2.Dropdown.Background:SetParent(fontContainer.HotkeyPoint.Control2)
-    fontContainer.HotkeyPoint.Control2.Dropdown.Background:SetAllPoints()
-    fontContainer.HotkeyPoint.Control2.Dropdown:SetAllPoints()
-
-    fontContainer.StacksPoint.Control1.Dropdown.Background:SetParent(fontContainer.StacksPoint.Control1)
-    fontContainer.StacksPoint.Control1.Dropdown.Background:SetAllPoints()
-    fontContainer.StacksPoint.Control1.Dropdown:SetAllPoints()
-    fontContainer.StacksPoint.Control2.Dropdown.Background:SetParent(fontContainer.StacksPoint.Control2)
-    fontContainer.StacksPoint.Control2.Dropdown.Background:SetAllPoints()
-    fontContainer.StacksPoint.Control2.Dropdown:SetAllPoints()
-    fontContainer.HotkeyFont.isFontOption = true
-    fontContainer.StacksFont.isFontOption = true
-
-    ActionBarEnhancedDropdownMixin:SetupDropdown(
-        fontContainer.HotkeyFont.Control,
-        Addon.Fonts,
-        L.HotKeyFont,
-        function(id) return id == Addon.C.CurrentHotkeyFont end,
-        function(id)
-            Addon:SaveSetting("CurrentHotkeyFont", id)
-        end,
-        false,
-        function(id)
-            RefreshHotkeyFont(fontContainer.PreviewFont05, id)
-            RefreshHotkeyFont(fontContainer.PreviewFont075, id)
-            RefreshHotkeyFont(fontContainer.PreviewFont1, id)
-            RefreshHotkeyFont(fontContainer.PreviewFont15, id)
-            RefreshHotkeyFont(fontContainer.PreviewFont2, id)
-        end,
-        function()
-            ActionBarEnhancedDropdownMixin:RefreshFontPreview()
-        end
-    )
-    ActionBarEnhancedDropdownMixin:SetupDropdown(
-        fontContainer.HotkeyOutline.Control,
-        Addon.FontOutlines,
-        L.HotkeyOutline,
-        function(id) return id == Addon.C.CurrentHotkeyOutline end,
-        function(id)
-            Addon:SaveSetting("CurrentHotkeyOutline", id)
-        end,
-        false,
-        function(id)
-            ActionBarEnhancedDropdownMixin:RefreshFontPreview()
-        end,
-        function()
-            ActionBarEnhancedDropdownMixin:RefreshFontPreview()
-        end
-    )
-    ActionBarEnhancedDropdownMixin:SetupColorSwatch(
-        fontContainer.HotkeyShadow,
-        GetGradientTextUTF8(L.HotkeyShadowColor, "ebba05", "bf7900"),
-        "HotkeyShadow",
-        {"UseHotkeyShadow"},
-        true
-    )
-    ActionBarEnhancedCheckboxSliderMixin:SetupCheckboxSlider(
-        fontContainer.HotkeyShadowOffset.SliderWithSteppers1,
-        GetGradientTextUTF8(L.HotkeyShadowOffset, "ebba05", "bf7900"),
-        "UseHotkeyShadowOffset",
-        "HotkeyShadowOffsetX",
-        -6, 6, 1, {top="offset X"},
-        function()
-            ActionBarEnhancedDropdownMixin:RefreshFontPreview()
-        end
-    )
-    ActionBarEnhancedCheckboxSliderMixin:SetupCheckboxSlider(
-        fontContainer.HotkeyShadowOffset.SliderWithSteppers2,
-        GetGradientTextUTF8(L.HotkeyShadowOffset, "ebba05", "bf7900"),
-        "UseHotkeyShadowOffset",
-        "HotkeyShadowOffsetY",
-        -6, 6, 1, {top="offset Y"},
-        function()
-            ActionBarEnhancedDropdownMixin:RefreshFontPreview()
-        end
-    )
-
-    ActionBarEnhancedCheckboxSliderMixin:SetupCheckboxSlider(
-        fontContainer.HotkeySize.SliderWithSteppers,
-        L.FontHotkeySize,
-        "UseHotkeyFontSize",
-        "HotkeyFontSize",
-        1, 40, 1, {top="Font Size"},
-        function()
-            ActionBarEnhancedDropdownMixin:RefreshFontPreview()
-        end
-    )
-    ActionBarEnhancedDropdownMixin:SetupDropdown(
-        fontContainer.HotkeyPoint.Control1,
-        Addon.AttachPoints,
-        L.HotkeyAttachPoint,
-        function(id) return id == Addon.C.CurrentHotkeyPoint end,
-        function(id)
-            Addon:SaveSetting("CurrentHotkeyPoint", id)
-        end,
-        false,
-        function(id)
-            ActionBarEnhancedDropdownMixin:RefreshFontPreview()
-        end,
-        function()
-            ActionBarEnhancedDropdownMixin:RefreshFontPreview()
-        end
-    )
-    ActionBarEnhancedDropdownMixin:SetupDropdown(
-        fontContainer.HotkeyPoint.Control2,
-        Addon.AttachPoints,
-        L.HotkeyAttachPoint,
-        function(id) return id == Addon.C.CurrentHotkeyRelativePoint end,
-        function(id)
-            Addon:SaveSetting("CurrentHotkeyRelativePoint", id)
-        end,
-        false,
-        function(id)
-            ActionBarEnhancedDropdownMixin:RefreshFontPreview()
-        end,
-        function()
-            ActionBarEnhancedDropdownMixin:RefreshFontPreview()
-        end
-    )
-    ActionBarEnhancedCheckboxSliderMixin:SetupCheckboxSlider(
-        fontContainer.HotkeyOffset.SliderWithSteppers1,
-        L.HotkeyOffset,
-        "UseHotkeyOffset",
-        "HotkeyOffsetX",
-        -40, 40, 1, {top="offset X"},
-        function()
-            ActionBarEnhancedDropdownMixin:RefreshFontPreview()
-        end
-    )
-    ActionBarEnhancedCheckboxSliderMixin:SetupCheckboxSlider(
-        fontContainer.HotkeyOffset.SliderWithSteppers2,
-        L.HotkeyOffset,
-        "UseHotkeyOffset",
-        "HotkeyOffsetY",
-        -40, 40, 1, {top="offset Y"},
-        function()
-            ActionBarEnhancedDropdownMixin:RefreshFontPreview()
-        end
-    )
-    ActionBarEnhancedDropdownMixin:SetupColorSwatch(
-        fontContainer.HotkeyColor,
-        L.HotkeyCustomColor,
-        "HotkeyColor",
-        {"UseHotkeyColor"},
-        true
-    )
-
-
-    ActionBarEnhancedDropdownMixin:SetupDropdown(
-        fontContainer.StacksFont.Control,
-        Addon.Fonts,
-        L.StacksFont,
-        function(id) return id == Addon.C.CurrentStacksFont end,
-        function(id)
-            Addon:SaveSetting("CurrentStacksFont", id)
-        end,
-        false,
-        function(id)
-            RefreshStacksFont(fontContainer.PreviewFont05, id)
-            RefreshStacksFont(fontContainer.PreviewFont075, id)
-            RefreshStacksFont(fontContainer.PreviewFont1, id)
-            RefreshStacksFont(fontContainer.PreviewFont15, id)
-            RefreshStacksFont(fontContainer.PreviewFont2, id)
-        end,
-        function()
-            ActionBarEnhancedDropdownMixin:RefreshFontPreview()
-        end
-    )
-    ActionBarEnhancedDropdownMixin:SetupDropdown(
-        fontContainer.StacksOutline.Control,
-        Addon.FontOutlines,
-        L.StacksOutline,
-        function(id) return id == Addon.C.CurrentStacksOutline end,
-        function(id)
-            Addon:SaveSetting("CurrentStacksOutline", id)
-        end,
-        false,
-        function(id)
-            ActionBarEnhancedDropdownMixin:RefreshFontPreview()
-        end,
-        function()
-            ActionBarEnhancedDropdownMixin:RefreshFontPreview()
-        end
-    )
-    ActionBarEnhancedDropdownMixin:SetupColorSwatch(
-        fontContainer.StacksShadow,
-        GetGradientTextUTF8(L.StacksShadowColor, "ebba05", "bf7900"),
-        "StacksShadow",
-        {"UseStacksShadow"},
-        true
-    )
-    ActionBarEnhancedCheckboxSliderMixin:SetupCheckboxSlider(
-        fontContainer.StacksShadowOffset.SliderWithSteppers1,
-        GetGradientTextUTF8(L.StacksShadowOffset, "ebba05", "bf7900"),
-        "UseStacksShadowOffset",
-        "StacksShadowOffsetX",
-        -6, 6, 1, {top="offset X"},
-        function()
-            ActionBarEnhancedDropdownMixin:RefreshFontPreview()
-        end
-    )
-    ActionBarEnhancedCheckboxSliderMixin:SetupCheckboxSlider(
-        fontContainer.StacksShadowOffset.SliderWithSteppers2,
-        GetGradientTextUTF8(L.StacksShadowOffset, "ebba05", "bf7900"),
-        "UseStacksShadowOffset",
-        "StacksShadowOffsetY",
-        -6, 6, 1, {top="offset Y"},
-        function()
-            ActionBarEnhancedDropdownMixin:RefreshFontPreview()
-        end
-    )
-
-    ActionBarEnhancedCheckboxSliderMixin:SetupCheckboxSlider(
-        fontContainer.StacksSize.SliderWithSteppers,
-        L.FontStacksSize,
-        "UseStacksFontSize",
-        "StacksFontSize",
-        1, 40, 1, {top="Font Size"},
-        function()
-            ActionBarEnhancedDropdownMixin:RefreshFontPreview()
-        end
-    )
-    ActionBarEnhancedDropdownMixin:SetupDropdown(
-        fontContainer.StacksPoint.Control1,
-        Addon.AttachPoints,
-        L.StacksAttachPoint,
-        function(id) return id == Addon.C.CurrentStacksPoint end,
-        function(id)
-            Addon:SaveSetting("CurrentStacksPoint", id)
-        end,
-        false,
-        function(id)
-            ActionBarEnhancedDropdownMixin:RefreshFontPreview()
-        end,
-        function()
-            ActionBarEnhancedDropdownMixin:RefreshFontPreview()
-        end
-    )
-    ActionBarEnhancedDropdownMixin:SetupDropdown(
-        fontContainer.StacksPoint.Control2,
-        Addon.AttachPoints,
-        L.StacksAttachPoint,
-        function(id) return id == Addon.C.CurrentStacksRelativePoint end,
-        function(id)
-            Addon:SaveSetting("CurrentStacksRelativePoint", id)
-        end,
-        false,
-        function(id)
-            ActionBarEnhancedDropdownMixin:RefreshFontPreview()
-        end,
-        function()
-            ActionBarEnhancedDropdownMixin:RefreshFontPreview()
-        end
-    )
-    ActionBarEnhancedCheckboxSliderMixin:SetupCheckboxSlider(
-        fontContainer.StacksOffset.SliderWithSteppers1,
-        L.StacksOffset,
-        "UseStacksOffset",
-        "StacksOffsetX",
-        -40, 40, 1, {top="offset X"},
-        function()
-            ActionBarEnhancedDropdownMixin:RefreshFontPreview()
-        end
-    )
-    ActionBarEnhancedCheckboxSliderMixin:SetupCheckboxSlider(
-        fontContainer.StacksOffset.SliderWithSteppers2,
-        L.StacksOffset,
-        "UseStacksOffset",
-        "StacksOffsetY",
-        -40, 40, 1, {top="offset Y"},
-        function()
-            ActionBarEnhancedDropdownMixin:RefreshFontPreview()
-        end
-    )
-    ActionBarEnhancedDropdownMixin:SetupColorSwatch(
-        fontContainer.StacksColor,
-        L.StacksCustomColor,
-        "StacksColor",
-        {"UseStacksColor"},
-        true
-    )
-
-    ActionBarEnhancedCheckboxSliderMixin:SetupCheckboxSlider(
-        fontContainer.HotkeyScale.SliderWithSteppers,
-        L.FontHotKeyScale,
-        "FontHotKey",
-        "FontHotKeyScale",
-        1, 2, 0.1, {top="Font Scale"},
-        function()
-            ActionBarEnhancedDropdownMixin:RefreshFontPreview()
-        end
-    )
-    ActionBarEnhancedCheckboxSliderMixin:SetupCheckboxSlider(
-        fontContainer.StacksScale.SliderWithSteppers,
-        L.FontStacksScale,
-        "FontStacks",
-        "FontStacksScale",
-        1, 2, 0.1, {top="Font Scale"},
-        function()
-            ActionBarEnhancedDropdownMixin:RefreshFontPreview()
-        end        
-    )
-    ActionBarEnhancedDropdownMixin:SetupCheckbox(
-        fontContainer.NameHide,
-        L.FontHideName,
-        "FontHideName",
-        function() 
-            fontContainer.NameScale.Checkbox:SetEnabled(not Addon.C.FontHideName)
-            fontContainer.NameScale.SliderWithSteppers:SetEnabled(not Addon.C.FontHideName)
-            ActionBarEnhancedDropdownMixin:RefreshFontPreview()
-        end
-    )
-    ActionBarEnhancedCheckboxSliderMixin:SetupCheckboxSlider(
-        fontContainer.NameScale.SliderWithSteppers,
-        L.FontNameScale,
-        "FontName",
-        "FontNameScale",
-        1, 2, 0.1, {top="Font Scale"},
-        function()
-            ActionBarEnhancedDropdownMixin:RefreshFontPreview()
-        end
-    )
-    fontContainer.NameScale.Checkbox:SetEnabled(not Addon.C.FontHideName)
-    fontContainer.NameScale.SliderWithSteppers:SetEnabled(not Addon.C.FontHideName)
-
-    function ActionBarEnhancedDropdownMixin:InitPreview()
-        local function GetRandomClassSpellIcon()
-            local rotationSpells = C_AssistedCombat.GetRotationSpells()
-            local spellID = 1160
-            if #rotationSpells > 0 then
-                local rnd = math.random(1, #rotationSpells)
-                spellID = rotationSpells[rnd]
-                spellID = C_Spell.GetOverrideSpell(spellID)
-            end
-            local spellInfo = C_Spell.GetSpellInfo(spellID)
-
-            return spellInfo.iconID 
+            button.icon:SetTexture(Addon:GetRandomClassSpellIcon())
+            self:RefreshPreview(button, config.preset)
+            button.TextOverlayContainer.HotKey:SetText(config.hotkey or (math.random(2,10)-1))
+            button.TextOverlayContainer.Count:SetText(config.stacks or (math.random(1,5)-1))
         end
 
-        --preview for proc loop
-        loopContainer.ProcLoopPreview.icon:SetTexture(GetRandomClassSpellIcon())
-        loopContainer.ProcLoopPreview.ProcGlow.ProcStartFlipbook:Hide()
-        loopContainer.ProcLoopPreview.ProcGlow.ProcAltGlow:Hide()
-        loopContainer.ProcLoopPreview.ProcGlow.ProcLoop:Play()
+        frame.Title:SetText(config.text)
+        frame.Desc:SetText(config.desc or "")
 
-        --preview for proc start
-        procContainer.ProcStartPreview.icon:SetTexture(GetRandomClassSpellIcon())
-        procContainer.ProcStartPreview.ProcGlow.ProcLoopFlipbook:Hide()
-        procContainer.ProcStartPreview.ProcGlow.ProcAltGlow:Hide()
-        procContainer.ProcStartPreview.ProcGlow.ProcStartAnim:Play()
+        frame.ApplyButton.preset = config.preset
 
-        --preview for normal texture
-        normalContainer.PreviewNormal.icon:SetTexture(GetRandomClassSpellIcon())
+        if config.preset == currentProfile then
+            frame.ApplyButton:SetText(L.PresetActive)
+            frame.ApplyButton:Disable()
+        else
+            frame.ApplyButton:SetText(L.PresetSelect)
+            frame.ApplyButton:Enable()
+        end
 
-        --preview for backdrop
-        backdropContainer.PreviewBackdrop.icon:SetTexture(GetRandomClassSpellIcon())
-
-        --preview for iconmask
-        iconContaiter.PreviewIcon.icon:SetTexture(GetRandomClassSpellIcon())
-
-        --preview for pushed texture
-        pushedContainer.PreviewPushed.icon:SetTexture(GetRandomClassSpellIcon())
-
-        --preview for highlight texture
-        highlightContainer.PreviewHighlight.icon:SetTexture(GetRandomClassSpellIcon())
-
-        --preview for checked texture
-        checkedContainer.PreviewChecked.icon:SetTexture(GetRandomClassSpellIcon())
-        
-        --preview for cooldown swipe
-        cooldownContainer.PreviewSwipe.icon:SetTexture(GetRandomClassSpellIcon())
-        CooldownFrame_Set(cooldownContainer.PreviewSwipe.cooldown, GetTime(), math.random(10,120), true, false, 1)
-        cooldownContainer.PreviewSwipe.cooldown:SetScript("OnCooldownDone", function()
-            CooldownFrame_Set(cooldownContainer.PreviewSwipe.cooldown, GetTime(), math.random(10,120), true, false, 1)
-        end)
-
-        --preview for cooldown edge
-        cooldownContainer.PreviewEdge.icon:SetTexture(GetRandomClassSpellIcon())
-        cooldownContainer.PreviewEdge.cooldownEdge = cooldownContainer.PreviewEdge.cooldown
-        cooldownContainer.PreviewEdge.cooldownEdge:SetHideCountdownNumbers(true)
-        cooldownContainer.PreviewEdge.cooldownEdge:SetDrawSwipe(false)
-        CooldownFrame_Set(cooldownContainer.PreviewEdge.cooldownEdge, GetTime(), math.random(2,15), true, true, 1)
-        cooldownContainer.PreviewEdge.cooldownEdge:SetScript("OnCooldownDone", function()
-            CooldownFrame_Set(cooldownContainer.PreviewEdge.cooldownEdge, GetTime(), math.random(2,15), true, true, 1)
-        end)
-
-        --preview for cooldown font
-        cooldownContainer.PreviewCooldownFont.icon:SetTexture(GetRandomClassSpellIcon())
-        CooldownFrame_Set(cooldownContainer.PreviewCooldownFont.cooldown, GetTime(), math.random(10,120), true, false, 1)
-        cooldownContainer.PreviewCooldownFont.cooldown:SetScript("OnCooldownDone", function()
-            CooldownFrame_Set(cooldownContainer.PreviewCooldownFont.cooldown, GetTime(), math.random(10,120), true, false, 1)
-        end)
-
-        --preview for hide animations
-        hideContainer.PreviewInterrupt.icon:SetTexture(GetRandomClassSpellIcon())
-        hideContainer.PreviewInterrupt.InterruptDisplay:Show()
-        hideContainer.PreviewInterrupt.InterruptDisplay.Base.AnimIn:SetLooping("REPEAT")
-        hideContainer.PreviewInterrupt.InterruptDisplay.Highlight.AnimIn:SetLooping("REPEAT")
-        hideContainer.PreviewInterrupt.InterruptDisplay.Base.AnimIn:Play()
-        hideContainer.PreviewInterrupt.InterruptDisplay.Highlight.AnimIn:Play()
-        hideContainer.PreviewInterrupt.Title.TitleText:SetText("Interrupt")
-
-        hideContainer.PreviewCasting.icon:SetTexture(GetRandomClassSpellIcon())
-        hideContainer.PreviewCasting.SpellCastAnimFrame:Show()
-        hideContainer.PreviewCasting.SpellCastAnimFrame.Fill.CastingAnim:SetLooping("REPEAT")
-        hideContainer.PreviewCasting.SpellCastAnimFrame.EndBurst.FinishCastAnim:SetLooping("REPEAT")
-        hideContainer.PreviewCasting.SpellCastAnimFrame.Fill.CastingAnim:Play()
-        hideContainer.PreviewCasting.SpellCastAnimFrame.EndBurst.FinishCastAnim:Play()
-        hideContainer.PreviewCasting.Title.TitleText:SetText("Casting")
-
-        hideContainer.PreviewReticle.icon:SetTexture(GetRandomClassSpellIcon())
-        hideContainer.PreviewReticle.TargetReticleAnimFrame:Show()
-        hideContainer.PreviewReticle.TargetReticleAnimFrame.HighlightAnim:SetLooping("REPEAT")
-        hideContainer.PreviewReticle.TargetReticleAnimFrame.HighlightAnim:Play()
-        hideContainer.PreviewReticle.Title.TitleText:SetText("Reticle")
-
-        ---preview for font options
-        fontContainer.PreviewFont05.icon:SetTexture(GetRandomClassSpellIcon())
-        fontContainer.PreviewFont075.icon:SetTexture(GetRandomClassSpellIcon())
-        fontContainer.PreviewFont1.icon:SetTexture(GetRandomClassSpellIcon())
-        fontContainer.PreviewFont15.icon:SetTexture(GetRandomClassSpellIcon())
-        fontContainer.PreviewFont2.icon:SetTexture(GetRandomClassSpellIcon())
-
-        fontContainer.PreviewFont05.TextOverlayContainer.HotKey:SetText("1")
-        fontContainer.PreviewFont075.TextOverlayContainer.HotKey:SetText("2")
-        fontContainer.PreviewFont1.TextOverlayContainer.HotKey:SetText("3")
-        fontContainer.PreviewFont15.TextOverlayContainer.HotKey:SetText("sR")
-        fontContainer.PreviewFont2.TextOverlayContainer.HotKey:SetText("sM4")
-
-        fontContainer.PreviewFont05.TextOverlayContainer.Count:SetText("99")
-        fontContainer.PreviewFont075.TextOverlayContainer.Count:SetText("99")
-        fontContainer.PreviewFont1.TextOverlayContainer.Count:SetText("99")
-        fontContainer.PreviewFont15.TextOverlayContainer.Count:SetText("99")
-        fontContainer.PreviewFont2.TextOverlayContainer.Count:SetText("99")
-
-        fontContainer.PreviewFont05.Name:SetText("Name")
-        fontContainer.PreviewFont075.Name:SetText("Name")
-        fontContainer.PreviewFont1.Name:SetText("Name")
-        fontContainer.PreviewFont15.Name:SetText("Name")
-        fontContainer.PreviewFont2.Name:SetText("Name")
-
-        ActionBarEnhancedDropdownMixin:RefreshAllPreview()
     end
 
     function ActionBarEnhancedDropdownMixin:RefreshFontPreview()
-        ActionBarEnhancedDropdownMixin:RefreshPreview(fontContainer.PreviewFont05)
-        ActionBarEnhancedDropdownMixin:RefreshPreview(fontContainer.PreviewFont075)
-        ActionBarEnhancedDropdownMixin:RefreshPreview(fontContainer.PreviewFont1)
-        ActionBarEnhancedDropdownMixin:RefreshPreview(fontContainer.PreviewFont15)
-        ActionBarEnhancedDropdownMixin:RefreshPreview(fontContainer.PreviewFont2)
+        for _, button in pairs(self.FontPreview) do
+            self:RefreshPreview(button)
+        end
     end
     function ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
-        ActionBarEnhancedDropdownMixin:RefreshPreview(cooldownContainer.PreviewSwipe)
-        ActionBarEnhancedDropdownMixin:RefreshPreview(cooldownContainer.PreviewEdge)
-        ActionBarEnhancedDropdownMixin:RefreshPreview(cooldownContainer.PreviewCooldownFont)
+        for _, button in pairs(self.CooldownPreview) do
+            self:RefreshPreview(button)
+        end
     end
-
     function ActionBarEnhancedDropdownMixin:RefreshAllPreview()
-        ActionBarEnhancedDropdownMixin:RefreshPreview(loopContainer.ProcLoopPreview)
-        ActionBarEnhancedDropdownMixin:RefreshPreview(procContainer.ProcStartPreview)
-        ActionBarEnhancedDropdownMixin:RefreshPreview(normalContainer.PreviewNormal)
-        ActionBarEnhancedDropdownMixin:RefreshPreview(backdropContainer.PreviewBackdrop)
-        ActionBarEnhancedDropdownMixin:RefreshPreview(iconContaiter.PreviewIcon)
-        ActionBarEnhancedDropdownMixin:RefreshPreview(pushedContainer.PreviewPushed)
-        ActionBarEnhancedDropdownMixin:RefreshPreview(highlightContainer.PreviewHighlight)
-        ActionBarEnhancedDropdownMixin:RefreshPreview(checkedContainer.PreviewChecked)
-        ActionBarEnhancedDropdownMixin:RefreshPreview(cooldownContainer.PreviewSwipe)
-        ActionBarEnhancedDropdownMixin:RefreshPreview(cooldownContainer.PreviewEdge)
-        ActionBarEnhancedDropdownMixin:RefreshPreview(cooldownContainer.PreviewCooldownFont)
-        ActionBarEnhancedDropdownMixin:RefreshPreview(hideContainer.PreviewInterrupt)
-        ActionBarEnhancedDropdownMixin:RefreshPreview(hideContainer.PreviewCasting)
-        ActionBarEnhancedDropdownMixin:RefreshPreview(hideContainer.PreviewReticle)
-        self:RefreshFontPreview()
+        for _, button in pairs(self.AllPreview) do
+            self:RefreshPreview(button)
+        end
     end
 
-    ActionBarEnhancedDropdownMixin:InitPreview()
+    --ScrollUtil.InitScrollBoxListWithScrollBar(scrollBox, scrollBar, dataProvider, "OptionsContainerTemplate", ElementInitializer)
+    ActionBarEnhancedMixin:InitData(Addon.layoutPresets)
 
     optionsFrame:Show()
-    optionsFrame.ScrollFrame.ScrollChild:SetWidth(optionsFrame.ScrollFrame:GetWidth())
+end
+
+function ActionBarEnhancedMixin:InitData(layout)
+    self.dataProvider = CreateDataProvider()
+
+    local function ElementInitializer(frame, elementData)
+        local containerDef = elementData
+        local containerName = containerDef.name
+
+        frame:Show()
+        --frame:SetSize(720, containerDef.size or 180)
+        --frame:SetID(containerDef.id or 0)
+
+        local containerConfig = Addon.config.containers[containerName]
+        if containerConfig then
+            local title = containerConfig.title
+            if containerConfig.new then
+                title = GetGradientTextUTF8(title, "51e8d1", "edfcfa")
+                frame.NewFeature:Show()
+            else
+                title = GetGradientTextUTF8(title, "ffb536", "ffd68f")
+                frame.NewFeature:Hide()
+            end
+            frame.Title:SetText(title)
+            frame.Desc:SetText(containerConfig.desc)
+        else
+            frame.Title:SetText(containerName)
+            frame.Desc:SetText("")
+            frame.NewFeature:Hide()
+        end
+
+        Addon:BuildContainerChildren(frame, containerDef, containerConfig)
+    end
+
+    self.scrollBox = ActionBarEnhancedOptionsFrame.ScrollBox
+    self.scrollBar = ActionBarEnhancedOptionsFrame.ScrollBar
+
+    local template
+    if layout then
+        for i, layoutData in ipairs(layout) do
+            if layoutData then
+                template = layoutData.template or "OptionsContainerTemplate"
+                self.dataProvider:Insert({
+                    name = layoutData.name,
+                    childs = layoutData.childs,
+                })
+            end
+        end
+    end
+
+    if layout == Addon.layoutPresets then
+        self.mod = 80
+    else
+        self.mod = 36
+    end
+
+    if not self.view then
+        self.view = CreateScrollBoxListLinearView()
+        self.view:SetPadding(2, 2, 20, 50, 20) --top, bottom, left, right, spacing
+        --view:SetElementExtent(200)
+        self.view:SetElementExtentCalculator(function(dataIndex, elementData)
+            local height = 0
+            for i, child in ipairs(elementData.childs) do
+                if not(child.template:find("Button")) then
+                    height = height + 1
+                end
+            end
+            return 90 + height * self.mod
+        end)
+
+        self.view:SetElementResetter(function(frame, elementData)
+            local existing = { frame:GetChildren() }
+            for _, child in ipairs(existing) do
+                if child ~= frame.Title and child ~= frame.Desc then
+                    child:Hide()
+                end
+            end
+        end)
+
+        self.view:SetElementInitializer(template, function(frame, elementData)
+            ElementInitializer(frame, elementData)
+        end)
+        ScrollUtil.InitScrollBoxListWithScrollBar(self.scrollBox, self.scrollBar, self.view)
+        self.scrollBox:SetInterpolateScroll(true)
+        self.scrollBox:SetPanExtent(40)
+    end
+    self.scrollBox:Init(self.view)
+    self.scrollBox:SetDataProvider(self.dataProvider)
+end
+
+function Addon:InitChildElement(child, config, frames)
+    if config.type == "dropdown" then
+        if config.fontOption then
+            child.isFontOption = true
+        end
+        if config.statusBar then
+            child.isStatusBar = true
+        end
+        ActionBarEnhancedDropdownMixin:SetupDropdown(
+            child,
+            config.setting,
+            config.name,
+            config.IsSelected,
+            config.OnSelect,
+            config.showNew,
+            config.OnEnter,
+            config.OnClose,
+            frames
+        )
+    elseif config.type == "checkbox" then
+        ActionBarEnhancedDropdownMixin:SetupCheckbox(child, config.name, config.value, config.callback, frames)
+    elseif config.type == "colorSwatch" then
+        ActionBarEnhancedDropdownMixin:SetupColorSwatch(
+            child,
+            config.name,
+            config.value,
+            config.checkboxValues,
+            config.alpha,
+            config.callback)
+    elseif config.type == "checkboxSlider" then
+        ActionBarEnhancedCheckboxSliderMixin:SetupCheckboxSlider(
+            child,
+            config.name,
+            config.checkboxValue,
+            config.sliderValue,
+            config.min,
+            config.max,
+            config.step,
+            config.sliderName,
+            config.callback,
+            frames
+        )
+    elseif config.type == "preview" then
+        ActionBarEnhancedDropdownMixin:SetupPreview(child, config)
+    elseif config.type == "previewPreset" then
+        ActionBarEnhancedDropdownMixin:SetupPreviewPreset(child, config)
+    end
 end
 
 RegisterNewSlashCommand(ActionBarEnhancedMixin.InitOptions, Addon.command, Addon.shortCommand)

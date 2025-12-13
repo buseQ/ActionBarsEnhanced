@@ -12,10 +12,212 @@ local function GetFlipBook(...)
         end
     end
 end
+function Addon:ProcessButtons(actionBar, updateFunc, value)
+    local function UpdateSingleButton(button, isStanceBar, value)
+        if button and button:IsVisible() then
+            updateFunc(button, isStanceBar, value)
+        end
+    end
+    
+    local ActionBarButtonNames = {
+        "ActionButton",
+        "MultiBarBottomLeftButton", 
+        "MultiBarBottomRightButton",
+        "MultiBarLeftButton",
+        "MultiBarRightButton",
+        "MultiBar5Button",
+        "MultiBar6Button",
+        "MultiBar7Button",
+    }
+    
+    if not actionBar then
+        for _, barName in ipairs(ActionBarButtonNames) do
+            for i = 1, NUM_ACTIONBAR_BUTTONS do
+                UpdateSingleButton(_G[barName..i], false, value)
+            end
+        end
+    else
+        for i = 1, NUM_ACTIONBAR_BUTTONS do
+            UpdateSingleButton(_G[actionBar.."Button"..i], false, value)
+        end
+    end
+    
+    for i = 1, NUM_SPECIAL_BUTTONS do
+        UpdateSingleButton(PetActionBar.actionButtons[i], true, value)
+        UpdateSingleButton(StanceBar.actionButtons[i], true, value)
+    end
+end
+
+function Addon:PreviewButtons(previewType, value)
+    local selectedBar = ABE_BarsListMixin:GetActionBar()
+    local actionBar = selectedBar ~= "GlobalSettings" and selectedBar or nil
+    
+    local updateFunc
+    if previewType == "LoopGlow" then
+        updateFunc = function(button, isStanceBar, value)
+            Addon:UpdateFlipbook(button, value)
+        end
+    elseif previewType == "NormalTexture" then
+        updateFunc = function(button, isStanceBar, value)
+            Addon:UpdateNormalTexture(button, isStanceBar, value)
+        end
+    elseif previewType == "BackdropTexture" then
+        updateFunc = function(button, isStanceBar, value)
+            Addon:UpdateBackdropTexture(button, isStanceBar, value)
+        end
+    elseif previewType == "PushedTexture" then
+        updateFunc = function(button, isStanceBar, value)
+            button.NormalTexture:Hide()
+            button.PushedTexture:Show()
+            Addon:UpdatePushedTexture(button, isStanceBar, value)
+        end
+    elseif previewType == "HighlightTexture" then
+        updateFunc = function(button, isStanceBar, value)
+            Addon:UpdateHighlightTexture(button, isStanceBar, value)
+            button:LockHighlight()
+        end
+    elseif previewType == "CheckedTexture" then
+        updateFunc = function(button, isStanceBar, value)
+            button.CheckedTexture:Show()
+            Addon:UpdateCheckedTexture(button, isStanceBar, value)
+        end
+    elseif previewType == "IconMaskTexture" then
+        updateFunc = function(button, isStanceBar, value)
+            Addon:UpdateIconMask(button, isStanceBar, value)
+        end
+    elseif previewType == "Cooldown" then
+        updateFunc = function(button, isStanceBar, value)
+            Addon:UpdateCooldown(button, isStanceBar, value)
+        end
+    elseif previewType == "Font" then
+        updateFunc = function(button, isStanceBar, value)
+            Addon:UpdateButtonFont(button, isStanceBar, value)
+        end
+    end
+    
+    if not updateFunc then return end
+    
+    Addon:ProcessButtons(actionBar, updateFunc, value)
+end
+
+function Addon:RefreshButtons(button)
+    local selectedBar = ABE_BarsListMixin:GetActionBar()
+    local actionBar = selectedBar ~= "GlobalSettings" and selectedBar or nil
+    
+    local function UpdateAll(button, isStanceBar)
+        Addon:UpdateNormalTexture(button, isStanceBar)
+        Addon:UpdateBackdropTexture(button, isStanceBar)
+        Addon:UpdatePushedTexture(button, isStanceBar)
+        Addon:UpdateHighlightTexture(button, isStanceBar)
+        Addon:UpdateCheckedTexture(button, isStanceBar)
+        if button.IconMask then
+            Addon:UpdateIconMask(button, isStanceBar)
+        end
+        if button.icon then
+            Addon:UpdateIcon(button, isStanceBar)
+        end
+        if button.cooldown then
+            Addon:UpdateCooldown(button, isStanceBar)
+        end
+        Addon:UpdateButtonFont(button, isStanceBar)
+    end
+    
+    if button then
+        UpdateAll(button)
+    else
+        Addon:ProcessButtons(actionBar, UpdateAll)
+    end
+end
+
+function Addon:GetConfig(button)
+    local config, configName
+    local actionBar, barName
+
+    if button then
+        actionBar = button.bar
+        if not actionBar then
+            actionBar = button:GetParent()
+        end
+        
+        if actionBar and actionBar:GetName() then
+            barName = actionBar:GetName()
+            if Addon.C[barName] then
+                config = Addon.C[barName]
+                configName = barName
+            end
+        end
+    end
+
+    if not config then
+        config = Addon.C["GlobalSettings"]
+        configName = "GlobalSettings"
+    end
+
+    return config, configName
+end
+
+function Addon:SetPadding(frame, padding, equal)
+
+    if frame:GetName() == "StanceBar" then return end
+
+    if equal then
+        local scale = frame.shownButtonContainers[1]:GetScale()
+        if scale < 1 then
+            padding = padding / scale
+        end
+    end
+    frame.numRows = Addon:GetValue("UseRowsNumber") and Addon:GetValue("RowsNumber") or frame.numRows
+    
+    -- Stride is the number of buttons per row (or column if we are vertical)
+    -- Set stride so that if we can have the same number of icons per row we do
+    --local stride = math.ceil(#frame.shownButtonContainers / frame.numRows)
+
+    local stride = Addon:GetValue("UseColumnsNumber") and Addon:GetValue("ColumnsNumber") or math.ceil(#frame.shownButtonContainers / frame.numRows)
+
+    -- Multipliers determine the direction the bar grows for grid layouts 
+    -- Positive means right/up
+    -- Negative means left/down
+    local xMultiplier = frame.addButtonsToRight and 1 or -1;
+    local yMultiplier = frame.addButtonsToTop and 1 or -1;
+
+    local anchorPoint;
+	if frame.addButtonsToLeft then 
+		  anchorPoint = "LEFT"
+    elseif frame.addButtonsToTop then
+        if frame.addButtonsToRight then
+            anchorPoint = "BOTTOMLEFT"
+        else
+            anchorPoint = "BOTTOMRIGHT"
+        end
+    else
+        if frame.addButtonsToRight then
+            anchorPoint = "TOPLEFT"
+        else
+            anchorPoint = "TOPRIGHT"
+        end
+    end
+    
+    -- Create the grid layout according to whether we are horizontal or vertical
+    local layout
+    if frame.isHorizontal then
+        layout = GridLayoutUtil.CreateStandardGridLayout(stride, padding, padding, xMultiplier, yMultiplier)
+    else
+        layout = GridLayoutUtil.CreateVerticalGridLayout(stride, padding, padding, xMultiplier, yMultiplier)
+    end
+
+    GridLayoutUtil.ApplyGridLayout(frame.shownButtonContainers, AnchorUtil.CreateAnchor(anchorPoint, frame, anchorPoint), layout)
+    frame:Layout()
+    frame:UpdateSpellFlyoutDirection()
+    frame:CacheGridSettings()
+end
 
 function Addon:UpdateAssistFlipbook(region)
 
-    local loopAnim = T.LoopGlow[Addon.C.CurrentAssistType] or nil
+    local button = region:GetParent()
+
+    local config, configName = Addon:GetConfig(button)
+
+    local loopAnim = T.LoopGlow[Addon:GetValue("CurrentAssistType", nil, configName)] or nil
 
     local flipAnim = GetFlipBook(region.Anim:GetAnimations())
 
@@ -38,14 +240,39 @@ function Addon:UpdateAssistFlipbook(region)
         region:SetScale(loopAnim.scale or 1)
     end
     --region.ProcLoopFlipbook:SetTexCoords(333, 400, 0.412598, 0.575195, 0.393555, 0.78418, false, false)
-    region:SetDesaturated(Addon.C.DesaturateAssist)
-    if Addon.C.UseAssistGlowColor then
-        region:SetVertexColor(Addon:GetRGB("AssistGlowColor"))
+    region:SetDesaturated(Addon:GetValue("DesaturateAssist", nil, configName))
+    if Addon:GetValue("UseAssistGlowColor", nil, configName) then
+        region:SetVertexColor(Addon:GetRGB("AssistGlowColor", nil, configName))
     else
         region:SetVertexColor(1.0, 1.0, 1.0)
     end
 	region.Anim:Stop()
     region.Anim:Play()
+end
+
+local BUTTON_REF_SIZES = {
+    ["EssentialCooldownViewer"] = 50,
+    ["UtilityCooldownViewer"] = 30,
+    ["BuffIconCooldownViewer"] = 40,
+    ["StanceBar"] = 30,
+    ["PetActionBar"] = 38,
+}
+
+local function GetButtonScaleForBar(barName)
+    local actionButtonSize = 42
+    local refButtonSize = BUTTON_REF_SIZES[barName] or actionButtonSize
+    local scaleMult = refButtonSize / actionButtonSize
+    return scaleMult
+end
+local function GetTextureScaleForButton(button)
+    local actionButtonSize = 42
+    local size = button:GetHeight()
+    local scaleMult = size / actionButtonSize
+    local frameName = button:GetParent():GetName()
+    if not frameName then
+        frameName = button:GetParent():GetParent():GetName()
+    end
+    return scaleMult
 end
 
 function Addon:UpdateFlipbook(Button)
@@ -55,16 +282,18 @@ function Addon:UpdateFlipbook(Button)
 
 	if (not region) or (not region.ProcStartAnim) then return end
 
-    local loopAnim = T.LoopGlow[Addon.C.CurrentLoopGlow] or nil
-    local procAnim = T.ProcGlow[Addon.C.CurrentProcGlow] or nil
-    local altGlowAtlas = T.PushedTextures[Addon.C.CurrentAssistAltType] or nil
+    local config, configName = Addon:GetConfig(Button)
+
+    local loopAnim = T.LoopGlow[Addon:GetValue("CurrentLoopGlow", nil, configName)] or nil
+    local procAnim = T.ProcGlow[Addon:GetValue("CurrentProcGlow", nil, configName)] or nil
+    local altGlowAtlas = T.PushedTextures[Addon:GetValue("CurrentAssistAltType", nil, configName)] or nil
 
     if altGlowAtlas then
         region.ProcAltGlow:SetAtlas(altGlowAtlas.atlas)
     end
-    region.ProcAltGlow:SetDesaturated(Addon.C.DesaturateAssistAlt)
-    if Addon.C.UseAssistAltColor then
-        region.ProcAltGlow:SetVertexColor(Addon:GetRGB("AssistAltColor"))
+    region.ProcAltGlow:SetDesaturated(Addon:GetValue("DesaturateAssistAlt", nil, configName))
+    if Addon:GetValue("UseAssistAltColor", nil, configName) then
+        region.ProcAltGlow:SetVertexColor(Addon:GetRGB("AssistAltColor", nil, configName))
     else
         region.ProcAltGlow:SetVertexColor(1.0, 1.0, 1.0)
     end
@@ -73,7 +302,7 @@ function Addon:UpdateFlipbook(Button)
     
     if startProc then
         
-        if Addon.C.HideProc then
+        if Addon:GetValue("HideProc", nil, configName) then
             startProc:SetDuration(0)
             region.ProcStartFlipbook:Hide()
         else
@@ -90,12 +319,12 @@ function Addon:UpdateFlipbook(Button)
                 startProc:SetDuration(procAnim.duration or 0.702)
                 startProc:SetFlipBookFrameWidth(procAnim.frameW or 0.0)
                 startProc:SetFlipBookFrameHeight(procAnim.frameH or 0.0)
-                region.ProcStartFlipbook:SetScale(procAnim.scale or 1)
+                region.ProcStartFlipbook:SetScale((procAnim.scale or 1) * GetTextureScaleForButton(Button))
             end
-            region.ProcStartFlipbook:SetDesaturated(Addon.C.DesaturateProc)
+            region.ProcStartFlipbook:SetDesaturated(Addon:GetValue("DesaturateProc", nil, configName))
 
-            if Addon.C.UseProcColor then
-                region.ProcStartFlipbook:SetVertexColor(Addon:GetRGB("ProcColor"))
+            if Addon:GetValue("UseProcColor", nil, configName) then
+                region.ProcStartFlipbook:SetVertexColor(Addon:GetRGB("ProcColor", nil, configName))
             else
                 region.ProcStartFlipbook:SetVertexColor(1.0, 1.0, 1.0)
             end
@@ -117,12 +346,11 @@ function Addon:UpdateFlipbook(Button)
         region.ProcLoop.FlipAnim:SetDuration(loopAnim.duration or 1.0)
         region.ProcLoop.FlipAnim:SetFlipBookFrameWidth(loopAnim.frameW or 0.0)
         region.ProcLoop.FlipAnim:SetFlipBookFrameHeight(loopAnim.frameH or 0.0)
-        region.ProcLoopFlipbook:SetScale(loopAnim.scale or 1)
+        region.ProcLoopFlipbook:SetScale((loopAnim.scale or 1))
     end
-    --region.ProcLoopFlipbook:SetTexCoords(333, 400, 0.412598, 0.575195, 0.393555, 0.78418, false, false)
-    region.ProcLoopFlipbook:SetDesaturated(Addon.C.DesaturateGlow)
-    if Addon.C.UseLoopGlowColor then
-        region.ProcLoopFlipbook:SetVertexColor(Addon:GetRGB("LoopGlowColor"))
+    region.ProcLoopFlipbook:SetDesaturated(Addon:GetValue("DesaturateGlow", nil, configName))
+    if Addon:GetValue("UseLoopGlowColor", nil, configName) then
+        region.ProcLoopFlipbook:SetVertexColor(Addon:GetRGB("LoopGlowColor", nil, configName))
     else
         region.ProcLoopFlipbook:SetVertexColor(1.0, 1.0, 1.0)
     end
@@ -136,96 +364,7 @@ local function Hook_UpdateFlipbook(Frame, Button)
 	Addon:UpdateFlipbook(Button)
 end
 
-
-
------------------------------------------
--- forked from ElvUI
------------------------------------------
-
-local Fader = CreateFrame('Frame')
-Fader.Frames = {}
-Fader.interval = 0.025
-
-local function Fading(_, elapsed)
-    Fader.timer = (Fader.timer or 0) + elapsed
-    if Fader.timer > Fader.interval then
-        Fader.timer = 0
-
-        for frame, data in next, Fader.Frames do
-            if frame:IsVisible() then
-                data.fadeTimer = (data.fadeTimer or 0) + (elapsed + Fader.interval)
-            else
-                data.fadeTimer = (data.fadeTimer or 0) + 1
-            end
-
-            if data.fadeTimer < data.duration then
-                if data.mode == "IN" then
-                    frame:SetAlpha((data.fadeTimer / data.duration) * data.diffAlpha + data.fromAlpha)
-                else
-                    frame:SetAlpha(((data.duration - data.fadeTimer) / data.duration) * data.diffAlpha + data.toAlpha)
-                end
-            else
-                frame:SetAlpha(data.toAlpha)
-                if frame and Fader.Frames[frame] then
-                    if frame.fade then
-                        frame.fade.fadeTimer = nil
-                    end
-                    Fader.Frames[frame] = nil
-                end
-            end
-        end
-        if not next(Fader.Frames) then
-            Fader:SetScript("OnUpdate", nil)
-        end
-    end
-end
-
-local function FrameFade(frame)
-    local fade = frame.fade
-    frame:SetAlpha(fade.fromAlpha)
-
-    if not Fader.Frames[frame] then
-        Fader.Frames[frame] = fade
-        Fader:SetScript("OnUpdate", Fading)
-    else
-        Fader.Frames[frame] = fade
-    end
-end
-
-local function FrameFadeIn(frame, duration, fromAlpha, toAlpha)
-    if frame.fade then
-        frame.fade.fadeTimer = nil
-    else
-        frame.fade = {}
-    end
-
-    frame.fade.mode = "IN"
-    frame.fade.duration = duration
-    frame.fade.fromAlpha = fromAlpha
-    frame.fade.toAlpha = toAlpha
-    frame.fade.diffAlpha = toAlpha - fromAlpha
-
-    FrameFade(frame)
-end
-
-local function FrameFadeOut(frame, duration, fromAlpha, toAlpha)
-    if frame.fade then
-        frame.fade.fadeTimer = nil
-    else
-        frame.fade = {}
-    end
-
-    frame.fade.mode = "OUT"
-    frame.fade.duration = duration
-    frame.fade.fromAlpha = fromAlpha
-    frame.fade.toAlpha = toAlpha
-    frame.fade.diffAlpha = fromAlpha - toAlpha
-
-    FrameFade(frame)
-end
-
 local bars = {
-    
 	"MultiActionBar",
 	"StanceBar",
 	"PetActionBar",
@@ -244,28 +383,6 @@ local bars = {
     "MultiBar6",
     "MultiBar7",
 }
-
-local animBars = {}
-
-local function IsFrameFocused(frame)
-    local focusedFrames = GetMouseFoci()
-    local focusedFrame
-    if focusedFrames then
-        if focusedFrames[1] then
-            if focusedFrames[1]:GetParent() and focusedFrames[1]:GetParent():GetParent() then
-                focusedFrame = focusedFrames[1]:GetParent():GetParent()
-            end
-        end
-    end
-    return focusedFrames and focusedFrame == frame
-end
-
-local function ShouldFadeIn(frame)
-    return (Addon.C.FadeInOnCombat and UnitAffectingCombat("player"))
-    or (Addon.C.FadeInOnTarget and UnitExists("target"))
-    or (Addon.C.FadeInOnCasting and UnitCastingInfo("player"))
-    or (Addon.C.FadeInOnHover and IsFrameFocused(frame))
-end
 
 local function FixKeyBindText(text)
     local function escapePattern(text)
@@ -289,6 +406,7 @@ local function FixKeyBindText(text)
 		text = gsub(text, KEY_INSERT, "Ins")
 		text = gsub(text, KEY_HOME, "Hm")
 		text = gsub(text, KEY_DELETE, "Del")
+		text = gsub(text, KEY_DELETE, "Del")
 		text = gsub(text, escapePattern(KEY_NUMPAD0), "N0")
 		text = gsub(text, escapePattern(KEY_NUMPAD1), "N1")
 		text = gsub(text, escapePattern(KEY_NUMPAD2), "N2")
@@ -310,6 +428,8 @@ end
 
 function Addon:UpdateButtonFont(button, isStanceBar)
     if not button.TextOverlayContainer then return end
+
+    local config, configName = Addon:GetConfig(button)
     
     local mult = math.min(button:GetParent():GetScale(), 1.0)
 
@@ -317,71 +437,71 @@ function Addon:UpdateButtonFont(button, isStanceBar)
     if hotKey and hotKey ~= _G.RANGE_INDICATOR then
         hotKey = FixKeyBindText(hotKey)
         button.TextOverlayContainer.HotKey:SetText(hotKey)
-        if Addon.C.CurrentHotkeyFont ~= "Default" then
+        if Addon:GetValue("CurrentHotkeyFont", nil, configName) ~= "Default" then
             button.TextOverlayContainer.HotKey:SetFont(
-                LibStub("LibSharedMedia-3.0"):Fetch("font", Addon.C.CurrentHotkeyFont),
-                (Addon.C.UseHotkeyFontSize and Addon.C.HotkeyFontSize or 11),
-                Addon.C.CurrentHotkeyOutline > 1 and Addon.FontOutlines[Addon.C.CurrentHotkeyOutline] or ""
+                LibStub("LibSharedMedia-3.0"):Fetch("font", Addon:GetValue("CurrentHotkeyFont", nil, configName)),
+                (Addon:GetValue("UseHotkeyFontSize", nil, configName) and Addon:GetValue("HotkeyFontSize", nil, configName) or 11),
+                Addon:GetValue("CurrentHotkeyOutline", nil, configName) > 1 and Addon.FontOutlines[Addon:GetValue("CurrentHotkeyOutline", nil, configName)] or ""
             )
         end
         button.TextOverlayContainer.HotKey:ClearAllPoints()
-        local fontSize = Addon.C.UseHotkeyFontSize and Addon.C.HotkeyFontSize or 11
+        local fontSize = Addon:GetValue("UseHotkeyFontSize", nil, configName) and Addon:GetValue("HotkeyFontSize", nil, configName) or 11
         button.TextOverlayContainer.HotKey:SetFontHeight(fontSize)
         button.TextOverlayContainer.HotKey:SetWidth(0)
         button.TextOverlayContainer.HotKey:SetPoint(
-            Addon.AttachPoints[Addon.C.CurrentHotkeyPoint],
+            Addon.AttachPoints[Addon:GetValue("CurrentHotkeyPoint", nil, configName)],
             button.TextOverlayContainer,
-            Addon.AttachPoints[Addon.C.CurrentHotkeyRelativePoint],
-            Addon.C.UseHotkeyOffset and Addon.C.HotkeyOffsetX or -5,
-            Addon.C.UseHotkeyOffset and Addon.C.HotkeyOffsetY or -5
+            Addon.AttachPoints[Addon:GetValue("CurrentHotkeyRelativePoint", nil, configName)],
+            Addon:GetValue("UseHotkeyOffset", nil, configName) and Addon:GetValue("HotkeyOffsetX", nil, configName) or -5,
+            Addon:GetValue("UseHotkeyOffset", nil, configName) and Addon:GetValue("HotkeyOffsetY", nil, configName) or -5
         )
-        if Addon.C.UseHotkeyShadow then
-            button.TextOverlayContainer.HotKey:SetShadowColor(Addon:GetRGBA("HotkeyShadow"))
+        if Addon:GetValue("UseHotkeyShadow", nil, configName) then
+            button.TextOverlayContainer.HotKey:SetShadowColor(Addon:GetRGBA("HotkeyShadow", nil, configName))
         else
             button.TextOverlayContainer.HotKey:SetShadowColor(0,0,0,0)
         end
-        if Addon.C.UseHotkeyShadowOffset then
-            button.TextOverlayContainer.HotKey:SetShadowOffset(Addon.C.HotkeyShadowOffsetX*mult, Addon.C.HotkeyShadowOffsetY*mult)
+        if Addon:GetValue("UseHotkeyShadowOffset", nil, configName) then
+            button.TextOverlayContainer.HotKey:SetShadowOffset(Addon:GetValue("HotkeyShadowOffsetX", nil, configName)*mult, Addon:GetValue("HotkeyShadowOffsetY", nil, configName)*mult)
         else
             button.TextOverlayContainer.HotKey:SetShadowOffset(0,0)
         end
     end
 
-    if Addon.C.CurrentStacksFont ~= "Default" then
+    if Addon:GetValue("CurrentStacksFont", nil, configName) ~= "Default" then
         button.TextOverlayContainer.Count:SetFont(
-            LibStub("LibSharedMedia-3.0"):Fetch("font", Addon.C.CurrentStacksFont),
-            (Addon.C.UseStacksFontSize and Addon.C.StacksFontSize or 16),
-            Addon.C.CurrentStacksOutline > 1 and Addon.FontOutlines[Addon.C.CurrentStacksOutline] or ""
+            LibStub("LibSharedMedia-3.0"):Fetch("font", Addon:GetValue("CurrentStacksFont", nil, configName)),
+            (Addon:GetValue("UseStacksFontSize", nil, configName) and Addon:GetValue("StacksFontSize", nil, configName) or 16),
+            Addon:GetValue("CurrentStacksOutline", nil, configName) > 1 and Addon.FontOutlines[Addon:GetValue("CurrentStacksOutline", nil, configName)] or ""
         )
     end
     button.TextOverlayContainer.Count:ClearAllPoints()
-    local fontSize = Addon.C.UseStacksFontSize and Addon.C.StacksFontSize or 16
+    local fontSize = Addon:GetValue("UseStacksFontSize", nil, configName) and Addon:GetValue("StacksFontSize", nil, configName) or 16
     button.TextOverlayContainer.Count:SetFontHeight(fontSize)
     button.TextOverlayContainer.Count:SetPoint(
-        Addon.AttachPoints[Addon.C.CurrentStacksPoint],
+        Addon.AttachPoints[Addon:GetValue("CurrentStacksPoint", nil, configName)],
         button.TextOverlayContainer,
-        Addon.AttachPoints[Addon.C.CurrentStacksRelativePoint],
-        Addon.C.UseStacksOffset and Addon.C.StacksOffsetX or -5,
-        Addon.C.UseStacksOffset and Addon.C.StacksOffsetY or 5
+        Addon.AttachPoints[Addon:GetValue("CurrentStacksRelativePoint", nil, configName)],
+        Addon:GetValue("UseStacksOffset", nil, configName) and Addon:GetValue("StacksOffsetX", nil, configName) or -5,
+        Addon:GetValue("UseStacksOffset", nil, configName) and Addon:GetValue("StacksOffsetY", nil, configName) or 5
     )
-    if Addon.C.UseStacksShadow then
-        button.TextOverlayContainer.Count:SetShadowColor(Addon:GetRGBA("StacksShadow"))
+    if Addon:GetValue("UseStacksShadow", nil, configName) then
+        button.TextOverlayContainer.Count:SetShadowColor(Addon:GetRGBA("StacksShadow", nil, configName))
     else
         button.TextOverlayContainer.Count:SetShadowColor(0,0,0,0)
     end
-    if Addon.C.UseStacksShadowOffset then
-        button.TextOverlayContainer.Count:SetShadowOffset(Addon.C.StacksShadowOffsetX*mult, Addon.C.StacksShadowOffsetY*mult)
+    if Addon:GetValue("UseStacksShadowOffset", nil, configName) then
+        button.TextOverlayContainer.Count:SetShadowOffset(Addon:GetValue("StacksShadowOffsetX", nil, configName)*mult, Addon:GetValue("StacksShadowOffsetY", nil, configName)*mult)
     else
         button.TextOverlayContainer.Count:SetShadowOffset(0,0)
     end
-    if Addon.C.UseStacksColor then
-        button.TextOverlayContainer.Count:SetVertexColor(Addon:GetRGBA("StacksColor"))
+    if Addon:GetValue("UseStacksColor", nil, configName) then
+        button.TextOverlayContainer.Count:SetVertexColor(Addon:GetRGBA("StacksColor", nil, configName))
     end
 
     if mult < 1 then
-        button.TextOverlayContainer.HotKey:SetScale((Addon.C.FontHotKey and not isStanceBar) and Addon.C.FontHotKeyScale or 1.0)
-        button.TextOverlayContainer.Count:SetScale((Addon.C.FontStacks and not isStanceBar) and Addon.C.FontStacksScale or 1.0)
-        button.Name:SetScale(Addon.C.FontName and Addon.C.FontNameScale or 1.0)
+        button.TextOverlayContainer.HotKey:SetScale((Addon:GetValue("FontHotKey", nil, configName) and not isStanceBar) and Addon:GetValue("FontHotKeyScale", nil, configName) or 1.0)
+        button.TextOverlayContainer.Count:SetScale((Addon:GetValue("FontStacks", nil, configName) and not isStanceBar) and Addon:GetValue("FontStacksScale", nil, configName) or 1.0)
+        button.Name:SetScale(Addon:GetValue("FontName", nil, configName) and Addon:GetValue("FontNameScale", nil, configName) or 1.0)
     end
 end
 
@@ -393,30 +513,22 @@ local function Hook_UpdateHotkeys(self, actionButtonType)
     Addon:UpdateButtonFont(self)    
 end
 
-function Addon:BarsFadeAnim()
-    if not Addon.C.FadeBars then return end
-    for _, barName in ipairs(animBars) do
-        local frame = _G[barName]
-        if frame then
-            if Addon.C.FadeBars and ShouldFadeIn(frame) then
-                FrameFadeIn(frame, 0.25, frame:GetAlpha(), 1)
-            else
-                FrameFadeOut(frame, 0.25, frame:GetAlpha(), Addon.C.FadeBarsAlpha)
-            end
-        end
-    end
-end
-
 local function RefreshDesaturated(icon, desaturated)
     icon:SetDesaturated(desaturated)
 end
 function Addon:RefreshHotkeyColor(button)
     if not button.TextOverlayContainer or not button.TextOverlayContainer.HotKey then return end
-    if Addon.C.UseHotkeyColor then
-        button.TextOverlayContainer.HotKey:SetVertexColor(Addon:GetRGBA("HotkeyColor"))
+
+    local config, configName = Addon:GetConfig(button)
+
+    if Addon:GetValue("UseHotkeyColor", nil, configName) then
+        button.TextOverlayContainer.HotKey:SetVertexColor(Addon:GetRGBA("HotkeyColor", nil, configName))
     end
 end
 function Addon:RefreshIconColor(button)
+
+    local config, configName = Addon:GetConfig(button)
+
     local icon = button.icon
     local action = button.action
     local type, spellID = GetActionInfo(action)
@@ -425,18 +537,18 @@ function Addon:RefreshIconColor(button)
     local isUsable, notEnoughMana = IsUsableAction(action)
     button.needsRangeCheck = spellID and C_Spell.SpellHasRange(spellID)
     button.spellOutOfRange = button.needsRangeCheck and C_Spell.IsSpellInRange(spellID) == false
-    if (button.spellOutOfRange and Addon.C.UseOORColor) then
-        desaturated = Addon.C.OORDesaturate
-        icon:SetVertexColor(Addon:GetRGBA("OORColor"))       
+    if (button.spellOutOfRange and Addon:GetValue("UseOORColor", nil, configName)) then
+        desaturated = Addon:GetValue("OORDesaturate", nil, configName)
+        icon:SetVertexColor(Addon:GetRGBA("OORColor", nil, configName))       
     elseif isUsable then
         desaturated = false
         icon:SetVertexColor(1.0, 1.0, 1.0)
-    elseif (notEnoughMana and Addon.C.UseOOMColor) then
-        desaturated = Addon.C.OOMDesaturate
-        icon:SetVertexColor(Addon:GetRGBA("OOMColor"))
-    elseif Addon.C.UseNoUseColor then
-        desaturated = Addon.C.NoUseDesaturate
-        icon:SetVertexColor(Addon:GetRGBA("NoUseColor"))
+    elseif (notEnoughMana and Addon:GetValue("UseOOMColor", nil, configName)) then
+        desaturated = Addon:GetValue("OOMDesaturate", nil, configName)
+        icon:SetVertexColor(Addon:GetRGBA("OOMColor", nil, configName))
+    elseif Addon:GetValue("UseNoUseColor", nil, configName) then
+        desaturated = Addon:GetValue("NoUseDesaturate", nil, configName)
+        icon:SetVertexColor(Addon:GetRGBA("NoUseColor", nil, configName))
     end
     if not button.spellOutOfRange then
         Addon:RefreshHotkeyColor(button)
@@ -445,10 +557,16 @@ function Addon:RefreshIconColor(button)
 end
 
 local function HoverHook(button)
-    local frame = button:GetParent():GetParent()
-    local fader = frame.fade
-    if fader then
-        Addon:BarsFadeAnim()
+    local frame = button:GetParent()
+    if frame.fade then
+        Addon:BarsFadeAnim(frame)
+        return
+    else
+        frame = frame:GetParent()
+        if frame.fade then
+            Addon:BarsFadeAnim(frame)
+            return
+        end
     end
 end
 
@@ -460,46 +578,51 @@ local function Hook_UpdateUsable(self, action, usable, noMana)
     Addon:RefreshIconColor(self)
 end
 
-function Addon:UpdateNormalTexture(button, isStanceBar)
-    local normalAtlas = T.NormalTextures[Addon.C.CurrentNormalTexture] or nil
+function Addon:UpdateNormalTexture(button, isStanceBar, previewValue)
+    local config, configName = Addon:GetConfig(button, true)
+    local normalAtlas
+    if previewValue then
+        normalAtlas = T.NormalTextures[previewValue]
+    else
+        normalAtlas = T.NormalTextures[Addon:GetValue("CurrentNormalTexture", nil, configName)] or nil
+    end
+
     if button.NormalTexture then
         if normalAtlas then
-            if normalAtlas.hide then
-                button.NormalTexture:Hide()
-            elseif Addon.C.CurrentNormalTexture > 1 then
-                if normalAtlas.atlas then
-                    button:SetNormalAtlas(normalAtlas.atlas)
-                end
-                if normalAtlas.texture then
-                    button.NormalTexture:SetTexture(normalAtlas.texture)
-                end
-                if normalAtlas.point then
-                    button.NormalTexture:ClearAllPoints()
-                    button.NormalTexture:SetPoint(normalAtlas.point, button, normalAtlas.point)
-                end
-                if normalAtlas.padding then
-                    button.NormalTexture:AdjustPointsOffset(normalAtlas.padding[1], normalAtlas.padding[2])
-                end
-                if normalAtlas.size then
-                    button.NormalTexture:SetSize(normalAtlas.size[1], normalAtlas.size[2])
-                end
-                if normalAtlas.coords then
-                    button.NormalTexture:SetTexCoord(normalAtlas.coords[1], normalAtlas.coords[2], normalAtlas.coords[3], normalAtlas.coords[4])
-                end
-                button.NormalTexture:SetDrawLayer("OVERLAY")
-                button.NormalTexture:SetScale(isStanceBar and 0.69 or 1.0)
+            Addon:SetTexture(button.NormalTexture, normalAtlas.texture)
+            if normalAtlas.point then
+                button.NormalTexture:ClearAllPoints()
+                button.NormalTexture:SetPoint(normalAtlas.point, button, normalAtlas.point)
             end
+            if normalAtlas.padding then
+                button.NormalTexture:AdjustPointsOffset(normalAtlas.padding[1], normalAtlas.padding[2])
+            end
+            if normalAtlas.size then
+                button.NormalTexture:SetSize(normalAtlas.size[1], normalAtlas.size[2])
+            end
+            if normalAtlas.coords then
+                button.NormalTexture:SetTexCoord(normalAtlas.coords[1], normalAtlas.coords[2], normalAtlas.coords[3], normalAtlas.coords[4])
+            end
+            button.NormalTexture:SetDrawLayer("OVERLAY")
+            button.NormalTexture:SetScale(isStanceBar and 0.69 or 1.0)
         end
-        button.NormalTexture:SetDesaturated(Addon.C.DesaturateNormal)
-        if Addon.C.UseNormalTextureColor then
-            button.NormalTexture:SetVertexColor(Addon:GetRGBA("NormalTextureColor"))
+        button.NormalTexture:SetDesaturated(Addon:GetValue("DesaturateNormal", nil, configName))
+        if Addon:GetValue("UseNormalTextureColor", nil, configName) then
+            button.NormalTexture:SetVertexColor(Addon:GetRGBA("NormalTextureColor", nil, configName))
         end
     end
 end
-function Addon:UpdateBackdropTexture(button, isStanceBar)
-    local backdropAtlas = T.BackdropTextures[Addon.C.CurrentBackdropTexture] or nil
+function Addon:UpdateBackdropTexture(button, isStanceBar, previewValue)
+    local config, configName = Addon:GetConfig(button)
+    local backdropAtlas
+    if previewValue then
+        backdropAtlas = T.BackdropTextures[previewValue]
+    else
+        backdropAtlas = T.BackdropTextures[Addon:GetValue("CurrentBackdropTexture", nil, configName)] or nil
+    end
+
     if button.SlotBackground then
-        if backdropAtlas and Addon.C.CurrentBackdropTexture > 1 then
+        if backdropAtlas and Addon:GetValue("CurrentBackdropTexture", nil, configName) > 1 then
             if backdropAtlas.atlas then
                 button.SlotBackground:SetAtlas(backdropAtlas.atlas)
             end
@@ -521,16 +644,23 @@ function Addon:UpdateBackdropTexture(button, isStanceBar)
             end
             button.SlotBackground:SetScale(isStanceBar and 0.69 or 1.0)
         end
-        button.SlotBackground:SetDesaturated(Addon.C.DesaturateBackdrop)
-        if Addon.C.UseBackdropColor then
-            button.SlotBackground:SetVertexColor(Addon:GetRGBA("BackdropColor"))
+        button.SlotBackground:SetDesaturated(Addon:GetValue("DesaturateBackdrop", nil, configName))
+        if Addon:GetValue("UseBackdropColor", nil, configName) then
+            button.SlotBackground:SetVertexColor(Addon:GetRGBA("BackdropColor", nil, configName))
         end
     end
 end
-function Addon:UpdatePushedTexture(button, isStanceBar)
-    local pushedAtlas = T.PushedTextures[Addon.C.CurrentPushedTexture] or nil
+function Addon:UpdatePushedTexture(button, isStanceBar, previewValue)
+    local config, configName = Addon:GetConfig(button)
+    local pushedAtlas
+    if previewValue then
+        pushedAtlas = T.PushedTextures[previewValue]
+    else
+        pushedAtlas = T.PushedTextures[Addon:GetValue("CurrentPushedTexture", nil, configName)] or nil
+    end
+
     if button.PushedTexture then
-        if pushedAtlas and Addon.C.CurrentPushedTexture > 1 then
+        if pushedAtlas and Addon:GetValue("CurrentPushedTexture", nil, configName) > 1 then
             if pushedAtlas.atlas then
                 button:SetPushedAtlas(pushedAtlas.atlas)
             elseif pushedAtlas.texture then
@@ -550,18 +680,25 @@ function Addon:UpdatePushedTexture(button, isStanceBar)
             button.PushedTexture:SetScale(isStanceBar and 0.69 or 1.0)
         end
 
-        button.PushedTexture:SetDesaturated(Addon.C.DesaturatePushed)
-        if Addon.C.UsePushedColor then
-            button.PushedTexture:SetVertexColor(Addon:GetRGBA("PushedColor"))
+        button.PushedTexture:SetDesaturated(Addon:GetValue("DesaturatePushed", nil, configName))
+        if Addon:GetValue("UsePushedColor", nil, configName) then
+            button.PushedTexture:SetVertexColor(Addon:GetRGBA("PushedColor", nil, configName))
         end
     end
 end
-function Addon:UpdateHighlightTexture(button, isStanceBar)
-    local highlightAtlas = T.HighlightTextures[Addon.C.CurrentHighlightTexture] or nil
+function Addon:UpdateHighlightTexture(button, isStanceBar, previewValue)
+    local config, configName = Addon:GetConfig(button)
+    local highlightAtlas
+    if previewValue then
+        highlightAtlas = T.HighlightTextures[previewValue]
+    else
+        highlightAtlas = T.HighlightTextures[Addon:GetValue("CurrentHighlightTexture", nil, configName)] or nil
+    end
+
     if highlightAtlas and highlightAtlas.hide then
         button.HighlightTexture:Hide()
     else
-        if highlightAtlas and Addon.C.CurrentHighlightTexture > 2 then
+        if highlightAtlas and Addon:GetValue("CurrentHighlightTexture", nil, configName) > 1 then
             if highlightAtlas.atlas then
                 button.HighlightTexture:SetAtlas(highlightAtlas.atlas)
             elseif highlightAtlas.texture then
@@ -580,20 +717,29 @@ function Addon:UpdateHighlightTexture(button, isStanceBar)
             if highlightAtlas.coords then
                 button.HighlightTexture:SetTexCoord(highlightAtlas.coords[1], highlightAtlas.coords[2], highlightAtlas.coords[3], highlightAtlas.coords[4])
             end
-            button.HighlightTexture:SetScale(isStanceBar and 0.69 or 1.0)
+            if highlightAtlas and Addon:GetValue("CurrentHighlightTexture", nil, configName) > 2 then
+                button.HighlightTexture:SetScale(isStanceBar and 0.69 or 1.0)
+            end
         end
 
-        button.HighlightTexture:SetDesaturated(Addon.C.DesaturateHighlight)
-        if Addon.C.UseHighlightColor then
-            button.HighlightTexture:SetVertexColor(Addon:GetRGBA("HighlightColor"))
+        button.HighlightTexture:SetDesaturated(Addon:GetValue("DesaturateHighlight", nil, configName))
+        if Addon:GetValue("UseHighlightColor", nil, configName) then
+            button.HighlightTexture:SetVertexColor(Addon:GetRGBA("HighlightColor", nil, configName))
         end
     end
 end
-function Addon:UpdateCheckedTexture(button, isStanceBar)
+function Addon:UpdateCheckedTexture(button, isStanceBar, previewValue)
+    local config, configName = Addon:GetConfig(button)
     if button.CheckedTexture then
-        local checkedAtlas = T.HighlightTextures[Addon.C.CurrentCheckedTexture] or nil
+        local checkedAtlas
+        if previewValue then
+            checkedAtlas = T.HighlightTextures[previewValue]
+        else
+            checkedAtlas = T.HighlightTextures[Addon:GetValue("CurrentCheckedTexture", nil, configName)] or nil
+        end
+
         if checkedAtlas then
-            if Addon.C.CurrentCheckedTexture > 2 then
+            if Addon:GetValue("CurrentCheckedTexture", nil, configName) > 1 then
                 if checkedAtlas.atlas then
                     button.CheckedTexture:SetAtlas(checkedAtlas.atlas)
                 elseif checkedAtlas.texture then
@@ -609,27 +755,34 @@ function Addon:UpdateCheckedTexture(button, isStanceBar)
                 if checkedAtlas.coords then
                     button.CheckedTexture:SetTexCoord(checkedAtlas.coords[1], checkedAtlas.coords[2], checkedAtlas.coords[3], checkedAtlas.coords[4])
                 end
-                button.CheckedTexture:SetScale(isStanceBar and 0.69 or 1.0)
+                if Addon:GetValue("CurrentCheckedTexture", nil, configName) > 2 then
+                    button.CheckedTexture:SetScale(isStanceBar and 0.69 or 1.0)
+                end
             end
 
-            button.CheckedTexture:SetDesaturated(Addon.C.DesaturateChecked)
-            if Addon.C.UseCheckedColor then
-                button.CheckedTexture:SetVertexColor(Addon:GetRGBA("CheckedColor"))
+            button.CheckedTexture:SetDesaturated(Addon:GetValue("DesaturateChecked", nil, configName))
+            if Addon:GetValue("UseCheckedColor", nil, configName) then
+                button.CheckedTexture:SetVertexColor(Addon:GetRGBA("CheckedColor", nil, configName))
             end
         end
     end
 end
-function Addon:UpdateIconMask(button, isStanceBar)
-    local iconMaskAtlas = T.IconMaskTextures[Addon.C.CurrentIconMaskTexture] or nil
+function Addon:UpdateIconMask(button, isStanceBar, previewValue)
+    local config, configName = Addon:GetConfig(button)
+    local iconMaskAtlas
+    if previewValue then
+        iconMaskAtlas = T.IconMaskTextures[previewValue]
+    else
+        iconMaskAtlas = T.IconMaskTextures[Addon:GetValue("CurrentIconMaskTexture", nil, configName)] or nil
+    end
+
     if iconMaskAtlas then
-        if Addon.C.CurrentIconMaskTexture > 1 then
+        if Addon:GetValue("CurrentIconMaskTexture", nil, configName) > 1 then
             button.IconMask:SetHorizTile(false)
             button.IconMask:SetVertTile(false)
-            if iconMaskAtlas.atlas then
-                button.IconMask:SetAtlas(iconMaskAtlas.atlas)
-            elseif iconMaskAtlas.texture then
-                button.IconMask:SetTexture(iconMaskAtlas.texture)
-            end
+
+            Addon:SetTexture(button.IconMask,iconMaskAtlas.texture)
+            
             if iconMaskAtlas.point then
                 button.IconMask:ClearAllPoints()
                 button.IconMask:SetPoint(iconMaskAtlas.point, button.icon, iconMaskAtlas.point)
@@ -642,26 +795,39 @@ function Addon:UpdateIconMask(button, isStanceBar)
             end
         end
         if isStanceBar then
-            button.IconMask:SetScale(Addon.C.UseIconMaskScale and Addon.C.IconMaskScale * 0.69 or 1.0)
+            button.IconMask:SetScale(Addon:GetValue("UseIconMaskScale", nil, configName) and Addon:GetValue("IconMaskScale", nil, configName) * 0.69 or 1.0)
         else
-            button.IconMask:SetScale(Addon.C.UseIconMaskScale and Addon.C.IconMaskScale or 1.0)
+            button.IconMask:SetScale(Addon:GetValue("UseIconMaskScale", nil, configName) and Addon:GetValue("IconMaskScale", nil, configName) or 1.0)
         end
     end
 end
-function Addon:UpdateCooldown(button, isStanceBar)
-    if Addon.C.UseSwipeSize then
+function Addon:UpdateIcon(button, isStanceBar, previewValue)
+    local scale = previewValue or ((Addon:GetValue("UseIconScale", nil, configName) and Addon:GetValue("IconScale", nil, configName) or 1.0))
+    button.icon:ClearAllPoints()
+    button.icon:SetPoint("CENTER", button, "CENTER", -0.5, 0.5)
+    if isStanceBar then
+        button.icon:SetSize(31,31)
+    else
+        button.icon:SetSize(45,45)
+    end
+    button.icon:SetScale(scale)
+end
+
+function Addon:UpdateCooldown(button, isStanceBar, previewValue)
+    local config, configName = Addon:GetConfig(button)
+    if Addon:GetValue("UseSwipeSize", nil, configName) then
         button.cooldown:ClearAllPoints()
-        local size = isStanceBar and Addon.C.SwipeSize*0.69 or Addon.C.SwipeSize
+        local size = isStanceBar and Addon:GetValue("SwipeSize", nil, configName)*0.69 or Addon:GetValue("SwipeSize", nil, configName)
         button.cooldown:SetPoint("CENTER", button.icon, "CENTER", 0, 0)
         button.cooldown:SetSize(size, size)
     end
     local color = {r = 1.0, g = 1.0, b = 1.0, a = 1.0}
-    if Addon.C.UseCooldownFontColor then
-        color.r,color.g,color.b,color.a = Addon:GetRGBA("CooldownFontColor")
+    if Addon:GetValue("UseCooldownFontColor", nil, configName) then
+        color.r,color.g,color.b,color.a = Addon:GetRGBA("CooldownFontColor", nil, configName)
     end
-    local fontSize = Addon.C.UseCooldownFontSize and Addon.C.CooldownFontSize or 17
+    local fontSize = Addon:GetValue("UseCooldownFontSize", nil, configName) and Addon:GetValue("CooldownFontSize", nil, configName) or 17
     local _, fontName = Addon:GetFontObject(
-        Addon.C.CurrentCooldownFont,
+        Addon:GetValue("CurrentCooldownFont", nil, configName),
         "OUTLINE",
         color,
         fontSize,
@@ -677,34 +843,61 @@ function Addon:UpdateCooldown(button, isStanceBar)
 end
 local function Hook_UpdateButton(button, isStanceBar)
     if button == ExtraActionButton1 then return end
-    Addon:UpdateNormalTexture(button, isStanceBar)
-    Addon:UpdateBackdropTexture(button, isStanceBar)
-    Addon:UpdatePushedTexture(button, isStanceBar)
-    Addon:UpdateHighlightTexture(button, isStanceBar)
-    Addon:UpdateCheckedTexture(button, isStanceBar)
+    
+    local config, configName = Addon:GetConfig(button)
+
+    if Addon:GetValue("FadeBars", nil, configName) and not button.__hookedFade then
+        button:HookScript("OnEnter", HoverHook)
+        button:HookScript("OnLeave", HoverHook)
+        button.__hookedFade = true
+    end
+
+    local frame = button:GetParent():GetName()
+    if frame == "MicroMenu" or frame == "BagsBar" then
+        return
+    end
+
+    if button.NormalTexture then
+        Addon:UpdateNormalTexture(button, isStanceBar)
+    end
+    if button.BackdropTexture then
+        Addon:UpdateBackdropTexture(button, isStanceBar)
+    end
+    if button.PushedTexture then
+        Addon:UpdatePushedTexture(button, isStanceBar)
+    end
+    if button.HighlightTexture then
+        Addon:UpdateHighlightTexture(button, isStanceBar)
+    end
+    if button.CheckedTexture then
+        Addon:UpdateCheckedTexture(button, isStanceBar)
+    end
+
+    if Addon:GetValue("UseButtonSize", nil, configName) then
+        button:SetSize(Addon:GetValue("ButtonSizeX", nil, configName), Addon:GetValue("ButtonSizeY", nil, configName))
+    else
+        button:SetSize(42, 42)
+    end
 
     if button.IconMask then
         Addon:UpdateIconMask(button, isStanceBar)
     end
 
     if button.icon then
-        button.icon:ClearAllPoints()
-        button.icon:SetPoint("CENTER", button, "CENTER", -0.5, 0.5)
-        if isStanceBar then
-            button.icon:SetSize(31,31)
-        else
-            button.icon:SetSize(45,45)
-        end
-        button.icon:SetScale(Addon.C.UseIconScale and Addon.C.IconScale or 1.0)
+        Addon:UpdateIcon(button, isStanceBar)
     end
 
-    
     if button.cooldown then
         Addon:UpdateCooldown(button, isStanceBar)
     end
 
+    if button.Flash then
+        button.Flash:ClearAllPoints()
+        button.Flash:SetPoint("CENTER", button, "CENTER")
+    end
+
     if button.Name then
-        if Addon.C.FontHideName then
+        if Addon:GetValue("FontHideName", nil, configName) then
             button.Name:Hide()
         else
             button.Name:Show()
@@ -713,11 +906,11 @@ local function Hook_UpdateButton(button, isStanceBar)
     Addon:UpdateButtonFont(button, isStanceBar)
 
     local eventFrame = ActionBarActionEventsFrame
-    if Addon.C.HideInterrupt then
+    if eventFrame and Addon:GetValue("HideInterrupt", nil, configName) then
         eventFrame:UnregisterEvent("UNIT_SPELLCAST_INTERRUPTED")
         eventFrame:UnregisterEvent("UNIT_SPELLCAST_SUCCEEDED")
     end
-    if Addon.C.HideCasting then
+    if eventFrame and Addon:GetValue("HideCasting", nil, configName) then
         eventFrame:UnregisterEvent("UNIT_SPELLCAST_CHANNEL_START")
         eventFrame:UnregisterEvent("UNIT_SPELLCAST_CHANNEL_STOP")
         eventFrame:UnregisterEvent("UNIT_SPELLCAST_EMPOWER_START")
@@ -725,24 +918,23 @@ local function Hook_UpdateButton(button, isStanceBar)
         eventFrame:UnregisterEvent("UNIT_SPELLCAST_START")
         eventFrame:UnregisterEvent("UNIT_SPELLCAST_STOP")
     end
-    if Addon.C.HideReticle then
+    if eventFrame and Addon:GetValue("HideReticle", nil, configName) then
         eventFrame:UnregisterEvent("UNIT_SPELLCAST_FAILED")
         eventFrame:UnregisterEvent("UNIT_SPELLCAST_RETICLE_CLEAR")
         eventFrame:UnregisterEvent("UNIT_SPELLCAST_RETICLE_TARGET")
         eventFrame:UnregisterEvent("UNIT_SPELLCAST_SENT")
     end
-    if Addon.C.FadeBars then
-        button:HookScript("OnEnter", HoverHook)
-        button:HookScript("OnLeave", HoverHook)
-    end
-    if button.Update then
+    if button.Update and not button.__hookedUpdate then
         hooksecurefunc(button, "Update", Hook_Update)
+        button.__hookedUpdate = true
     end
-    if button.UpdateUsable then
+    if button.UpdateUsable and not button.__hookedUpdateUsable then
         hooksecurefunc(button, "UpdateUsable", Hook_UpdateUsable)
+        button.__hookedUpdateUsable = true
     end
-    if button.UpdateHotkeys then
+    if button.UpdateHotkeys and not button.__hookedUpdateHotkeys then
         hooksecurefunc(button, "UpdateHotkeys", Hook_UpdateHotkeys)
+        button.__hookedUpdateHotkeys = true
     end
 end
 
@@ -756,56 +948,56 @@ local function Hook_RangeCheckButton(slot, inRange, checksRange)
         end
     end
 end
-function Addon:RefreshCooldown(button, isStanceBar)
-    --[[ local actionType, actionID
+function Addon:RefreshCooldown(button, isStanceBar, barName)
+    local config, configName = Addon:GetConfig(button)
+    
+--[[     local actionType, actionID
     if button.action then
         actionType, actionID = GetActionInfo(button.action)
     end
     if actionID then
-        local spellCooldownInfo = C_Spell.GetSpellCooldown(actionID)
-        local function IsExpired(spellCooldownInfo)
-            if spellCooldownInfo.startTime == 0 then
-                return true
-            end
-
-            return spellCooldownInfo.startTime + spellCooldownInfo.duration <= GetTime()
-        end
+        --local spellCooldownInfo = C_Spell.GetSpellCooldown(actionID)
+        local spellCooldownInfo = C_ActionBar.GetActionCooldown(actionID)
         if spellCooldownInfo then
+            if spellCooldownInfo.duration then
+                button.cooldownDesaturated = spellCooldownInfo.isOnGCD
+            end
+        end
+        if spellCooldownInfo and spellCooldownInfo.activeCategory then
             if spellCooldownInfo.activeCategory == Constants.SpellCooldownConsts.GLOBAL_RECOVERY_CATEGORY then
                 button.cooldownDesaturated = false
             else
                 button.cooldownDesaturated = true
             end
-            button.cooldownDesaturated = button.cooldownDesaturated and not IsExpired(spellCooldownInfo)
-            --RefreshDesaturated(button.icon, button.cooldownDesaturated)
+            RefreshDesaturated(button.icon, button.cooldownDesaturated)
         end
     end ]]
    --Addon:RefreshIconColor(button)
    local function RefreshEdgeTexture(cooldown, isStanceBar)
-        cooldown:SetEdgeTexture(T.EdgeTextures[Addon.C.CurrentEdgeTexture].texture)
-        if Addon.C.UseEdgeSize then
+        cooldown:SetEdgeTexture(T.EdgeTextures[Addon:GetValue("CurrentEdgeTexture", nil, configName)].texture)
+        if Addon:GetValue("UseEdgeSize", nil, configName) then
             cooldown:ClearAllPoints()
             cooldown:SetPoint("CENTER", cooldown:GetParent().icon, "CENTER", 0, 0)
-            local size = isStanceBar and Addon.C.EdgeSize*0.69 or Addon.C.EdgeSize
+            local size = isStanceBar and Addon:GetValue("EdgeSize", nil, configName)*0.69 or Addon:GetValue("EdgeSize", nil, configName)
             cooldown:SetSize(size, size)
         end
-        if Addon.C.UseEdgeColor then
-            cooldown:SetEdgeColor(Addon:GetRGBA("EdgeColor"))
+        if Addon:GetValue("UseEdgeColor", nil, configName) then
+            cooldown:SetEdgeColor(Addon:GetRGBA("EdgeColor", nil, configName))
         end
     end
     local function RefreshSwipeTexture(button, isStanceBar)
-        if Addon.C.CurrentSwipeTexture and Addon.C.CurrentSwipeTexture > 1 then
-            button.cooldown:SetSwipeTexture(T.SwipeTextures[Addon.C.CurrentSwipeTexture].texture)
+        if Addon:GetValue("CurrentSwipeTexture", nil, configName) and Addon:GetValue("CurrentSwipeTexture", nil, configName) > 1 then
+            button.cooldown:SetSwipeTexture(T.SwipeTextures[Addon:GetValue("CurrentSwipeTexture", nil, configName)].texture)
         end
-        if Addon.C.UseCooldownColor then
-            button.cooldown:SetSwipeColor(Addon:GetRGBA("CooldownColor"))
+        if Addon:GetValue("UseCooldownColor", nil, configName) then
+            button.cooldown:SetSwipeColor(Addon:GetRGBA("CooldownColor", nil, configName))
         end
     end
     
     if button.cooldown then
         RefreshSwipeTexture(button, isStanceBar)
 
-        button.cooldown:SetDrawEdge(Addon.C.EdgeAlwaysShow)
+        button.cooldown:SetDrawEdge(Addon:GetValue("EdgeAlwaysShow", nil, configName))
         if button.cooldown:GetDrawEdge() then
             RefreshEdgeTexture(button.cooldown, isStanceBar)
         end
@@ -824,16 +1016,17 @@ local function Hook_Assist(self, actionButton, shown)
     end
 end
 
+
 local function Hook_CooldownFrame_Set(self)
     if not self then return end
 
     local button = self:GetParent()
     if not button then return end
 
-    local bar = button:GetParent()
-    if not bar then return end
-
-    bar = bar:GetParent()
+    local bar = button.bar
+    if not bar then
+        bar = button:GetParent()
+    end
 
     local barName = bar and bar:GetName() or ""
     
@@ -843,11 +1036,36 @@ local function Hook_CooldownFrame_Set(self)
 
     local isStanceBar = (barName == "PetActionBar" or barName == "StanceBar")
 
-    Addon:RefreshCooldown(button, isStanceBar)
+    Addon:RefreshCooldown(button, isStanceBar, barName)
+end
+local function Hook_ActionButton_ApplyCooldown(self)
+    if not self then return end
+
+    local button = self:GetParent()
+    if not button then return end
+
+    local bar = button.bar
+    if not bar then
+        bar = button:GetParent()
+    end
+
+    local barName = bar and bar:GetName() or ""
+    
+    if barName == "" or not tContains(bars, barName) then
+        return
+    end
+
+    local isStanceBar = (barName == "PetActionBar" or barName == "StanceBar")
+
+    Addon:RefreshCooldown(button, isStanceBar, barName)
+    
 end
 
 hooksecurefunc(ActionButtonSpellAlertManager, "ShowAlert", Hook_UpdateFlipbook)
 hooksecurefunc("CooldownFrame_Set", Hook_CooldownFrame_Set)
+if ActionButton_ApplyCooldown then
+    hooksecurefunc("ActionButton_ApplyCooldown", Hook_ActionButton_ApplyCooldown)
+end
 
 hooksecurefunc(AssistedCombatManager, "SetAssistedHighlightFrameShown", Hook_Assist)
 
@@ -881,6 +1099,12 @@ local function ApplyProfile()
 
     local currentProfile = ActionBarsEnhancedProfilesMixin:GetPlayerProfile()
 
+    if not ActionBarsEnhancedImportDialogMixin:HasDefaultProfiles() then
+        ActionBarsEnhancedProfilesMixin:InstallDefaultPresets()
+    end
+
+    ActionBarsEnhancedProfilesMixin:CheckProfiles15()
+
     ActionBarsEnhancedProfilesMixin:SetProfile(currentProfile)
 end
 
@@ -892,6 +1116,16 @@ local function UpdateStanceAndPetBars()
     end
     if PetActionBar then
         for i, button in pairs(PetActionBar.actionButtons) do
+            Hook_UpdateButton(button, true)
+        end
+    end
+    if MicroMenu then
+        for i, button in ipairs(MicroMenu:GetLayoutChildren()) do
+            Hook_UpdateButton(button, true)
+        end
+    end
+    if BagsBar then
+        for i, button in MainMenuBarBagManager:EnumerateBagButtons() do
             Hook_UpdateButton(button, true)
         end
     end
@@ -916,17 +1150,6 @@ end
 local function ProcessEvent(self, event, ...)
     if event == "PLAYER_LOGIN" then
         ApplyProfile()
-        
-        for _, barName in pairs(bars) do
-            local frame = _G[barName]
-            if frame then
-                table.insert(animBars, barName)
-            end
-        end
-
-        for _, barName in pairs(Addon.BarsToHide) do
-            Addon:HideBars(barName)
-        end
 
         Addon:BarsFadeAnim()
 
@@ -951,6 +1174,9 @@ local function ProcessEvent(self, event, ...)
         if not next(Addon.Fonts) then
             Addon.Fonts = Addon:GetFontsList()
         end
+        if not next(T.StatusBarTextures) then
+            T.StatusBarTextures = Addon:GetStatusBarTextures()
+        end
 
         if Addon.C.HideTalkingHead then
             Addon.eventHandlerFrame:RegisterEvent("TALKINGHEAD_REQUESTED")
@@ -969,9 +1195,7 @@ local function ProcessEvent(self, event, ...)
     end
     if event == "ACTION_RANGE_CHECK_UPDATE" then
         local slot, inRange, checksRange = ...
-        if Addon.C.UseOORColor then
-            Hook_RangeCheckButton(slot, inRange, checksRange)
-        end
+        Hook_RangeCheckButton(slot, inRange, checksRange)
     end
     if event == "PLAYER_REGEN_DISABLED"
     or event == "PLAYER_REGEN_ENABLED"

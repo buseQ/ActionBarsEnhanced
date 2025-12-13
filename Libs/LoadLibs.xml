@@ -4,4 +4,6 @@
     <Script file="Libs\LibSharedMedia-3.0\LibSharedMedia-3.0.lua"/>
     <Script file="Libs\LibUTF8\utf8data.lua"/>
     <Script file="Libs\LibUTF8\utf8.lua"/>
+    <Script file="Libs\LibDeflate\LibDeflate.lua"/>
+    <Script file="Libs\LibSerialize\LibSerialize.lua"/>
 </Ui>
