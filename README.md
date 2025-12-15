@@ -6,7 +6,33 @@
 
 [![Download](https://img.shields.io/badge/Download-Latest-blue)](https://github.com/Hndrxuprt/ActionBarsEnhanced/releases)
 
-## 🎨 Features
+# Beta release v2.0
+
+### Options refactoring
+- Added ability to quickly apply preinstalled or custom profiles
+- All settings moved to the Advanced tab
+- Added copy-paste functionality for settings within the same category
+- Removed options to hide Micromenu, PetBar and BagsBar. Use fade effects instead
+<img width="602" height="485" alt="image" src="https://github.com/user-attachments/assets/43f7adb0-1fe6-4860-a8fa-5d9b0c954e53" />
+
+### CooldownManager support
+- Full customization for each CooldownManager frame
+- No empty slots when buffs or debuffs are inactive
+- Customizable icon padding
+- Centered layout option
+- Option to remove default icon mask and disable pandemic animations
+- Custom proc animations
+- Cooldown text customization (font, size, color)
+- Icon border styling (ElvUI-like) with color customization
+- Status-based coloring for icons: OutOfMana, OutOfRange, NotUsable
+- Buff bar sizing options
+- Buff bar: custom status bar textures with SharedMedia support
+- Buff bar: configurable growth direction
+- Buff bar: custom colors for each bar in "Advanced Cooldown Settings" (default Blizz settings for buff bars)
+<img width="518" height="361" alt="image" src="https://github.com/user-attachments/assets/59e1d742-d008-46a3-ba9e-c568d7b59a9a" />
+<img width="518" height="700" alt="image" src="https://github.com/user-attachments/assets/ba4f0abf-cae7-4cc4-88b3-75aa51170c85" />
+
+## Core Features:
 
 - **🎯 Custom Glow Effects:** Fully customize glow type and color for spell procs.
   - Pixel, Action, and Autocast glows.
