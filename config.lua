@@ -868,8 +868,8 @@ Addon.config.containers = {
         }
     },
     BarsOptionsContainer = {
-        title = "Action Bar Settings",
-        desc = "description",
+        title = L.ActionBarSettingTitle,
+        desc = L.ActionBarSettingDesc,
         new = true,
         childs = {
             ["BarOrientation"] = {
