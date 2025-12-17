@@ -647,8 +647,10 @@ local function Hook_Layout(self)
                     child.Bar.Name:SetTextColor(color.r,color.g,color.b,color.a)
                 end
                 if child.DebuffBorder and not child.__debuffBorderHooked then
-                    hooksecurefunc(child.DebuffBorder, "UpdateFromAuraData", OnUpdateFromAuraData)
-                    child.__debuffBorderHooked = true
+                    if child.DebuffBorder.UpdateFromAuraData then
+                        hooksecurefunc(child.DebuffBorder, "UpdateFromAuraData", OnUpdateFromAuraData)
+                        child.__debuffBorderHooked = true
+                    end
                 end
 
                 child.__barHooked = true

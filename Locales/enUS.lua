@@ -33,6 +33,12 @@ L.BagsBar = "Bags Bar"
 L.MicroMenu = "Micro Menu"
 
 -- ==========================================
+-- Action Bars Settings
+-- ==========================================
+L.ActionBarSettingTitle = "Action Bar Extra Settings"
+L.ActionBarSettingDesc = "Choose the growth direction, button padding, and layout style (centered or default) for action bar."
+
+-- ==========================================
 -- Proc Glow Effects
 -- ==========================================
 L.GlowTypeTitle = "Proc Loop Glow"
