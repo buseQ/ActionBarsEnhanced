@@ -2,6 +2,26 @@ local AddonName, Addon = ...
 
 local T = Addon.Templates
 
+local ACTION_BARS = {
+	"MultiActionBar",
+	"StanceBar",
+	"PetActionBar",
+	"PossessActionBar",
+	"BonusBar",
+	"VehicleBar",
+	"TempShapeshiftBar",
+	"OverrideBar",
+    "MainMenuBar",
+    "MainActionBar",
+    "MultiBarBottomLeft",
+    "MultiBarBottomRight",
+    "MultiBarLeft",
+    "MultiBarRight",
+    "MultiBar5",
+    "MultiBar6",
+    "MultiBar7",
+}
+
 local function GetFlipBook(...)
     local Animations = {...}
 
@@ -156,9 +176,15 @@ function Addon:GetConfig(button)
     return config, configName
 end
 
-function Addon:SetPadding(frame, padding, equal)
+function Addon:UpdateActionBarGrid(frame, padding, equal)
 
-    if frame:GetName() == "StanceBar" then return end
+    if not frame then return end
+
+    local frameName = frame:GetName()
+
+    if frameName == "StanceBar" then return end
+
+    padding = padding or Addon:GetValue("CurrentBarPadding", nil, frameName)
 
     if equal then
         local scale = frame.shownButtonContainers[1]:GetScale()
@@ -166,13 +192,34 @@ function Addon:SetPadding(frame, padding, equal)
             padding = padding / scale
         end
     end
-    frame.numRows = Addon:GetValue("UseRowsNumber") and Addon:GetValue("RowsNumber") or frame.numRows
+
+    --[[ if Addon:GetValue("UseButtonsNumber", nil, frameName) then
+        if not InCombatLockdown() then
+            frame.numButtonsShowable = Addon:GetValue("ButtonsNumber", nil, frameName)
+            frame:UpdateShownButtons()
+        end
+    end ]]
+
+    frame.addButtonsToTop = Addon:GetValue("CurrentBarGrow", nil, frameName) == 1
+
+
+    --frame.numRows = Addon:GetValue("UseRowsNumber", nil, frameName) and Addon:GetValue("RowsNumber", nil, frameName) or frame.numRows
     
     -- Stride is the number of buttons per row (or column if we are vertical)
     -- Set stride so that if we can have the same number of icons per row we do
-    --local stride = math.ceil(#frame.shownButtonContainers / frame.numRows)
 
-    local stride = Addon:GetValue("UseColumnsNumber") and Addon:GetValue("ColumnsNumber") or math.ceil(#frame.shownButtonContainers / frame.numRows)
+    local stride = math.ceil(#frame.shownButtonContainers / frame.numRows)
+
+    --local stride = Addon:GetValue("UseColumnsNumber", nil, frameName) and Addon:GetValue("ColumnsNumber", nil, frameName) or math.ceil(#frame.shownButtonContainers / frame.numRows)
+
+    if Addon:GetValue("GridCentered", nil, frameName) then
+        Addon:ApplyActionBarsCenteredGrid(frame, frame.shownButtonContainers, stride, padding)
+        frame:Layout()
+        frame:UpdateSpellFlyoutDirection()
+        frame:CacheGridSettings()
+        frame:MarkClean()
+        return
+    end
 
     -- Multipliers determine the direction the bar grows for grid layouts 
     -- Positive means right/up
@@ -209,6 +256,28 @@ function Addon:SetPadding(frame, padding, equal)
     frame:Layout()
     frame:UpdateSpellFlyoutDirection()
     frame:CacheGridSettings()
+end
+
+function Addon:HookActionBarGrid()
+    for _, frameName in ipairs(ACTION_BARS) do
+        local frame = _G[frameName]
+        if frame then
+            if frame.UpdateGridLayout and not frame.__gridHooked then
+                hooksecurefunc(frame, "UpdateGridLayout", function(self) Addon:UpdateActionBarGrid(self) end)
+                frame.__gridHooked = true
+            end
+            Addon:UpdateActionBarGrid(frame)
+        end
+    end
+end
+
+function Addon:UpdateAllActionBarGrid()
+    for _, frameName in ipairs(ACTION_BARS) do
+        local frame = _G[frameName]
+        if frame then
+            Addon:UpdateActionBarGrid(frame)
+        end
+    end
 end
 
 function Addon:UpdateAssistFlipbook(region)
@@ -363,26 +432,6 @@ local function Hook_UpdateFlipbook(Frame, Button)
 
 	Addon:UpdateFlipbook(Button)
 end
-
-local bars = {
-	"MultiActionBar",
-	"StanceBar",
-	"PetActionBar",
-	"PossessActionBar",
-	"BonusBar",
-	"VehicleBar",
-	"TempShapeshiftBar",
-	"OverrideBar",
-    "MainMenuBar",
-    "MainActionBar",
-    "MultiBarBottomLeft",
-    "MultiBarBottomRight",
-    "MultiBarLeft",
-    "MultiBarRight",
-    "MultiBar5",
-    "MultiBar6",
-    "MultiBar7",
-}
 
 local function FixKeyBindText(text)
     local function escapePattern(text)
@@ -556,17 +605,14 @@ function Addon:RefreshIconColor(button)
     RefreshDesaturated(icon, desaturated)
 end
 
-local function HoverHook(button)
-    local frame = button:GetParent()
+local function HoverHook(button, isHover)
+    local frame = button.bar
+    if not frame then
+        frame = button:GetParent()
+    end
+    
     if frame.fade then
-        Addon:BarsFadeAnim(frame)
-        return
-    else
-        frame = frame:GetParent()
-        if frame.fade then
-            Addon:BarsFadeAnim(frame)
-            return
-        end
+        Addon:Fade(frame, isHover)
     end
 end
 
@@ -847,8 +893,12 @@ local function Hook_UpdateButton(button, isStanceBar)
     local config, configName = Addon:GetConfig(button)
 
     if Addon:GetValue("FadeBars", nil, configName) and not button.__hookedFade then
-        button:HookScript("OnEnter", HoverHook)
-        button:HookScript("OnLeave", HoverHook)
+        button:HookScript("OnEnter", function(self) 
+            HoverHook(self, true)
+        end)
+        button:HookScript("OnLeave", function(self) 
+            HoverHook(self, false)
+        end)
         button.__hookedFade = true
     end
 
@@ -1030,7 +1080,7 @@ local function Hook_CooldownFrame_Set(self)
 
     local barName = bar and bar:GetName() or ""
     
-    if barName == "" or not tContains(bars, barName) then
+    if barName == "" or not tContains(ACTION_BARS, barName) then
         return
     end
 
@@ -1051,7 +1101,7 @@ local function Hook_ActionButton_ApplyCooldown(self)
 
     local barName = bar and bar:GetName() or ""
     
-    if barName == "" or not tContains(bars, barName) then
+    if barName == "" or not tContains(ACTION_BARS, barName) then
         return
     end
 
@@ -1149,9 +1199,13 @@ end
 
 local function ProcessEvent(self, event, ...)
     if event == "PLAYER_LOGIN" then
+        --UIParent:SetScale(0.53333)
         ApplyProfile()
 
         Addon:BarsFadeAnim()
+
+        --Addon:UpdateAllActionBarGrid()
+        Addon:HookActionBarGrid()
 
         Addon.ClassColor = {PlayerUtil.GetClassColor():GetRGB()}
 

@@ -121,11 +121,14 @@ L.CustomColorCooldownSwipe = "Использовать свой цвет для 
 L.CustomColorOOR = "Свой цвет Out Of Range"
 L.CustomColorOOM = "Свой цвет Out Of Mana"
 L.CustomColorNoUse = "Свой цвет если кнопка недоступна"
+L.CustomColorGCD = "Свой цвет если спелл на ГКД"
+L.CustomColorCD = "Свой цвет если спелл на КД"
+L.CustomColorNormal = "Свой цвет для обычного состояния"
 
 L.RemoveOORColor = "Убрать цвет OOR"
 L.RemoveOOMColor = "Убрать цвет OOM"
 L.RemoveNUColor = "Убрать цвет NU"
-L.RemoveDesaturation = "Убрать десатурацию"
+L.RemoveDesaturation = "Убрать обесцвечивание"
 
 -- ==========================================
 -- Hide Frames and Animations
@@ -223,6 +226,7 @@ L.CDMBackdropColor = "Цвет рамки"
 L.CDMBackdropAuraColor = "Цвет рамки для ауры"
 L.CDMBackdropPandemicColor = "Цвет рамки для пандемика"
 L.CDMReverseSwipe = "Обратное заполнение кулдауна"
+L.CDMRemoveAuraTypeBorder = "Убрать рамку типа Ауры"
 
 -- ==========================================
 -- Status Bar Settings
@@ -254,8 +258,8 @@ L.CDMAuraReverseSwipe = "Обратное заполнение ауры"
 L.CDMCooldownTitle = "Кастомизация кулдауна"
 L.CDMCooldownDesc = "Изменить внешний вид кулдауна для CDM."
 
-L.BackdropTitle = "Рамка иконки"
-L.BackdropDesc = "Создание и настройка нового фрейма для отрисовки рамки вокруг иконки."
+L.IconBorderTitle = "Рамка иконки"
+L.IconBorderDesc = "Создание и настройка нового фрейма для отрисовки рамки вокруг иконки."
 
 L.CDMOptionsTitle = "Дополнительные настройки CDM"
 L.CDMOptionsDesc = "Глобальное включение дополнительных настроек, перезаписывающих стандартные параметры CDM."

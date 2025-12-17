@@ -501,6 +501,27 @@ Addon.config.containers = {
                 checkboxValues  = {"UseNoUseColor", "NoUseDesaturate"},
                 alpha           = false,
             },
+            ["CustomColorOnGCD"] = {
+                type            = "colorSwatch",
+                name            = L.CustomColorGCD,
+                value           = "GCDColor",
+                checkboxValues  = {"UseGCDColor", "GCDColorDesaturate"},
+                alpha           = false,
+            },
+            ["CustomColorOnActualCD"] = {
+                type            = "colorSwatch",
+                name            = L.CustomColorCD,
+                value           = "CDColor",
+                checkboxValues  = {"UseCDColor", "CDColorDesaturate"},
+                alpha           = false,
+            },
+            ["CustomColorOnNormal"] = {
+                type            = "colorSwatch",
+                name            = L.CustomColorNormal,
+                value           = "NormalColor",
+                checkboxValues  = {"UseNormalColor", "NormalColorDesaturate"},
+                alpha           = false,
+            },
         }
     },
     HideFramesOptionsContainer = {
@@ -875,7 +896,13 @@ Addon.config.containers = {
                 step            = 1,
                 sliderName      = {top = "Rows"},
                 callback        = function()
-                    Addon:RefreshButtons()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    if frameName == "GlobalSettings" then
+                        Addon:UpdateAllActionBarGrid()
+                    else
+                        local frame = _G[frameName]
+                        Addon:UpdateActionBarGrid(frame)
+                    end
                 end,
             },
             ["ColumnsNumber"] = {
@@ -888,7 +915,13 @@ Addon.config.containers = {
                 step            = 1,
                 sliderName      = {top = "Columns"},
                 callback        = function()
-                    Addon:RefreshButtons()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    if frameName == "GlobalSettings" then
+                        Addon:UpdateAllActionBarGrid()
+                    else
+                        local frame = _G[frameName]
+                        Addon:UpdateActionBarGrid(frame)
+                    end
                 end,
             },
             ["ButtonsNumber"] = {
@@ -901,7 +934,13 @@ Addon.config.containers = {
                 step            = 1,
                 sliderName      = {top = "Buttons"},
                 callback        = function()
-                    Addon:RefreshButtons()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    if frameName == "GlobalSettings" then
+                        Addon:UpdateAllActionBarGrid()
+                    else
+                        local frame = _G[frameName]
+                        Addon:UpdateActionBarGrid(frame)
+                    end
                 end,
             },
             ["BarsPadding"] = {
@@ -913,7 +952,15 @@ Addon.config.containers = {
                 max             = 50,
                 step            = 1,
                 sliderName      = {top = "Padding"},
-                callback        = function() Addon:RefreshButtons() end,
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    if frameName == "GlobalSettings" then
+                        Addon:UpdateAllActionBarGrid()
+                    else
+                        local frame = _G[frameName]
+                        Addon:UpdateActionBarGrid(frame)
+                    end
+                end,
             },
             ["ButtonSize"] = {
                 type            = "checkboxSlider",
@@ -925,6 +972,38 @@ Addon.config.containers = {
                 step            = 1,
                 sliderName      = {{top = "size X"}, {top = "size Y"}},
                 callback        = function() Addon:RefreshButtons() end,
+            },
+            ["CenteredGrid"] = {
+                type            = "checkbox",
+                name            = L.CDMCenteredGrid,
+                value           = "GridCentered",
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    if frameName == "GlobalSettings" then
+                        Addon:UpdateAllActionBarGrid()
+                    else
+                        local frame = _G[frameName]
+                        Addon:UpdateActionBarGrid(frame)
+                    end
+                end,
+            },
+            ["BarGrow"] = {
+                type        = "dropdown",
+                setting     = Addon.BarsVerticalGrow,
+                name        = L.BarGrow,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentBarGrow", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentBarGrow", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    if frameName == "GlobalSettings" then
+                        Addon:UpdateAllActionBarGrid()
+                    else
+                        local frame = _G[frameName]
+                        Addon:UpdateActionBarGrid(frame)
+                    end
+                end,
             },
         }
     },
@@ -954,7 +1033,7 @@ Addon.config.containers = {
                 min             = 10,
                 max             = 80,
                 step            = 1,
-                sliderName      = {top = "Size X"},
+                sliderName      = {top = "Size"},
                 callback        = function()
                     local frameName = ABE_BarsListMixin:GetActionBar()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
@@ -1251,8 +1330,8 @@ Addon.config.containers = {
         }
     },
     CooldownViewerBackdropContainer = {
-        title = L.BackdropTitle,
-        desc = L.BackdropDesc,
+        title = L.IconBorderTitle,
+        desc = L.IconBorderDesc,
         childs = {
             ["BackdropSize"] = {
                 type            = "checkboxSlider",
@@ -1404,8 +1483,8 @@ Addon.config.containers = {
                 type        = "dropdown",
                 setting     = Addon.BarsVerticalGrow,
                 name        = L.BarGrow,
-                IsSelected  = function(id) return id == Addon:GetValue("CurrentCDMBarGrow", nil, true) end,
-                OnSelect    = function(id) Addon:SaveSetting("CurrentCDMBarGrow", id, true) end,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentBarGrow", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentBarGrow", id, true) end,
                 showNew     = false,
                 OnEnter     = false,
                 OnClose     = function()
@@ -1469,12 +1548,11 @@ Addon.config.containers = {
             ["CenteredGrid"] = {
                 type            = "checkbox",
                 name            = L.CDMCenteredGrid,
-                value           = "CDMCentered",
+                value           = "GridCentered",
                 callback        = function()
                     local frameName = ABE_BarsListMixin:GetActionBar()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
-                
             },
             ["RemoveIconMask"] = {
                 type            = "checkbox",
@@ -1489,6 +1567,15 @@ Addon.config.containers = {
                 type            = "checkbox",
                 name            = L.CDMRemovePandemic,
                 value           = "CDMRemovePandemic",
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["RemoveAuraTypeBorder"] = {
+                type            = "checkbox",
+                name            = L.CDMRemoveAuraTypeBorder,
+                value           = "CDMRemoveAuraTypeBorder",
                 callback        = function()
                     local frameName = ABE_BarsListMixin:GetActionBar()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
@@ -1521,6 +1608,7 @@ Addon.config.containers = {
                 showNew     = false,
                 OnEnter     = false,
                 OnClose     = function()
+                    ActionBarEnhancedDropdownMixin:RefreshAllPreview()
                     local frameName = ABE_BarsListMixin:GetActionBar()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
@@ -1535,6 +1623,7 @@ Addon.config.containers = {
                 step            = 0.01,
                 sliderName      = {top = "Mask Scale"},
                 callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshAllPreview()
                     local frameName = ABE_BarsListMixin:GetActionBar()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
@@ -1549,6 +1638,7 @@ Addon.config.containers = {
                 step            = 0.01,
                 sliderName      = {top = "Icon Scale"},
                 callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshAllPreview()
                     local frameName = ABE_BarsListMixin:GetActionBar()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,

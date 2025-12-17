@@ -294,15 +294,23 @@ Addon.layout = {
             {name = "PreviewFont05", template = "OptionsButtonTextPreviewTemplate", point = {"TOP", "PreviewFont075", "BOTTOM", 0, -5}, scale="0.5"},
         }
     },
-    --[[ {
+    {
         name = "BarsOptionsContainer",
         childs = {
-            {name = "BarOrientation", template = "OptionsDropdownTemplate"},
-            {name = "RowsNumber", template = "OptionsCheckboxSliderTemplate"},
-            {name = "ColumnsNumber", template = "OptionsCheckboxSliderTemplate"},
-            {name = "ButtonsNumber", template = "OptionsCheckboxSliderTemplate"},
-            {name = "ButtonSize", template = "OptionsDoubleCheckboxSliderTemplate"},
+            --{name = "BarOrientation", template = "OptionsDropdownTemplate"},
+            {name = "BarGrow", template = "OptionsDropdownTemplate"},
+            {name = "CenteredGrid", template = "OptionsCheckboxTemplate"},
+            --{name = "RowsNumber", template = "OptionsCheckboxSliderTemplate"},
+            --{name = "ColumnsNumber", template = "OptionsCheckboxSliderTemplate"},
+            --{name = "ButtonsNumber", template = "OptionsCheckboxSliderTemplate"},
+            --{name = "ButtonSize", template = "OptionsDoubleCheckboxSliderTemplate"},
             {name = "BarsPadding", template = "OptionsCheckboxSliderTemplate"},
+        }
+    },
+    --[[ {
+        name = "BarsPagingContainer",
+        childs = {
+            {name = "BarGrow", template = "OptionsDropdownTemplate"},
         }
     }, ]]
 }
@@ -393,9 +401,12 @@ Addon.EssentialCooldownViewer = {
     {
         name = "ColorOverrideOptionsContainer",
         childs = {
+            {name = "CustomColorOnNormal", template = "OptionsColorOverrideTemplate"},
             {name = "CustomColorOOR", template = "OptionsColorOverrideTemplate"},
             {name = "CustomColorOOM", template = "OptionsColorOverrideTemplate"},
             {name = "CustomColorNotUsable", template = "OptionsColorOverrideTemplate"},
+            --{name = "CustomColorOnGCD", template = "OptionsColorOverrideTemplate"},
+            {name = "CustomColorOnActualCD", template = "OptionsColorOverrideTemplate"},
         }
     },
 }
@@ -406,8 +417,6 @@ Addon.BuffIconCooldownViewer = {
             {name = "CDMEnable", template = "OptionsCheckboxTemplate"},
             {name = "IconPadding", template = "OptionsCheckboxSliderTemplate"},
             {name = "CenteredGrid", template = "OptionsCheckboxTemplate"},
-            {name = "RemovePandemicAnims", template = "OptionsCheckboxTemplate"},
-            {name = "RemoveDesaturation", template = "OptionsCheckboxTemplate"},
         }
     },
     {
@@ -455,16 +464,6 @@ Addon.BuffIconCooldownViewer = {
         childs = {
             {name = "BackdropSize", template = "OptionsCheckboxSliderTemplate"},
             {name = "BackdropColor", template = "OptionsColorOverrideTemplate"},
-            {name = "BackdropAuraColor", template = "OptionsColorOverrideTemplate"},
-            {name = "BackdropPandemicColor", template = "OptionsColorOverrideTemplate"},
-        }
-    },
-    {
-        name = "ColorOverrideOptionsContainer",
-        childs = {
-            {name = "CustomColorOOR", template = "OptionsColorOverrideTemplate"},
-            {name = "CustomColorOOM", template = "OptionsColorOverrideTemplate"},
-            {name = "CustomColorNotUsable", template = "OptionsColorOverrideTemplate"},
         }
     },
 }
@@ -475,6 +474,7 @@ Addon.BuffBarCooldownViewer = {
             {name = "CDMEnable", template = "OptionsCheckboxTemplate"},
             {name = "IconPadding", template = "OptionsCheckboxSliderTemplate"},
             {name = "RemovePandemicAnims", template = "OptionsCheckboxTemplate"},
+            {name = "RemoveAuraTypeBorder", template = "OptionsCheckboxTemplate"},
         }
     },
     {

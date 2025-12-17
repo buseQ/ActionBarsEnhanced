@@ -119,6 +119,10 @@ L.CustomColorOOR = "Custom color for Out Of Range"
 L.CustomColorOOM = "Custom color for Out Of Mana"
 L.CustomColorNoUse = "Custom color for Not Usable spells"
 
+L.CustomColorGCD = "Custom color for icon On GCD"
+L.CustomColorCD = "Custom color for icon On CD"
+L.CustomColorNormal = "Custom color for Normal state"
+
 L.RemoveOORColor = "Remove OOR Color"
 L.RemoveOOMColor = "Remove OOM Color" 
 L.RemoveNUColor = "Remove NU Color"
@@ -220,6 +224,7 @@ L.CDMBackdropColor = "Border Color"
 L.CDMBackdropAuraColor = "Aura Border Color"
 L.CDMBackdropPandemicColor = "Pandemic Border Color"
 L.CDMReverseSwipe = "Reverse Cooldown Fill"
+L.CDMRemoveAuraTypeBorder = "Remove Aura type border"
 
 -- ==========================================
 -- Status Bar Settings
@@ -251,8 +256,8 @@ L.CDMAuraReverseSwipe = "Reverse Aura Fill"
 L.CDMCooldownTitle = "Cooldown Customization"
 L.CDMCooldownDesc = "Modify cooldown appearance for CDM"
 
-L.BackdropTitle = "Icon Frame"
-L.BackdropDesc = "Create and configure new frame for rendering icon border"
+L.IconBorderTitle = "Icon Frame"
+L.IconBorderDesc = "Create and configure new frame for rendering icon border"
 
 L.CDMOptionsTitle = "Additional CDM Options"
 L.CDMOptionsDesc = "Global enable additional settings that override standard CDM parameters"

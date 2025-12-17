@@ -109,6 +109,18 @@ Addon.Defaults = {
     NoUseDesaturate = true,
     NoUseColor = { r=0.6, g=0.6, b=0.6, a=1.0 },
 
+    UseGCDColor = false,
+    GCDColorDesaturate = false,
+    GCDColor = { r=1.0, g=1.0, b=1.0, a=1.0 },
+
+    UseCDColor = false,
+    CDColorDesaturate = false,
+    CDColor = { r=0.7, g=0.7, b=0.7, a=1.0 },
+
+    UseNormalColor = false,
+    NormalColorDesaturate = false,
+    NormalColor = { r=1.0, g=1.0, b=1.0, a=1.0 },
+
     HideBagsBar = false,
     HideMicroMenu = false,
     HideStanceBar = false,
@@ -219,7 +231,7 @@ Addon.Defaults = {
     UseCDMBackdrop = false,
     CDMBackdropSize = 1,
 
-    CDMCentered = false,
+    GridCentered = false,
     CDMRemoveIconMask = false,
     CDMRemovePandemic = false,
 
@@ -267,7 +279,7 @@ Addon.Defaults = {
     UseCDMBarBGColor = true,
     CDMBarBGColor = { r=0.0, g=0.0, b=0.0, a=0.5 },
 
-    CurrentCDMBarGrow = 2,
+    CurrentBarGrow = 2,
 
     UseCDMBarIconSize = false,
     CDMBarIconSize = 30,
@@ -306,6 +318,8 @@ Addon.Defaults = {
     CDMItemSize = 40,
 
     CDMRemoveGCDSwipe = false,
+
+    CDMRemoveAuraTypeBorder = false,
 
 }
 
