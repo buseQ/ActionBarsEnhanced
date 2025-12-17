@@ -6,7 +6,7 @@
 
 [![Download](https://img.shields.io/badge/Download-Latest-blue)](https://github.com/Hndrxuprt/ActionBarsEnhanced/releases)
 
-# Beta release v2.0
+# Beta release v2.1
 
 ### Options refactoring
 - Added ability to quickly apply preinstalled or custom profiles
@@ -16,6 +16,9 @@
 <img width="602" height="485" alt="image" src="https://github.com/user-attachments/assets/43f7adb0-1fe6-4860-a8fa-5d9b0c954e53" />
 
 ### CooldownManager support
+- Added **custom color for Normal state** of icons in Cooldown Viewer
+- Added **custom color for icons On Cooldown** in Cooldown Viewer
+- Added option to **remove debuff border** from BuffBar
 - Full customization for each CooldownManager frame
 - No empty slots when buffs or debuffs are inactive
 - Customizable icon padding
@@ -31,6 +34,11 @@
 - Buff bar: custom colors for each bar in "Advanced Cooldown Settings" (default Blizz settings for buff bars)
 <img width="518" height="361" alt="image" src="https://github.com/user-attachments/assets/59e1d742-d008-46a3-ba9e-c568d7b59a9a" />
 <img width="518" height="700" alt="image" src="https://github.com/user-attachments/assets/ba4f0abf-cae7-4cc4-88b3-75aa51170c85" />
+
+### Action Bar extra options
+- Added **centered layout** for action bars
+- Added **padding control** for action bars
+- Added **growth direction** setting for action bars
 
 ## Core Features:
 
