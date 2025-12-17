@@ -356,7 +356,8 @@ local function OnTriggerAvailableAlert(self)
 end
 
 local function OnUpdateFromAuraData(self, auraData)
-    if auraData then
+    local frameName = self:GetParent():GetParent():GetName()
+    if auraData and Addon:GetValue("CDMRemoveAuraTypeBorder", nil, frameName) then
         self:Hide()
     end
 end
