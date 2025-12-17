@@ -3,6 +3,8 @@ local AddonName, Addon = ...
 local L = Addon.L
 local T = Addon.Templates
 
+local isBeta = Addon.IsBeta
+
 local debugPrint = Addon.DebugPrint
 
 CooldownManagerEnhanced = {}
@@ -21,6 +23,7 @@ function CooldownManagerEnhanced:ForceUpdate(frameName)
     frame:Layout()
     --frame:RefreshData()
     --frame:UpdateShownState()
+    CooldownManagerEnhanced.forced = nil
 end
 
 local COLOR_PRIORITY = {
@@ -64,27 +67,7 @@ local function SetBorderColor(button, color, state)
         button.__borderColorState = newPriority < 3 and newPriority or -1
     end
 end
-local function SetBackdropBorderSize(frame, borderSize)
-    local parent = frame:GetParent()
-    frame:SetPoint("TOPLEFT", parent, "TOPLEFT", -borderSize, borderSize)
-    frame:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", borderSize, -borderSize)
-    frame:SetBackdrop({
-        edgeFile = "Interface\\Buttons\\WHITE8x8",
-        edgeSize = borderSize,
-    })
-end
 
-local function CreateBorder(frame, frameName)
-    if frame:GetObjectType() == "Texture" then
-        frame = frame:GetParent()
-    end
-    local edgeSize = Addon:GetValue("CDMBackdropSize", nil, frameName) > 0 and Addon:GetValue("CDMBackdropSize", nil, frameName) or 1
-    local border = CreateFrame("Frame", nil, frame, "BackdropTemplate")
-    SetBackdropBorderSize(border, edgeSize)
-    border:SetBackdropBorderColor(Addon:GetRGBA("CDMBackdropColor", nil, frameName))
-    frame:SetClampedToScreen(false)
-    return border
-end
 
 local function SetBackdropBorderSize(frame, borderSize)
     local parent = frame:GetParent()
@@ -105,6 +88,7 @@ local function CreateBorder(frame, frameName)
     SetBackdropBorderSize(border, edgeSize)
     border:SetBackdropBorderColor(Addon:GetRGBA("CDMBackdropColor", nil, frameName))
     frame:SetClampedToScreen(false)
+    
     return border
 end
 
@@ -125,6 +109,9 @@ local function Hook_CooldownFrame_Clear(self)
         if Addon:GetValue("UseCDMBackdrop", nil, barName) then
             SetBorderColor(button, {Addon:GetRGBA("CDMBackdropColor", nil, barName)}, "reset")
             button.__cooldownSet = nil
+            button.__isOnGCD = false
+            button.__isOnActualCooldown = false
+            button.__isOnAura = false
         end
     end
 end
@@ -141,6 +128,7 @@ local function Hook_CooldownFrame_Set(self)
         if not Addon:GetValue("CDMEnable", nil, barName) then return end
         button.__cooldownSet = true
         if button.cooldownUseAuraDisplayTime or button.pandemicAlertTriggerTime then
+            button.__isOnAura = true
             --[[ button.Cooldown:ClearAllPoints()
             button.Cooldown:SetPoint("CENTER", button, "CENTER")
             button.Cooldown:SetSize(button:GetWidth() -5, button:GetHeight() -5)
@@ -155,9 +143,8 @@ local function Hook_CooldownFrame_Set(self)
 
             button.Cooldown:SetReverse(Addon:GetValue("CDMAuraReverseSwipe", nil, barName))
         else
-            if (button.isOnGCD and not button.isOnActualCooldown) and Addon:GetValue("CDMRemoveGCDSwipe", nil, barName) then
-                button.Cooldown:Hide()
-            end
+            button.__isOnAura = false
+
             if Addon:GetValue("UseCDMSwipeColor", nil, barName) then
                 button.Cooldown:SetSwipeColor(Addon:GetRGBA("CDMSwipeColor", nil, barName))
             end
@@ -165,8 +152,25 @@ local function Hook_CooldownFrame_Set(self)
                 SetBorderColor(button, {Addon:GetRGBA("CDMBackdropColor", nil, barName)}, "reset")
             end
 
+            if not isBeta then
+                local spellID = button:GetSpellID()
+                button.__isOnGCD, button.__isOnActualCooldown = Addon:IsSpellOnGCD(spellID)
+                if (button.__isOnGCD and not button.__isOnActualCooldown) and Addon:GetValue("CDMRemoveGCDSwipe", nil, barName) then
+                    button.Cooldown:SetSwipeColor(0,0,0,0)
+                end
+            else
+                if (button.isOnGCD and not button.isOnActualCooldown) and Addon:GetValue("CDMRemoveGCDSwipe", nil, barName) then
+                    button.Cooldown:Hide()
+                end
+                if (button.isOnGCD and not button.isOnActualCooldown) then
+                    button.__isOnGCD = true
+                else
+                    button.__isOnActualCooldown = true
+                end
+            end
+
             button.Cooldown:SetReverse(Addon:GetValue("CDMReverseSwipe", nil, barName))
-        end      
+        end
         
         button.Cooldown:SetCountdownAbbrevThreshold(620)
 
@@ -196,121 +200,16 @@ local function Hook_CooldownFrame_Set(self)
                 button.Cooldown:SetEdgeColor(Addon:GetRGBA("CDMEdgeColor", nil, barName))
             end
         end
-
-        
-         
     end
 end
 
-local function ApplyStandardGridLayout(self, layoutChildren, stride, padding)
-    if #layoutChildren == 0 then return end
-
-    local layoutFramesGoingUp = self.__layoutFramesGoingUp or self.layoutFramesGoingUp
-
-    local xMultiplier = self.layoutFramesGoingRight and 1 or -1
-    local yMultiplier = layoutFramesGoingUp and 1 or -1
-
-    local layout
-    if self.isHorizontal then
-        layout = GridLayoutUtil.CreateStandardGridLayout(stride, padding, padding, xMultiplier, yMultiplier)
-    else
-        layout = GridLayoutUtil.CreateVerticalGridLayout(stride, padding, padding, xMultiplier, yMultiplier)
-    end
-
-    local anchorPoint
-    if layoutFramesGoingUp then
-        anchorPoint = self.layoutFramesGoingRight and "BOTTOMLEFT" or "BOTTOMRIGHT"
-    else
-        anchorPoint = self.layoutFramesGoingRight and "TOPLEFT" or "TOPRIGHT"
-    end
-    GridLayoutUtil.ApplyGridLayout(layoutChildren, AnchorUtil.CreateAnchor(anchorPoint, self, anchorPoint), layout) 
-end
-
-local function CenteredGridLayout(self, layoutChildren, stride, padding)
-    if #layoutChildren == 0 then return end
-
-    stride = math.min(stride, #layoutChildren)
-
-    local firstChild = layoutChildren[1]
-    local width = firstChild:GetWidth()
-    local height = firstChild:GetHeight()
-
-    if width == 0 or height == 0 then
-        width, height = 36, 36
-    end
-
-    local spacing = padding
-    local layoutFramesGoingRight = self.layoutFramesGoingRight ~= false
-    local layoutFramesGoingUp =  (self.__layoutFramesGoingUp or self.layoutFramesGoingUp) == true
-
-    local anchorPoint
-    if layoutFramesGoingUp then
-        anchorPoint = layoutFramesGoingRight and "BOTTOMLEFT" or "BOTTOMRIGHT"
-    else
-        anchorPoint = layoutFramesGoingRight and "TOPLEFT" or "TOPRIGHT"
-    end
-
-    if self.isHorizontal then
-        local itemStep = width + spacing
-        local rowStep = height + spacing
-        local xMultiplier = layoutFramesGoingRight and 1 or -1
-        local yMultiplier = layoutFramesGoingUp and 1 or -1
-
-        local fullRowWidth = (stride * width) + ((stride - 1) * spacing)
-        local numRows = math.ceil(#layoutChildren / stride)
-
-        for rowIndex = 0, numRows - 1 do
-            local rowStart = rowIndex * stride + 1
-            local rowEnd = math.min(rowStart + stride - 1, #layoutChildren)
-            local itemCount = rowEnd - rowStart + 1
-
-            local actualRowWidth = (itemCount * width) + ((itemCount - 1) * spacing)
-            local xOffsetForRow = (fullRowWidth - actualRowWidth) / 2
-            local yOffset = rowIndex * rowStep
-
-            for i = rowStart, rowEnd do
-                local child = layoutChildren[i]
-                local itemIndex = i - rowStart
-                local xOffset = xOffsetForRow + itemIndex * itemStep
-
-                child:SetPoint(anchorPoint, self, anchorPoint, xOffset * xMultiplier, yOffset * yMultiplier)
-            end
-        end
-    else
-        local itemStep = height + spacing
-        local colStep = width + spacing
-        local xMultiplier = layoutFramesGoingRight and 1 or -1
-        local yMultiplier = layoutFramesGoingUp and 1 or -1
-
-        local maxRows = stride
-        local numCols = math.ceil(#layoutChildren / maxRows)
-        local fullColHeight = (maxRows * height) + ((maxRows - 1) * spacing)
-
-        for colIndex = 0, numCols - 1 do
-            local colStart = colIndex * maxRows + 1
-            local colEnd = math.min(colStart + maxRows - 1, #layoutChildren)
-            local itemCount = colEnd - colStart + 1
-
-            local actualColHeight = (itemCount * height) + ((itemCount - 1) * spacing)
-            local yOffsetForCol = (fullColHeight - actualColHeight) / 2
-            local xOffset = colIndex * colStep
-
-            for i = colStart, colEnd do
-                local child = layoutChildren[i]
-                local itemIndex = i - colStart
-                local yOffset = yOffsetForCol + itemIndex * itemStep
-
-                child:SetPoint(anchorPoint, self, anchorPoint, xOffset * xMultiplier, yOffset * yMultiplier)
-            end
-        end
-    end
-end
 local function CheckItemVisibility(child, isVisible, frame)
     if not frame then
         frame = child:GetParent()
     end
+    
     if not frame.__visibleChildren then
-        frame.__visibleChildren = setmetatable({}, {__mode = "v"})
+        frame.__visibleChildren = {}
     end
 
     if isVisible then
@@ -318,27 +217,47 @@ local function CheckItemVisibility(child, isVisible, frame)
     else
         tDeleteItem(frame.__visibleChildren, child)
     end
-
-    table.sort(frame.__visibleChildren, function(a, b)
-        local aIdx = a.layoutIndex or 9999
-        local bIdx = b.layoutIndex or 9999
-        return aIdx < bIdx
-    end)
-
 end
 
 local function OnButtonVisibilityChanged(button)
+    local isVisible = button:IsVisible()
     local frame = button:GetParent()
-    local layoutChildren = frame:GetLayoutChildren()
 
-    CheckItemVisibility(button, button:IsVisible(), frame)
+    if isVisible == button.__wasVisible then
+        return
+    end
 
-    if #frame.__visibleChildren > 0 and frame.Layout then
-        frame:ShouldUpdateLayout(true)
-        --debugPrint("Trigger layout", frame:GetName())
-        frame:Layout()
+    button.__wasVisible = isVisible
+    CheckItemVisibility(button, isVisible, frame)
+
+    local newCount = #frame.__visibleChildren
+
+    if frame.__wasVisibleChildren ~= newCount then
+        frame.__wasVisibleChildren = newCount
+        if newCount > 0 then
+            table.sort(frame.__visibleChildren, function(a, b)
+                local aIdx = a.layoutIndex or 9999
+                local bIdx = b.layoutIndex or 9999
+                return aIdx < bIdx
+            end)
+            --frame:ShouldUpdateLayout(true)
+            frame:Layout()
+        end
     end
 end
+
+local function RefreshDesaturation(self)
+    if not self or self.__desaturated == nil then return end
+    local frameName = self:GetParent():GetName()
+
+    if Addon:GetValue("CDMRemoveDesaturation", nil, frameName) then
+        self.__desaturated = false
+    end
+    
+    local icon = self:GetIconTexture()
+    icon:SetDesaturated(self.__desaturated)
+end
+
 local function OnButtonRefreshIconColor(self)
     local spellID = self:GetSpellID()
     if not spellID then
@@ -347,37 +266,10 @@ local function OnButtonRefreshIconColor(self)
     
     local frame = self:GetParent()
     local frameName = frame:GetName()
-
-	local iconTexture = self:GetIconTexture()
+    local iconTexture = self:GetIconTexture()
     local outOfRangeTexture = self:GetOutOfRangeTexture()
     
-    --[[ outOfRangeTexture:SetShown(false)
-
-    local isUsable, notEnoughMana = C_Spell.IsSpellUsable(spellID)
-
-    local trueColor = { r = 1, g = 1, b = 1, a = 1 }
-    local falseColor = { r = 1, g = 1, b = 1, a = 1 }
-
-    if Addon:GetValue("UseOORColor", nil, frameName) then
-        local OORColor = {Addon:GetRGBA("OORColor", nil, frameName)}
-        trueColor = { r = OORColor[1], g = OORColor[2], b = OORColor[3], a = OORColor[4] }
-        iconTexture:SetVertexColorFromBoolean(self.OutOfRange, falseColor, trueColor)
-        --iconTexture:SetDesaturated(Addon:GetValue("OORDesaturate", nil, frameName))
-    end
-    if Addon:GetValue("UseOOMColor", nil, frameName) then
-        local OOMColor = {Addon:GetRGBA("OOMColor", nil, frameName)}
-        trueColor = { r = OOMColor[1], g = OOMColor[2], b = OOMColor[3], a = OOMColor[4] }
-        iconTexture:SetVertexColorFromBoolean(notEnoughMana, falseColor, trueColor)
-        --iconTexture:SetDesaturated(Addon:GetValue("OOMDesaturate", nil, frameName))
-    end
-    if Addon:GetValue("UseNoUseColor", nil, frameName) then
-        local NUColor = {Addon:GetRGBA("NoUseColor", nil, frameName)}
-        trueColor = { r = NUColor[1], g = NUColor[2], b = NUColor[3], a = NUColor[4] }
-        iconTexture:SetVertexColorFromBoolean(isUsable, falseColor, trueColor)
-        --iconTexture:SetDesaturated(Addon:GetValue("NoUseDesaturate", nil, frameName))
-    end ]]
-
-    local desaturated = self.cooldownDesaturated
+    local color = {1, 1, 1, 1}
 
     local iconColor = {iconTexture:GetVertexColor()}
     if iconColor then
@@ -385,40 +277,87 @@ local function OnButtonRefreshIconColor(self)
             iconColor[i] = RoundToSignificantDigits(number, 2)
         end
     end
+    
     local OORColor = CooldownManagerEnhanced.constants.OORColor
-    local OOMColor = CooldownManagerEnhanced.constants.OOMColor
+    local OOMColor = CooldownManagerEnhanced.constants.OOMColor  
     local NUColor = CooldownManagerEnhanced.constants.NUColor
 
-    if Addon:GetValue("UseOORColor", nil, frameName) and (iconColor[1] == OORColor[1] and iconColor[2] == OORColor[2] and iconColor[3] == OORColor[3]) then
-        iconTexture:SetVertexColor(Addon:GetRGBA("OORColor", nil, frameName))
+    if Addon:GetValue("UseOORColor", nil, frameName) and 
+       (iconColor[1] == OORColor[1] and iconColor[2] == OORColor[2] and iconColor[3] == OORColor[3]) then
+        color = {Addon:GetRGBA("OORColor", nil, frameName)}
         outOfRangeTexture:SetShown(false)
-        --iconTexture:SetDesaturated(Addon:GetValue("OORDesaturate", nil, frameName))
-    elseif Addon:GetValue("UseOOMColor", nil, frameName) and (iconColor[1] == OOMColor[1] and iconColor[2] == OOMColor[2] and iconColor[3] == OOMColor[3]) then
-        iconTexture:SetVertexColor(Addon:GetRGBA("OOMColor", nil, frameName))
-        --iconTexture:SetDesaturated(Addon:GetValue("OOMDesaturate", nil, frameName))
-    elseif Addon:GetValue("UseNoUseColor", nil, frameName) and (iconColor[1] == NUColor[1] and iconColor[2] == NUColor[2] and iconColor[3] == NUColor[3]) then
-        iconTexture:SetVertexColor(Addon:GetRGBA("NoUseColor", nil, frameName))
-        --iconTexture:SetDesaturated(Addon:GetValue("NoUseDesaturate", nil, frameName))
+        self.__desaturated = Addon:GetValue("OORDesaturate", nil, frameName)
+    
+    elseif self.__isOnActualCooldown and Addon:GetValue("UseCDColor", nil, frameName) then
+        color = {Addon:GetRGBA("CDColor", nil, frameName)}
+        self.__desaturated = Addon:GetValue("CDColorDesaturate", nil, frameName)
+    
+    elseif self.__isOnGCD and Addon:GetValue("UseGCDColor", nil, frameName) then
+        color = {Addon:GetRGBA("GCDColor", nil, frameName)}
+        self.__desaturated = Addon:GetValue("GCDColorDesaturate", nil, frameName)
+    
     else
-        --[[ if Addon:GetValue("CDMRemoveDesaturation", nil, frameName) then
-            iconTexture:SetDesaturated(false)
+        if Addon:GetValue("UseNoUseColor", nil, frameName) and 
+           (iconColor[1] == NUColor[1] and iconColor[2] == NUColor[2] and iconColor[3] == NUColor[3]) then
+            color = {Addon:GetRGBA("NoUseColor", nil, frameName)}
+            self.__desaturated = Addon:GetValue("NoUseDesaturate", nil, frameName)
+        
+        elseif Addon:GetValue("UseOOMColor", nil, frameName) and 
+               (iconColor[1] == OOMColor[1] and iconColor[2] == OOMColor[2] and iconColor[3] == OOMColor[3]) then
+            color = {Addon:GetRGBA("OOMColor", nil, frameName)}
+            self.__desaturated = Addon:GetValue("OOMDesaturate", nil, frameName)
+        
         else
-            iconTexture:SetDesaturated(desaturated)
-        end ]]
+            if not self.__isOnAura then
+                if Addon:GetValue("UseNormalColor", nil, frameName) then
+                    color = {Addon:GetRGBA("NormalColor", nil, frameName)}
+                    self.__desaturated = Addon:GetValue("NormalColorDesaturate", nil, frameName)
+                else
+                    self.__desaturated = false
+                end
+            else
+                self.__desaturated = false
+            end
+        end
     end
+    iconTexture:SetVertexColor(color[1], color[2], color[3], color[4])
+    RefreshDesaturation(self)
 end
+
 local function OnButtonRefreshIconDesaturation(self)
     local frame = self:GetParent()
     local frameName = frame:GetName()
 
     local iconTexture = self:GetIconTexture()
-    if Addon:GetValue("CDMRemoveDesaturation", nil, frameName) then
-        iconTexture:SetDesaturated(false)
-    end
+
+    RefreshDesaturation(self)
 end
+
 local function Hook_OnItemSetScale(frame, scale)
     if scale ~= 1 then
         frame:SetScale(1)
+    end
+end
+
+local function OnTriggerAvailableAlert(self)
+    --for future visible alert hook
+
+    --[[ local alertFrame = self:GetAlertContainer()
+    for index, alert in pairs(alertFrame) do
+        if alert.Flipbook or alert.Glow then
+            alert.durationSeconds = 10
+            alert:ClearAllPoints()
+            alert:SetPoint("CENTER", self, "CENTER", 0, 0)
+            alert:SetSize(self:GetSize())
+            alert:SetScale(1.5)
+            --alert.Flipbook:SetLooping("REPEAT")
+        end
+    end ]]
+end
+
+local function OnUpdateFromAuraData(self, auraData)
+    if auraData then
+        self:Hide()
     end
 end
 
@@ -461,6 +400,13 @@ local function Hook_Layout(self)
             return
         end
 
+        --for future visible alert hook
+
+        --[[ if child.TriggerAvailableAlert and not child.__alertHook then
+            hooksecurefunc(child, "TriggerAvailableAlert", OnTriggerAvailableAlert)
+            child.__alertHook = true
+        end ]]
+
         CheckItemVisibility(child, child:IsVisible(), self)
 
         if frameName == "BuffIconCooldownViewer" or frameName == "BuffBarCooldownViewer" then
@@ -477,6 +423,7 @@ local function Hook_Layout(self)
                 child.__hooked = true
             end
         end
+
         if not child.__refreshIconHook then
             if child.RefreshIconColor then
                 hooksecurefunc(child, "RefreshIconColor", OnButtonRefreshIconColor)
@@ -560,17 +507,6 @@ local function Hook_Layout(self)
 
             child.__stacksString = true
         end
-
-        --[[ if Addon:GetValue("CDMRemoveIconMask", nil, frameName) then
-            if not child.__removedMask or forceUpdate then
-                local icon = (frameName ~= "BuffBarCooldownViewer") and child.Icon or child.Icon.Icon
-                local mask = icon:GetMaskTexture(1)
-                if mask then
-                    icon:RemoveMaskTexture(mask)
-                end
-                child.__removedMask = true
-            end
-        end ]]
         
         if Addon:GetValue("CurrentIconMaskTexture", nil, frameName) > 1 and (not child.__iconHooked or forceUpdate) then
 
@@ -628,10 +564,8 @@ local function Hook_Layout(self)
         end
 
         if frameName == "BuffBarCooldownViewer" then
-            self.__layoutFramesGoingUp = Addon:GetValue("CurrentCDMBarGrow", nil, frameName) == 1
-            --self.layoutFramesGoingUp = Addon:GetValue("CurrentCDMBarGrow", nil, frameName) == 1
-
-            local invert = false
+            self.__layoutFramesGoingUp = Addon:GetValue("CurrentBarGrow", nil, frameName) == 1
+            --self.layoutFramesGoingUp = Addon:GetValue("CurrentBarGrow", nil, frameName) == 1
 
             if child.Bar and (not child.__barHooked or forceUpdate) then
 
@@ -712,6 +646,10 @@ local function Hook_Layout(self)
                     )
                     child.Bar.Name:SetTextColor(color.r,color.g,color.b,color.a)
                 end
+                if child.DebuffBorder and not child.__debuffBorderHooked then
+                    hooksecurefunc(child.DebuffBorder, "UpdateFromAuraData", OnUpdateFromAuraData)
+                    child.__debuffBorderHooked = true
+                end
 
                 child.__barHooked = true
             end
@@ -732,8 +670,9 @@ local function Hook_Layout(self)
             else
                 child.Bar:SetPoint("LEFT", child.Icon, "RIGHT", 2, 0)
                 child.Bar:SetPoint("RIGHT", child, "RIGHT")
-            end            
+            end
 
+            local invert = false
             if invert then
                 child.Icon:ClearAllPoints()
                 child.Icon:SetPoint("RIGHT", child, "RIGHT")
@@ -750,7 +689,7 @@ local function Hook_Layout(self)
 
     if frameName == "BuffIconCooldownViewer" or frameName == "BuffBarCooldownViewer" then
 
-        --self.stride = 2 --количество столбцов
+        --self.stride = 2
 
         --[[ if not self.__visibleChildren then
             self:ShouldUpdateLayout(true)
@@ -761,10 +700,8 @@ local function Hook_Layout(self)
             self.__locked = false
             return
         end
-        --debugPrint(self:GetName(), #self.__visibleChildren)
-    
 
-        if Addon:GetValue("CDMCentered", nil, frameName) then
+        if Addon:GetValue("GridCentered", nil, frameName) then
             local firstChild = self.__visibleChildren[1]
             local scale = firstChild:GetScale() or 1
             local width = (firstChild:GetWidth() or 36) * scale
@@ -776,11 +713,11 @@ local function Hook_Layout(self)
             local totalHeight = (numRows * height) + ((numRows - 1) * spacing)
 
             self:SetSize(fullRowWidth, totalHeight)
-            CenteredGridLayout(self, self.__visibleChildren, self.stride, self.__padding)
+            Addon:ApplyCenteredGridLayout(self, self.__visibleChildren, self.stride, self.__padding)
             --ResizeLayoutMixin.Layout(self)
             self:CacheLayoutSettings(self.__visibleChildren)
         else
-            ApplyStandardGridLayout(self, self.__visibleChildren, self.stride, self.__padding)
+            Addon:ApplyStandardGridLayout(self, self.__visibleChildren, self.stride, self.__padding)
             --ResizeLayoutMixin.Layout(self)
             self:CacheLayoutSettings(self.__visibleChildren)
         end
@@ -795,7 +732,7 @@ local function Hook_Layout(self)
         return
     end
 
-    if Addon:GetValue("CDMCentered", nil, frameName) then
+    if Addon:GetValue("GridCentered", nil, frameName) then
         local firstChild = layoutChildren[1]
         local scale = firstChild:GetScale() or 1
         local width = (firstChild:GetWidth() or 36) * scale
@@ -807,11 +744,11 @@ local function Hook_Layout(self)
         local totalHeight = (numRows * height) + ((numRows - 1) * spacing)
 
         self:SetSize(fullRowWidth, totalHeight)
-        CenteredGridLayout(self, layoutChildren, self.stride, self.__padding)
+        Addon:ApplyCenteredGridLayout(self, layoutChildren, self.stride, self.__padding)
         ResizeLayoutMixin.Layout(self)
         self:CacheLayoutSettings(layoutChildren)
     else
-        ApplyStandardGridLayout(self, layoutChildren, self.stride, self.__padding)
+        Addon:ApplyStandardGridLayout(self, layoutChildren, self.stride, self.__padding)
         ResizeLayoutMixin.Layout(self)
         self:CacheLayoutSettings(layoutChildren)
     end
@@ -869,19 +806,22 @@ local function Hook_HidePandemic(self, frame)
     local frameName = button:GetParent():GetName()
 
     if button.__isInPandemic then
-        C_Timer.After(0.0, function()
-            if button.PandemicIcon and button.PandemicIcon:IsVisible() then
-                return
-            end
+        if not button.__hidePandemicScheduled then
+            button.__hidePandemicScheduled = true
+            C_Timer.After(0.0, function()
+                button.__hidePandemicScheduled = false
+                
+                if button.PandemicIcon and button.PandemicIcon:IsVisible() then
+                    return
+                end
 
-            local state = frameName ~= "BuffBarCooldownViewer" and "default" or "reset"
-
-            if Addon:GetValue("UseCDMBackdropColor", nil, frameName) then
-                SetBorderColor(button, {Addon:GetRGBA("CDMBackdropColor", nil, frameName)}, state)
-            end
-
-            button.__isInPandemic = nil          
-        end)
+                local state = frameName ~= "BuffBarCooldownViewer" and "default" or "reset"
+                if Addon:GetValue("UseCDMBackdropColor", nil, frameName) then
+                    SetBorderColor(button, {Addon:GetRGBA("CDMBackdropColor", nil, frameName)}, state)
+                end
+                button.__isInPandemic = nil          
+            end)
+        end
     end
 end
 

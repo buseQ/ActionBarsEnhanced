@@ -3,12 +3,35 @@ local AddonName, Addon = ...
 local L = Addon.L
 local T = Addon.Templates
 
+Addon.IsBeta = IsBetaBuild()
+
+Addon.ActionBarNames = {
+    "GlobalSettings",
+    "MainActionBar",
+    "MultiBarBottomLeft",
+    "MultiBarBottomRight",
+    "MultiBarRight",
+    "MultiBarLeft",
+    "MultiBar5",
+    "MultiBar6",
+    "MultiBar7",
+    "PetActionBar",
+    "StanceBar",
+    "BagsBar",
+    "MicroMenu",
+}
+
+Addon.CDMFrames = {
+    "EssentialCooldownViewer",
+    "UtilityCooldownViewer",
+    "BuffIconCooldownViewer",
+    "BuffBarCooldownViewer",
+}
+
 local printCount = 0
 local lastCallTime = nil
 
 function Addon:DebugPrint(...)
-
-
     local currentTime = GetTime()
     local timeStr = ""
 
@@ -72,7 +95,6 @@ function Addon:GetStatusBarTextures()
 end
 
 function Addon:GetFontObject(fontName, outline, color, size, isStanceBar, frameName)
-    --print("GetFontObject", fontName, outline, color, size, isStanceBar)
     if fontName == "Default" then
         fontName = "Fonts\\ARIALN.TTF"
     end
@@ -96,6 +118,34 @@ function Addon:GetFontObject(fontName, outline, color, size, isStanceBar, frameN
     fontObject:SetTextColor(color.r, color.g, color.b, color.a)
 
     return fontObject, fontNameKey
+end
+
+function Addon:IsSpellOnGCD(spellID, spellCooldownInfo)
+    if not spellID then return false, false end
+
+    local gcdInfo = C_Spell.GetSpellCooldown(61304)
+
+    if not spellCooldownInfo then
+        spellCooldownInfo = C_Spell.GetSpellCooldown(spellID)
+    end
+
+    local timeNow = GetTime()
+
+    local startTime = spellCooldownInfo.startTime
+    local duration = spellCooldownInfo.duration
+    local endTime = spellCooldownInfo.startTime + spellCooldownInfo.duration
+    local cooldownActive = endTime > timeNow
+
+    local isOnGCD = false
+    if gcdInfo and duration ~= 0 then
+        if startTime == gcdInfo.startTime and duration == gcdInfo.duration then
+            isOnGCD = true
+        end
+    end
+
+    local isOnActualCooldown = cooldownActive and not isOnGCD
+
+    return isOnGCD, isOnActualCooldown
 end
 
 local EditModeIconDataProvider = nil;
@@ -523,6 +573,8 @@ function ActionBarEnhancedMixin:InitOptions()
 
     function ActionBarEnhancedDropdownMixin:RefreshProcLoop(button, value, profileName, barName)
         
+        if not barName then barName = ABE_BarsListMixin:GetActionBar() end
+        
         local loopAnim = value and T.LoopGlow[value] or (T.LoopGlow[Addon:GetValue("CurrentLoopGlow", profileName, barName)] or nil)
 
         local region = button.ProcGlow
@@ -916,6 +968,14 @@ function ActionBarEnhancedMixin:InitOptions()
 
         if not barName then barName = ABE_BarsListMixin:GetActionBar() end
 
+        if tContains(Addon.CDMFrames, barName) then
+            button.NormalTexture:Hide()
+            button.CheckedTexture:Hide()
+            --button.BackdropTexture:Hide()
+            button.HighlightTexture:Hide()
+            button:EnableMouse(false)
+        end
+
         if not button then return end
 
         local region = button.ProcGlow
@@ -1187,7 +1247,6 @@ function ActionBarEnhancedMixin:InitOptions()
                 okayButton._okayScript(self)
 
                 if callback and type(callback) == "function" then
-                    print("callback")
                     callback()
                 end
             end)

@@ -6,21 +6,7 @@ local T = Addon.Templates
 local RightClickAtlasMarkup = CreateAtlasMarkup('NPE_RightClick', 18, 18);
 local LeftClickAtlasMarkup = CreateAtlasMarkup('NPE_LeftClick', 18, 18);
 
-local ActionBarNames = {
-    "GlobalSettings",
-    "MainActionBar",
-    "MultiBarBottomLeft",
-    "MultiBarBottomRight",
-    "MultiBarRight",
-    "MultiBarLeft",
-    "MultiBar5",
-    "MultiBar6",
-    "MultiBar7",
-    "PetActionBar",
-    "StanceBar",
-    "BagsBar",
-    "MicroMenu",
-}
+local ActionBarNames = Addon.ActionBarNames
 local miniBars = {
     "PetActionBar",
     "StanceBar",
@@ -29,12 +15,7 @@ local microBars = {
     "BagsBar",
     "MicroMenu",
 }
-local CDMFrames = {
-    "EssentialCooldownViewer",
-    "UtilityCooldownViewer",
-    "BuffIconCooldownViewer",
-    "BuffBarCooldownViewer",
-}
+local CDMFrames = Addon.CDMFrames
 
 local menuList = {
     {
@@ -78,7 +59,7 @@ for _, element in ipairs(menuList) do
                 label = frame,
                 name = L[frame] or frame,
                 category = 1,
-                layout = frame == "BuffBarCooldownViewer" and "BuffBarCooldownViewer" or "EssentialCooldownViewer"
+                layout = frame ~= "UtilityCooldownViewer" and frame or "EssentialCooldownViewer"
             })
         end
     elseif element.name == "Something Else" then
@@ -153,13 +134,9 @@ ABE_BarsButtonMixin = {}
 
 function ABE_BarsButtonMixin:SetSelected(selected)
     local bar = ABE_BarsListMixin.label ~= "GlobalSettings" and _G[ABE_BarsListMixin.label] or nil
-    --local cdm = tContains(CDMFrames, ABE_BarsListMixin.label)
 
     if selected then
 		self.Texture:Show()
-        --[[ if cdm then
-            bar:SetIsEditing(not bar:IsEditing())
-        end ]]
         if bar then
             ABE_BarsFrameMixin.selection:SetParent(bar)
             ABE_BarsFrameMixin.selection:SetPoint("TOPLEFT", bar, "TOPLEFT", -4, 4)
@@ -176,10 +153,6 @@ function ABE_BarsButtonMixin:SetSelected(selected)
             ABE_BarsFrameMixin.selection:Hide()
             ABE_BarsFrameMixin.selection.PulseAnim:Stop()
         end
-        --[[ if cdm then
-            bar:SetIsEditing(not bar:IsEditing())
-            bar:Layout()
-        end ]]
 		self.Texture:Hide()
 	end
 end

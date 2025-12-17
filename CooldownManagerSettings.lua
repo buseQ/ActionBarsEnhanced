@@ -84,23 +84,22 @@ local function Hook_CooldownViewerSettingsBar(self)
     for i, item in ipairs(activeItems) do
         local barName = item.Bar.Name:GetText()
         if barName then
+            if item.__colorSwatch then
+                Addon.CooldownViewerSwatchPool:Release(item.__colorSwatch)
+                item.__colorSwatch = nil
+            end
             if not item.Icon:IsDesaturated() then
                 index = index + 1
                 item.Bar.Name:SetText("["..index.."]: "..barName)
                 local savedColor = Addon:GetValue("BuffBar"..index, nil, "BuffBarCooldownViewer") or { r = 1, g = 1, b = 1, a = 1 }
                 item.__color = savedColor
 
-                if not item.__colorSwatch then
-                    SetupColorSwatchOnItem(item, index)
-                end
+                SetupColorSwatchOnItem(item, index)
+
                 item.__colorSwatch:SetColorRGB(item.__color.r, item.__color.g, item.__color.b)
                 item.Bar.FillTexture:SetVertexColor(item.__color.r, item.__color.g, item.__color.b, item.__color.a)
             else
-                if item.__colorSwatch then
-                    Addon.CooldownViewerSwatchPool:Release(item.__colorSwatch)
-                    item.__colorSwatch = nil
-                    item.Bar.FillTexture:SetVertexColor(1, 1, 1, 1)
-                end
+                item.Bar.FillTexture:SetVertexColor(1, 1, 1, 1)
             end
         end
     end

@@ -135,39 +135,39 @@ local function IsFrameFocused(frame)
     return false
 end
 
-local function ShouldFadeIn(frame)
+local function ShouldFadeIn(frame, isHover)
 
     if not frame then return false end
 
     return (Addon:GetValue("FadeInOnCombat", nil, frame:GetName()) and UnitAffectingCombat("player"))
     or (Addon:GetValue("FadeInOnTarget", nil, frame:GetName()) and UnitExists("target"))
     or (Addon:GetValue("FadeInOnCasting", nil, frame:GetName()) and UnitCastingInfo("player"))
-    or (Addon:GetValue("FadeInOnHover", nil, frame:GetName()) and IsFrameFocused(frame))
+    or (Addon:GetValue("FadeInOnHover", nil, frame:GetName()) and isHover)
 end
 
-local function ShouldFadeInExternal(frame, options)
+local function ShouldFadeInExternal(frame, options, isHover)
 
     if not frame or not options then return false end
 
     return ( options.inCombat and UnitAffectingCombat("player") )
     or ( options.onTarget and UnitExists("target") )
     or ( options.onCasting and UnitCastingInfo("player") )
-    or ( options.onHover and IsFrameFocused(frame) )
+    or ( options.onHover and isHover )
 end
 
-local function HoverHookExternal(frame)
+local function HoverHookExternal(frame, isHover)
     if not frame then return end
 
     local frameName = frame:GetName()
 
     if frame.fade and frameName then
-        Addon:ExternalBarsFadeAnim(frame, Addon.externalFadeBars[frameName])
+        Addon:ExternalBarsFadeAnim(frame, Addon.externalFadeBars[frameName], isHover)
         return
     else
         frame = frame:GetParent()
         frameName = frame:GetName()
         if frame.fade and frameName then
-            AAddon:ExternalBarsFadeAnim(frame, Addon.externalFadeBars[frameName])
+            AAddon:ExternalBarsFadeAnim(frame, Addon.externalFadeBars[frameName], isHover)
             return
         end
     end
@@ -183,7 +183,7 @@ function Addon:SetFrameAlpha(frame, toAlpha)
 
     local currentAlpha = frame:GetAlpha()
     
-    if toAlpha == currentAlpha then return end
+    --if toAlpha == currentAlpha then return end
 
     if toAlpha > currentAlpha then
         FrameFadeIn(frame, 0.25, currentAlpha, toAlpha)
@@ -192,16 +192,32 @@ function Addon:SetFrameAlpha(frame, toAlpha)
     end    
 end
 
+function Addon:Fade(frame, isHover)
+    local frameName = frame:GetName()
+    if not tContains(fadeBars, frameName) then return end
+    if not Addon:GetValue("FadeBars", nil, frameName) then return end
+
+    if ShouldFadeIn(frame, isHover) then
+        
+        Addon:SetFrameAlpha(frame, 1)
+    else
+        
+        Addon:SetFrameAlpha(frame)
+    end
+end
+
 function Addon:BarsFadeAnim(frame)
     --if not Addon:GetValue("FadeBars") then return end
     if not frame then
         for _, barName in ipairs(fadeBars) do
             frame = _G[barName]
             if frame then
-                if Addon:GetValue("FadeBars", nil, barName) and ShouldFadeIn(frame) then
-                    Addon:SetFrameAlpha(frame, 1)
-                else
-                    Addon:SetFrameAlpha(frame)
+                if Addon:GetValue("FadeBars", nil, barName) then
+                    if ShouldFadeIn(frame)  then
+                        Addon:SetFrameAlpha(frame, 1)
+                    else
+                        Addon:SetFrameAlpha(frame)
+                    end
                 end
             end
         end
@@ -209,27 +225,28 @@ function Addon:BarsFadeAnim(frame)
     else
         local frameName = frame:GetName()
         if not tContains(fadeBars, frameName) then return end
-
-        if Addon:GetValue("FadeBars", nil, frameName) and ShouldFadeIn(frame) then
-            Addon:SetFrameAlpha(frame, 1)
-        else
-            Addon:SetFrameAlpha(frame)
+        if Addon:GetValue("FadeBars", nil, frameName) then
+            if ShouldFadeIn(frame) then
+                Addon:SetFrameAlpha(frame, 1)
+            else
+                Addon:SetFrameAlpha(frame)
+            end
         end
     end
 end
 
-function Addon:ExternalBarsFadeAnim(frame, options)
+function Addon:ExternalBarsFadeAnim(frame, options, isHover)
     if not frame then
         for barName, options in pairs(Addon.externalFadeBars) do
             frame = _G[barName]
-            if frame and ShouldFadeInExternal(frame, options) then
+            if frame and ShouldFadeInExternal(frame, options, isHover) then
                 Addon:SetFrameAlpha(frame, 1)
             else
                 Addon:SetFrameAlpha(frame, options.alpha)
             end
         end
     else
-        if ShouldFadeInExternal(frame, options) then
+        if ShouldFadeInExternal(frame, options, isHover) then
             Addon:SetFrameAlpha(frame, 1)
         else
             Addon:SetFrameAlpha(frame, options.alpha)
@@ -238,7 +255,8 @@ function Addon:ExternalBarsFadeAnim(frame, options)
 end
 
 --/run ABE_RegisterFrameForFading("Minimap", { alpha = 0 })
---/run ABE_RegisterFrameForFading("PlayerFrame.PlayerFrameContent", { alpha = 0 })
+--/run ABE_RegisterFrameForFading("PlayerFrame", { alpha = 0 })
+--/run ABE_RegisterFrameForFading("EssentialCooldownViewer", { alpha = 0, inCombat = true, onTarget = true, onCasting = true, onHover = true })
 
 function ABE_RegisterFrameForFading(frame, options)
     if not frame then return end
@@ -254,15 +272,14 @@ function ABE_RegisterFrameForFading(frame, options)
 
     options = options or {}
 
-    if not Addon.externalFadeBars[frameName] then
-        Addon.externalFadeBars[frameName] = {
+    Addon.externalFadeBars[frameName] = {
             alpha = options.alpha or 1,
+            onDragonRiding = options.onDragonRiding or false,
             inCombat = options.inCombat or false,
             onTarget = options.onTarget or false,
             onCasting = options.onCasting or false,
             onHover = options.onHover or true,
         }
-    end
 
     if frame and Addon.externalFadeBars[frameName].onHover then
         Addon:HookExternalFrameForHover(frame)
@@ -275,8 +292,12 @@ function Addon:HookExternalFrameForHover(frame)
     if not frame or frame.__hookedFade then return end
 
     if frame.OnEnter and frame.OnLeave then
-        frame:HookScript("OnEnter", HoverHookExternal)
-        frame:HookScript("OnLeave", HoverHookExternal)
+        frame:HookScript("OnEnter", function(self)
+            HoverHookExternal(self, true)
+        end)
+        frame:HookScript("OnLeave", function(self)
+            HoverHookExternal(self, false)
+        end)
     else
         local numChildren = frame:GetNumChildren()
         local children = {frame:GetChildren()}
@@ -284,8 +305,12 @@ function Addon:HookExternalFrameForHover(frame)
             for i=1, numChildren do
                 local child = children[i]
                 if child and (child.OnEnter and child.OnLeave) and not child.__hookedFade then
-                    child:HookScript("OnEnter", HoverHookExternal)
-                    child:HookScript("OnLeave", HoverHookExternal)
+                    frame:HookScript("OnEnter", function(self)
+                        HoverHookExternal(self, true)
+                    end)
+                    frame:HookScript("OnLeave", function(self)
+                        HoverHookExternal(self, false)
+                    end)
                     child.__hookedFade = true
                 end
             end
