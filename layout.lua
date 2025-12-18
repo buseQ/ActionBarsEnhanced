@@ -417,6 +417,7 @@ Addon.BuffIconCooldownViewer = {
             {name = "CDMEnable", template = "OptionsCheckboxTemplate"},
             {name = "IconPadding", template = "OptionsCheckboxSliderTemplate"},
             {name = "CenteredGrid", template = "OptionsCheckboxTemplate"},
+            {name = "RemoveAuraTypeBorder", template = "OptionsCheckboxTemplate"},
         }
     },
     {

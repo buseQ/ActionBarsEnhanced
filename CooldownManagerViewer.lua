@@ -98,22 +98,21 @@ local CooldownManagerFrames = {
     "BuffIconCooldownViewer",
     "BuffBarCooldownViewer",
 }
-local function Hook_CooldownFrame_Clear(self)
-    if not self then return end
+local function Hook_OnCooldownDone(self)
     local button = self:GetParent()
-    if not button or not button.__cooldownSet then return end
 
-    local bar = button:GetParent()
-    local barName = bar and bar:GetName() or ""
-    if bar and tContains(CooldownManagerFrames, barName) then
-        if Addon:GetValue("UseCDMBackdrop", nil, barName) then
-            SetBorderColor(button, {Addon:GetRGBA("CDMBackdropColor", nil, barName)}, "reset")
-            button.__cooldownSet = nil
-            button.__isOnGCD = false
-            button.__isOnActualCooldown = false
-            button.__isOnAura = false
-        end
+    if not button.__cooldownSet then return end
+    
+    local frame = button:GetParent()
+    local frameName = frame:GetName()
+
+    if Addon:GetValue("UseCDMBackdrop", nil, frameName) then
+        SetBorderColor(button, {Addon:GetRGBA("CDMBackdropColor", nil, frameName)}, "reset")
     end
+    button.__cooldownSet = nil
+    button.__isOnGCD = false
+    button.__isOnActualCooldown = false
+    button.__isOnAura = false
 end
 
 local function Hook_CooldownFrame_Set(self)
@@ -126,6 +125,13 @@ local function Hook_CooldownFrame_Set(self)
 
     if bar and tContains(CooldownManagerFrames, barName) then
         if not Addon:GetValue("CDMEnable", nil, barName) then return end
+        button.__isOnActualCooldown = false
+
+        if not button.__cooldownDoneHooked then
+            button.Cooldown:HookScript("OnCooldownDone", Hook_OnCooldownDone)
+            button.__cooldownDoneHooked = true
+        end
+        
         button.__cooldownSet = true
         if button.cooldownUseAuraDisplayTime or button.pandemicAlertTriggerTime then
             button.__isOnAura = true
@@ -151,27 +157,44 @@ local function Hook_CooldownFrame_Set(self)
             if Addon:GetValue("UseCDMBackdrop", nil, barName) then
                 SetBorderColor(button, {Addon:GetRGBA("CDMBackdropColor", nil, barName)}, "reset")
             end
-
-            if not isBeta then
-                local spellID = button:GetSpellID()
-                button.__isOnGCD, button.__isOnActualCooldown = Addon:IsSpellOnGCD(spellID)
-                if (button.__isOnGCD and not button.__isOnActualCooldown) and Addon:GetValue("CDMRemoveGCDSwipe", nil, barName) then
-                    button.Cooldown:SetSwipeColor(0,0,0,0)
-                end
-            else
-                if (button.isOnGCD and not button.isOnActualCooldown) and Addon:GetValue("CDMRemoveGCDSwipe", nil, barName) then
+                
+                --[[ if (button.isOnGCD and not button.isOnActualCooldown) and Addon:GetValue("CDMRemoveGCDSwipe", nil, barName) then
                     button.Cooldown:Hide()
                 end
                 if (button.isOnGCD and not button.isOnActualCooldown) then
                     button.__isOnGCD = true
                 else
-                    button.__isOnActualCooldown = true
-                end
-            end
+                    if not button.wasSetFromCharges then
+                        button.__isOnActualCooldown = true
+                    else
+                         button.__isOnActualCooldown = false
+                    end
+                end ]]
 
             button.Cooldown:SetReverse(Addon:GetValue("CDMReverseSwipe", nil, barName))
         end
-        
+
+        if not isBeta then
+            local spellID = button:GetSpellID()
+            button.__isOnGCD, button.__isOnActualCooldown = Addon:IsSpellOnGCD(spellID)
+            if (button.__isOnGCD and not button.__isOnActualCooldown) and Addon:GetValue("CDMRemoveGCDSwipe", nil, barName) then
+                button.Cooldown:SetSwipeColor(0,0,0,0)
+            end
+        else
+            if (button.isOnGCD and not button.isOnActualCooldown) and Addon:GetValue("CDMRemoveGCDSwipe", nil, barName) then
+                button.Cooldown:Hide()
+            end
+            if (button.isOnGCD and not button.isOnActualCooldown) then
+                button.__isOnGCD = true
+            else
+                if not button.wasSetFromCharges then
+                    button.__isOnActualCooldown = true
+                else
+                    button.__isOnActualCooldown = false
+                end
+            end
+        end
+
         button.Cooldown:SetCountdownAbbrevThreshold(620)
 
         if Addon:GetValue("CurrentCDMSwipeTexture", nil, barName) > 1 then
@@ -329,7 +352,7 @@ local function OnButtonRefreshIconDesaturation(self)
     local frameName = frame:GetName()
 
     local iconTexture = self:GetIconTexture()
-
+    
     RefreshDesaturation(self)
 end
 
@@ -339,10 +362,10 @@ local function Hook_OnItemSetScale(frame, scale)
     end
 end
 
-local function OnTriggerAvailableAlert(self)
+--[[ local function OnTriggerAvailableAlert(self)
     --for future visible alert hook
 
-    --[[ local alertFrame = self:GetAlertContainer()
+    local alertFrame = self:GetAlertContainer()
     for index, alert in pairs(alertFrame) do
         if alert.Flipbook or alert.Glow then
             alert.durationSeconds = 10
@@ -352,8 +375,8 @@ local function OnTriggerAvailableAlert(self)
             alert:SetScale(1.5)
             --alert.Flipbook:SetLooping("REPEAT")
         end
-    end ]]
-end
+    end
+end ]]
 
 local function OnUpdateFromAuraData(self, auraData)
     local frameName = self:GetParent():GetParent():GetName()
@@ -553,6 +576,13 @@ local function Hook_Layout(self)
 
             child.__iconHooked = true
         end
+
+        if child.DebuffBorder and not child.__debuffBorderHooked then
+            if child.DebuffBorder.UpdateFromAuraData then
+                hooksecurefunc(child.DebuffBorder, "UpdateFromAuraData", OnUpdateFromAuraData)
+                child.__debuffBorderHooked = true
+            end
+        end
         
 
         if Addon:GetValue("CDMUseItemSize", nil, frameName) and (not child.__sizeHooked or forceUpdate) then
@@ -646,12 +676,6 @@ local function Hook_Layout(self)
                         "OUTLINE"
                     )
                     child.Bar.Name:SetTextColor(color.r,color.g,color.b,color.a)
-                end
-                if child.DebuffBorder and not child.__debuffBorderHooked then
-                    if child.DebuffBorder.UpdateFromAuraData then
-                        hooksecurefunc(child.DebuffBorder, "UpdateFromAuraData", OnUpdateFromAuraData)
-                        child.__debuffBorderHooked = true
-                    end
                 end
 
                 child.__barHooked = true
@@ -845,7 +869,7 @@ local function ProcessEvent(self, event, ...)
             end
         end
         hooksecurefunc("CooldownFrame_Set", Hook_CooldownFrame_Set)
-        hooksecurefunc("CooldownFrame_Clear", Hook_CooldownFrame_Clear)
+        --hooksecurefunc("CooldownFrame_Clear", Hook_CooldownFrame_Clear)
         
     end
 end
