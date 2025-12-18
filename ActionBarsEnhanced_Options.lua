@@ -148,11 +148,11 @@ function Addon:IsSpellOnGCD(spellID, spellCooldownInfo)
     return isOnGCD, isOnActualCooldown
 end
 
-local EditModeIconDataProvider = nil;
+local EditModeIconDataProvider = nil
 
 function Addon:GetRandomClassSpellIcon()
 	if not EditModeIconDataProvider then
-		local spellIconsOnly = true;
+		local spellIconsOnly = true
 		EditModeIconDataProvider = CreateAndInitFromMixin(IconDataProviderMixin, IconDataProviderExtraType.Spellbook, spellIconsOnly);
 	end
 
@@ -1068,12 +1068,14 @@ function ActionBarEnhancedMixin:InitOptions()
                                 Addon.FontObjects["ABE_"..categoryName] = fontObject
                             end
                             radio:AddInitializer(function(button, description, menu)
+                                button:Reset()
                                 button.fontString:SetFontObject(Addon.FontObjects["ABE_"..categoryName])
                             end)
                         end
                     end
                     if frame.isStatusBar then
                         radio:AddInitializer(function(button, description, menu)
+                            button:Reset()
                             local texture = button:AttachTexture()
                             texture:SetHeight(18)
                             texture:SetPoint("LEFT", button, "LEFT", 15, 0)
@@ -1401,7 +1403,14 @@ function ActionBarEnhancedMixin:InitOptions()
 end
 
 function ActionBarEnhancedMixin:InitData(layout)
-    self.dataProvider = CreateDataProvider()
+    if not self.dataProvider then
+        self.dataProvider = CreateDataProvider()
+    else
+        self.dataProvider:Flush()
+        self.view:Flush()
+        self.scrollBox:Flush()
+    end
+    
 
     local function ElementInitializer(frame, elementData)
         local containerDef = elementData

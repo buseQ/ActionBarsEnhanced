@@ -1111,14 +1111,6 @@ local function Hook_ActionButton_ApplyCooldown(self)
     
 end
 
-hooksecurefunc(ActionButtonSpellAlertManager, "ShowAlert", Hook_UpdateFlipbook)
-hooksecurefunc("CooldownFrame_Set", Hook_CooldownFrame_Set)
-if ActionButton_ApplyCooldown then
-    hooksecurefunc("ActionButton_ApplyCooldown", Hook_ActionButton_ApplyCooldown)
-end
-
-hooksecurefunc(AssistedCombatManager, "SetAssistedHighlightFrameShown", Hook_Assist)
-
 local function InitializeSavedVariables()
     ABDB = ABDB or {}
 
@@ -1199,6 +1191,14 @@ end
 
 local function ProcessEvent(self, event, ...)
     if event == "PLAYER_LOGIN" then
+        hooksecurefunc(ActionButtonSpellAlertManager, "ShowAlert", Hook_UpdateFlipbook)
+        hooksecurefunc("CooldownFrame_Set", Hook_CooldownFrame_Set)
+        if ActionButton_ApplyCooldown then
+            hooksecurefunc("ActionButton_ApplyCooldown", Hook_ActionButton_ApplyCooldown)
+        end
+
+        hooksecurefunc(AssistedCombatManager, "SetAssistedHighlightFrameShown", Hook_Assist)
+
         --UIParent:SetScale(0.53333)
         ApplyProfile()
 
