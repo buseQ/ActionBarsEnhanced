@@ -1219,11 +1219,13 @@ Addon.Templates = {
         {
             name = "Default Blizzard Backdrop",
             atlas = "UI-HUD-ActionBar-IconFrame-Background",
+            point = "CENTER",
             size = {46,45},
         },
         {
             name = "Default Blizzard Slot Art",
             atlas = "UI-HUD-ActionBar-IconFrame-Slot",
+            point = "CENTER",
             size = {46,45},
         },
         {
