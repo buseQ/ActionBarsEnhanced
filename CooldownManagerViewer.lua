@@ -157,8 +157,15 @@ local function Hook_CooldownFrame_Set(self)
             if Addon:GetValue("UseCDMBackdrop", nil, barName) then
                 SetBorderColor(button, {Addon:GetRGBA("CDMBackdropColor", nil, barName)}, "reset")
             end
-                
-                --[[ if (button.isOnGCD and not button.isOnActualCooldown) and Addon:GetValue("CDMRemoveGCDSwipe", nil, barName) then
+            
+            if not isBeta then
+                local spellID = button:GetSpellID()
+                button.__isOnGCD, button.__isOnActualCooldown = Addon:IsSpellOnGCD(spellID)
+                if (button.__isOnGCD and not button.__isOnActualCooldown) and Addon:GetValue("CDMRemoveGCDSwipe", nil, barName) then
+                    button.Cooldown:SetSwipeColor(0,0,0,0)
+                end
+            else
+                if (button.isOnGCD and not button.isOnActualCooldown) and Addon:GetValue("CDMRemoveGCDSwipe", nil, barName) then
                     button.Cooldown:Hide()
                 end
                 if (button.isOnGCD and not button.isOnActualCooldown) then
@@ -167,32 +174,12 @@ local function Hook_CooldownFrame_Set(self)
                     if not button.wasSetFromCharges then
                         button.__isOnActualCooldown = true
                     else
-                         button.__isOnActualCooldown = false
+                        button.__isOnActualCooldown = false
                     end
-                end ]]
-
-            button.Cooldown:SetReverse(Addon:GetValue("CDMReverseSwipe", nil, barName))
-        end
-
-        if not isBeta then
-            local spellID = button:GetSpellID()
-            button.__isOnGCD, button.__isOnActualCooldown = Addon:IsSpellOnGCD(spellID)
-            if (button.__isOnGCD and not button.__isOnActualCooldown) and Addon:GetValue("CDMRemoveGCDSwipe", nil, barName) then
-                button.Cooldown:SetSwipeColor(0,0,0,0)
-            end
-        else
-            if (button.isOnGCD and not button.isOnActualCooldown) and Addon:GetValue("CDMRemoveGCDSwipe", nil, barName) then
-                button.Cooldown:Hide()
-            end
-            if (button.isOnGCD and not button.isOnActualCooldown) then
-                button.__isOnGCD = true
-            else
-                if not button.wasSetFromCharges then
-                    button.__isOnActualCooldown = true
-                else
-                    button.__isOnActualCooldown = false
                 end
             end
+
+            button.Cooldown:SetReverse(Addon:GetValue("CDMReverseSwipe", nil, barName))
         end
 
         button.Cooldown:SetCountdownAbbrevThreshold(620)
