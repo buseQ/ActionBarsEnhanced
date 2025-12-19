@@ -480,3 +480,11 @@ function ActionBarsEnhancedProfilesMixin:GetProfiles()
 
     return profileTbl
 end
+
+function ABE_ImportProfile(profileName, profileString, shouldSet)
+    return ActionBarsEnhancedImportDialogMixin:AcceptImport(_, profileString, profileName, shouldSet)
+end
+
+function ABE_GetProfiles()
+    return ActionBarsEnhancedProfilesMixin:GetProfiles()
+end
