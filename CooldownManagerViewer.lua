@@ -105,14 +105,38 @@ local function Hook_OnCooldownDone(self)
     
     local frame = button:GetParent()
     local frameName = frame:GetName()
-
-    if Addon:GetValue("UseCDMBackdrop", nil, frameName) then
-        SetBorderColor(button, {Addon:GetRGBA("CDMBackdropColor", nil, frameName)}, "reset")
-    end
+    
     button.__cooldownSet = nil
     button.__isOnGCD = false
     button.__isOnActualCooldown = false
     button.__isOnAura = false
+
+    if Addon:GetValue("UseCDMBackdrop", nil, frameName) then
+        SetBorderColor(button, {Addon:GetRGBA("CDMBackdropColor", nil, frameName)}, "reset")
+    end
+end
+
+local function Hook_CooldownFrame_Clear(self)
+     if not self then return end
+    local button = self:GetParent()
+    if not button then return end
+
+    if not button.__cooldownSet then return end
+
+    local bar = button:GetParent()
+    local barName = bar and bar:GetName() or ""
+
+    if bar and tContains(CooldownManagerFrames, barName) then
+
+        button.__cooldownSet = nil
+        button.__isOnGCD = false
+        button.__isOnActualCooldown = false
+        button.__isOnAura = false
+
+        if Addon:GetValue("UseCDMBackdrop", nil, barName) then
+            SetBorderColor(button, {Addon:GetRGBA("CDMBackdropColor", nil, barName)}, "reset")
+        end
+    end
 end
 
 local function Hook_CooldownFrame_Set(self)
@@ -166,7 +190,7 @@ local function Hook_CooldownFrame_Set(self)
                 end
             else
                 if (button.isOnGCD and not button.isOnActualCooldown) and Addon:GetValue("CDMRemoveGCDSwipe", nil, barName) then
-                    button.Cooldown:Hide()
+                    button.Cooldown:Clear()
                 end
                 if (button.isOnGCD and not button.isOnActualCooldown) then
                     button.__isOnGCD = true
@@ -856,7 +880,7 @@ local function ProcessEvent(self, event, ...)
             end
         end
         hooksecurefunc("CooldownFrame_Set", Hook_CooldownFrame_Set)
-        --hooksecurefunc("CooldownFrame_Clear", Hook_CooldownFrame_Clear)
+        hooksecurefunc("CooldownFrame_Clear", Hook_CooldownFrame_Clear)
         
     end
 end
