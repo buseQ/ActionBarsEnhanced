@@ -668,7 +668,7 @@ function Addon:UpdateBackdropTexture(button, isStanceBar, previewValue)
     end
 
     if button.SlotBackground then
-        if backdropAtlas and Addon:GetValue("CurrentBackdropTexture", nil, configName) > 1 then
+        if backdropAtlas then
             if backdropAtlas.atlas then
                 button.SlotBackground:SetAtlas(backdropAtlas.atlas)
             end
@@ -706,7 +706,7 @@ function Addon:UpdatePushedTexture(button, isStanceBar, previewValue)
     end
 
     if button.PushedTexture then
-        if pushedAtlas and Addon:GetValue("CurrentPushedTexture", nil, configName) > 1 then
+        if pushedAtlas then
             if pushedAtlas.atlas then
                 button:SetPushedAtlas(pushedAtlas.atlas)
             elseif pushedAtlas.texture then
@@ -910,7 +910,7 @@ local function Hook_UpdateButton(button, isStanceBar)
     if button.NormalTexture then
         Addon:UpdateNormalTexture(button, isStanceBar)
     end
-    if button.BackdropTexture then
+    if button.SlotBackground then
         Addon:UpdateBackdropTexture(button, isStanceBar)
     end
     if button.PushedTexture then
@@ -1172,18 +1172,6 @@ local function UpdateStanceAndPetBars()
         end
     end
 end
-local function Hook_ShowStanceBar()
-    if Addon.C.HideStanceBar then
-        StanceBar:Hide()
-    end
-    StanceBar:HookScript("OnShow", function() 
-        if Addon.C.HideStanceBar then
-            if StanceBar:IsVisible() then
-                StanceBar:Hide()
-            end
-        end
-    end)
-end
 
 local function DisableTalkingHeadFrame()
     TalkingHeadFrame:Hide()
@@ -1220,7 +1208,6 @@ local function ProcessEvent(self, event, ...)
 		end
 
         hooksecurefunc(ActionBarActionButtonMixin, "OnLoad", Hook_UpdateButton)
-        hooksecurefunc(StanceBar, "Show", Hook_ShowStanceBar)
         UpdateStanceAndPetBars()
 
         Addon:Welcome()
