@@ -3,7 +3,7 @@ local AddonName, Addon = ...
 local L = Addon.L
 local T = Addon.Templates
 
-Addon.IsBeta = IsBetaBuild()
+Addon.IsBeta = IsBetaBuild() or IsPublicTestClient()
 
 Addon.ActionBarNames = {
     "GlobalSettings",
@@ -92,6 +92,21 @@ function Addon:GetStatusBarTextures()
         table.insert(tbl, { name = name, texture = LSM:Fetch("statusbar", name) })
     end
     return tbl
+end
+
+function Addon:GetStatusBarTextureByName(name)
+    if type(name) == "number" then
+        name = "Blizzard BuffBar"
+    end
+    local statusBars = T.StatusBarTextures
+    if statusBars then
+        for _, statusBar in ipairs(statusBars) do
+            if statusBar.name == name then
+                return statusBar.texture
+            end
+        end
+    end
+    return "UI-HUD-CoolDownManager-Bar"
 end
 
 function Addon:GetFontObject(fontName, outline, color, size, isStanceBar, frameName)
@@ -455,7 +470,7 @@ function Addon:SaveSetting(key, value, config)
     local barName
     if config then
         if config == true then
-            barName = ABE_BarsListMixin:GetActionBar()
+            barName = ABE_BarsListMixin:GetFrameLebel()
             if barName then
                 config = barName
             else
@@ -497,7 +512,7 @@ function Addon:GetValue(valueName, profileName, config)
     local configName
 
     if config == true then
-        local barName = ABE_BarsListMixin and ABE_BarsListMixin:GetActionBar()
+        local barName = ABE_BarsListMixin and ABE_BarsListMixin:GetFrameLebel()
         configName = barName or "GlobalSettings"
     elseif type(config) == "string" then
         configName = config
@@ -573,7 +588,7 @@ function ActionBarEnhancedMixin:InitOptions()
 
     function ActionBarEnhancedDropdownMixin:RefreshProcLoop(button, value, profileName, barName)
         
-        if not barName then barName = ABE_BarsListMixin:GetActionBar() end
+        if not barName then barName = ABE_BarsListMixin:GetFrameLebel() end
         
         local loopAnim = value and T.LoopGlow[value] or (T.LoopGlow[Addon:GetValue("CurrentLoopGlow", profileName, barName)] or nil)
 
@@ -966,9 +981,10 @@ function ActionBarEnhancedMixin:InitOptions()
 
     function ActionBarEnhancedDropdownMixin:RefreshPreview(button, profileName, barName)
 
-        if not barName then barName = ABE_BarsListMixin:GetActionBar() end
+        if not barName then barName = ABE_BarsListMixin:GetFrameLebel() end
 
-        if tContains(Addon.CDMFrames, barName) then
+        if barName and (tContains(Addon.CDMFrames, barName) or
+        string.find(barName, "CDMCustomFrame")) then
             button.NormalTexture:Hide()
             button.CheckedTexture:Hide()
             --button.BackdropTexture:Hide()
@@ -1057,7 +1073,7 @@ function ActionBarEnhancedMixin:InitOptions()
                 end
                 for i = 1, #setting do
                     local categoryName = setting[i].name or setting[i]
-                    local categoryID = frame.isFontOption and categoryName or i
+                    local categoryID = (frame.isFontOption or frame.isStatusBar) and categoryName or i
                     local radio = rootDescription:CreateRadio(categoryName, IsSelected, OnSelect, categoryID)
                     if frame.isFontOption then
                         if i > 1 then
@@ -1068,14 +1084,12 @@ function ActionBarEnhancedMixin:InitOptions()
                                 Addon.FontObjects["ABE_"..categoryName] = fontObject
                             end
                             radio:AddInitializer(function(button, description, menu)
-                                button:Reset()
                                 button.fontString:SetFontObject(Addon.FontObjects["ABE_"..categoryName])
                             end)
                         end
                     end
                     if frame.isStatusBar then
                         radio:AddInitializer(function(button, description, menu)
-                            button:Reset()
                             local texture = button:AttachTexture()
                             texture:SetHeight(18)
                             texture:SetPoint("LEFT", button, "LEFT", 15, 0)
@@ -1274,6 +1288,71 @@ function ActionBarEnhancedMixin:InitOptions()
         ColorPickerFrame:SetupColorPickerAndShow(info)
     end
 
+    ActionBarEnhancedEditBoxMixin = {}
+
+    function ActionBarEnhancedEditBoxMixin:SetupEditBox(name, defaultText, OnEnterPressed, OnEditFocusLost, OnEditFocusGained, numeric)
+        self.Label:SetText(name)
+        local displayText = ""
+        if type(defaultText) == "function" then
+            displayText = defaultText()
+        else
+            displayText = defaultText
+        end
+
+        self.EditBox:SetText(displayText)
+
+        if numeric then
+            self.EditBox:SetNumeric(numeric)
+        end
+        
+        if OnEnterPressed and type(OnEnterPressed) == "function" then
+            local OnEnterPressedOrig = self.EditBox:GetScript("OnEnterPressed")
+            self.EditBox:SetScript("OnEnterPressed", function(self)
+                OnEnterPressedOrig(self)
+                OnEnterPressed(self)
+            end)
+        end
+        if OnEditFocusLost and type(OnEditFocusLost) == "function" then
+            local OnEditFocusLostOrig = self.EditBox:GetScript("OnEditFocusLost")
+            self.EditBox:SetScript("OnEditFocusLost", function(self)
+                OnEditFocusLostOrig(self)
+                OnEditFocusLost(self)
+            end)
+        end
+        if OnEditFocusGained and type(OnEditFocusGained) == "function" then
+            local OnEditFocusGainedOrig = self.EditBox:GetScript("OnEditFocusGained")
+            self.EditBox:SetScript("OnEditFocusGained", function(self)
+                OnEditFocusGainedOrig(self)
+                OnEditFocusGained(self)
+            end)
+        end
+    end
+
+    ActionBarEnhancedEditBoxEditMixin = {}
+
+    function ActionBarEnhancedEditBoxEditMixin:OnEnterPressed()
+        
+    end
+    function ActionBarEnhancedEditBoxEditMixin:OnEditFocusLost()
+        
+    end
+    function ActionBarEnhancedEditBoxEditMixin:OnEditFocusGained()
+        
+    end
+
+    ---------------------------------------------
+    ActionBarEnhancedButtonMixin = {}
+
+    function ActionBarEnhancedButtonMixin:SetupButton(name, OnClick, buttonName)
+        self.Label:SetText(name)
+        self.Button:SetText(buttonName)
+        if OnClick and type(OnClick) == "function" then
+            self.Button:SetScript("OnClick", function(self)
+                OnClick(self)
+            end)
+        end
+
+    end
     ---------------------------------------------
 
     ActionBarEnhancedDropdownMixin.AllPreview = {}
@@ -1458,7 +1537,7 @@ function ActionBarEnhancedMixin:InitData(layout)
     end
 
     if layout == Addon.layoutPresets then
-        self.mod = 80
+        self.mod = 90
     else
         self.mod = 36
     end
@@ -1469,12 +1548,14 @@ function ActionBarEnhancedMixin:InitData(layout)
         --view:SetElementExtent(200)
         self.view:SetElementExtentCalculator(function(dataIndex, elementData)
             local height = 0
+            local childHeight = 0
             for i, child in ipairs(elementData.childs) do
                 if not(child.template:find("Button")) then
-                    height = height + 1
+                    childHeight = child.height or self.mod
+                    height = height + childHeight
                 end
             end
-            return 90 + height * self.mod
+            return 90 + height
         end)
 
         self.view:SetElementResetter(function(frame, elementData)
@@ -1543,7 +1624,47 @@ function Addon:InitChildElement(child, config, frames)
         ActionBarEnhancedDropdownMixin:SetupPreview(child, config)
     elseif config.type == "previewPreset" then
         ActionBarEnhancedDropdownMixin:SetupPreviewPreset(child, config)
+    elseif config.type == "itemList" then
+        OptionsCDMCustomItemListMixin:SetupItemList()
+    elseif config.type == "editbox" then
+        ActionBarEnhancedEditBoxMixin.SetupEditBox(
+            child,
+            config.name,
+            config.defaultText,
+            config.OnEnterPressed,
+            config.OnEditFocusLost,
+            config.OnEditFocusGained,
+            config.numeric
+        )
+    elseif config.type == "button" then
+        ActionBarEnhancedButtonMixin.SetupButton(
+            child,
+            config.name,
+            config.OnClick,
+            config.buttonName
+        )
     end
 end
 
+
 RegisterNewSlashCommand(ActionBarEnhancedMixin.InitOptions, Addon.command, Addon.shortCommand)
+
+local LDB = LibStub:GetLibrary("LibDataBroker-1.1")
+local LDBIcon = LibStub:GetLibrary("LibDBIcon-1.0")
+
+local ldb = LDB:NewDataObject("ActionBarEnhanced", {
+    type = "launcher",
+    icon = "Interface\\AddOns\\ActionBarsEnhanced\\assets\\minimap_icon.png",
+    OnClick = function(_, button)
+        if button == "LeftButton" then
+            ActionBarEnhancedMixin.InitOptions()
+        end
+    end,
+    OnTooltipShow = function(tooltip)
+        tooltip:AddLine("|cFFAA13D4ActionBarEnhanced|r")
+        tooltip:AddLine("|cFFFFFFFFLeft-click to open options")
+    end
+})
+
+Addon.minimap = Addon.minimap or {hide=false}
+LDBIcon:Register("ActionBarEnhanced", ldb, Addon.minimap)

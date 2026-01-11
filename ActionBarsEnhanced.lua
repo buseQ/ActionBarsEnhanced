@@ -69,7 +69,7 @@ function Addon:ProcessButtons(actionBar, updateFunc, value)
 end
 
 function Addon:PreviewButtons(previewType, value)
-    local selectedBar = ABE_BarsListMixin:GetActionBar()
+    local selectedBar = ABE_BarsListMixin:GetFrameLebel()
     local actionBar = selectedBar ~= "GlobalSettings" and selectedBar or nil
     
     local updateFunc
@@ -121,7 +121,7 @@ function Addon:PreviewButtons(previewType, value)
 end
 
 function Addon:RefreshButtons(button)
-    local selectedBar = ABE_BarsListMixin:GetActionBar()
+    local selectedBar = ABE_BarsListMixin:GetFrameLebel()
     local actionBar = selectedBar ~= "GlobalSettings" and selectedBar or nil
     
     local function UpdateAll(button, isStanceBar)
@@ -563,6 +563,7 @@ local function Hook_UpdateHotkeys(self, actionButtonType)
 end
 
 local function RefreshDesaturated(icon, desaturated)
+    local button = icon:GetParent()
     icon:SetDesaturated(desaturated)
 end
 function Addon:RefreshHotkeyColor(button)
@@ -586,7 +587,10 @@ function Addon:RefreshIconColor(button)
     local isUsable, notEnoughMana = IsUsableAction(action)
     button.needsRangeCheck = spellID and C_Spell.SpellHasRange(spellID)
     button.spellOutOfRange = button.needsRangeCheck and C_Spell.IsSpellInRange(spellID) == false
-    if (button.spellOutOfRange and Addon:GetValue("UseOORColor", nil, configName)) then
+    if button.__isOnActualCooldown and Addon:GetValue("UseCDColor", nil, configName) then
+        icon:SetVertexColor(Addon:GetRGBA("CDColor", nil, configName))
+        desaturated = Addon:GetValue("CDColorDesaturate", nil, configName)
+    elseif (button.spellOutOfRange and Addon:GetValue("UseOORColor", nil, configName)) then
         desaturated = Addon:GetValue("OORDesaturate", nil, configName)
         icon:SetVertexColor(Addon:GetRGBA("OORColor", nil, configName))       
     elseif isUsable then
@@ -602,6 +606,7 @@ function Addon:RefreshIconColor(button)
     if not button.spellOutOfRange then
         Addon:RefreshHotkeyColor(button)
     end
+
     RefreshDesaturated(icon, desaturated)
 end
 
@@ -866,6 +871,11 @@ function Addon:UpdateCooldown(button, isStanceBar, previewValue)
         local size = isStanceBar and Addon:GetValue("SwipeSize", nil, configName)*0.69 or Addon:GetValue("SwipeSize", nil, configName)
         button.cooldown:SetPoint("CENTER", button.icon, "CENTER", 0, 0)
         button.cooldown:SetSize(size, size)
+
+        button.lossOfControlCooldown:ClearAllPoints()
+        local size = isStanceBar and Addon:GetValue("SwipeSize", nil, configName)*0.69 or Addon:GetValue("SwipeSize", nil, configName)
+        button.lossOfControlCooldown:SetPoint("CENTER", button.icon, "CENTER", 0, 0)
+        button.lossOfControlCooldown:SetSize(size, size)
     end
     local color = {r = 1.0, g = 1.0, b = 1.0, a = 1.0}
     if Addon:GetValue("UseCooldownFontColor", nil, configName) then
@@ -1000,30 +1010,7 @@ local function Hook_RangeCheckButton(slot, inRange, checksRange)
 end
 function Addon:RefreshCooldown(button, isStanceBar, barName)
     local config, configName = Addon:GetConfig(button)
-    
---[[     local actionType, actionID
-    if button.action then
-        actionType, actionID = GetActionInfo(button.action)
-    end
-    if actionID then
-        --local spellCooldownInfo = C_Spell.GetSpellCooldown(actionID)
-        local spellCooldownInfo = C_ActionBar.GetActionCooldown(actionID)
-        if spellCooldownInfo then
-            if spellCooldownInfo.duration then
-                button.cooldownDesaturated = spellCooldownInfo.isOnGCD
-            end
-        end
-        if spellCooldownInfo and spellCooldownInfo.activeCategory then
-            if spellCooldownInfo.activeCategory == Constants.SpellCooldownConsts.GLOBAL_RECOVERY_CATEGORY then
-                button.cooldownDesaturated = false
-            else
-                button.cooldownDesaturated = true
-            end
-            RefreshDesaturated(button.icon, button.cooldownDesaturated)
-        end
-    end ]]
-   --Addon:RefreshIconColor(button)
-   local function RefreshEdgeTexture(cooldown, isStanceBar)
+    local function RefreshEdgeTexture(cooldown, isStanceBar)
         cooldown:SetEdgeTexture(T.EdgeTextures[Addon:GetValue("CurrentEdgeTexture", nil, configName)].texture)
         if Addon:GetValue("UseEdgeSize", nil, configName) then
             cooldown:ClearAllPoints()
@@ -1038,12 +1025,14 @@ function Addon:RefreshCooldown(button, isStanceBar, barName)
     local function RefreshSwipeTexture(button, isStanceBar)
         if Addon:GetValue("CurrentSwipeTexture", nil, configName) and Addon:GetValue("CurrentSwipeTexture", nil, configName) > 1 then
             button.cooldown:SetSwipeTexture(T.SwipeTextures[Addon:GetValue("CurrentSwipeTexture", nil, configName)].texture)
+            button.lossOfControlCooldown:SetSwipeTexture(T.SwipeTextures[Addon:GetValue("CurrentSwipeTexture", nil, configName)].texture)
         end
         if Addon:GetValue("UseCooldownColor", nil, configName) then
             button.cooldown:SetSwipeColor(Addon:GetRGBA("CooldownColor", nil, configName))
+            button.lossOfControlCooldown:SetSwipeColor(Addon:GetRGBA("CooldownColor", nil, configName))
+            
         end
     end
-    
     if button.cooldown then
         RefreshSwipeTexture(button, isStanceBar)
 
@@ -1055,6 +1044,28 @@ function Addon:RefreshCooldown(button, isStanceBar, barName)
     if button.chargeCooldown then
         RefreshEdgeTexture(button.chargeCooldown, isStanceBar)
     end
+    Addon:RefreshIconColor(button)
+end
+
+local function Hook_OnCooldownDone(self)
+    local button = self:GetParent()
+
+    if not button.__cooldownSet then return end
+
+    button.__cooldownSet = nil
+    button.__isOnActualCooldown = false
+
+    Addon:RefreshIconColor(button)
+end
+
+local function Hook_OnChargeDone(self)
+    local button = self:GetParent()
+    
+    if not button.__cooldownSet then return end
+    
+    button.__isOnChargeCooldown = false
+
+    Addon:RefreshIconColor(button)
 end
 
 local function Hook_Assist(self, actionButton, shown)
@@ -1067,8 +1078,9 @@ local function Hook_Assist(self, actionButton, shown)
 end
 
 
-local function Hook_CooldownFrame_Set(self)
+--[[ local function Hook_CooldownFrame_Set(self)
     if not self then return end
+    if not self.GetParent then return end
 
     local button = self:GetParent()
     if not button then return end
@@ -1087,11 +1099,12 @@ local function Hook_CooldownFrame_Set(self)
     local isStanceBar = (barName == "PetActionBar" or barName == "StanceBar")
 
     Addon:RefreshCooldown(button, isStanceBar, barName)
-end
-local function Hook_ActionButton_ApplyCooldown(self)
-    if not self then return end
+end ]]
+local function Hook_ActionButton_ApplyCooldown(cooldownFrame, cooldownInfo, chargeCooldown, chargeInfo, losCooldown, losInfo)
+    if not cooldownFrame then return end
+    if not cooldownFrame.GetParent then return end
 
-    local button = self:GetParent()
+    local button = cooldownFrame:GetParent()
     if not button then return end
 
     local bar = button.bar
@@ -1106,6 +1119,57 @@ local function Hook_ActionButton_ApplyCooldown(self)
     end
 
     local isStanceBar = (barName == "PetActionBar" or barName == "StanceBar")
+
+    local actionType, actionID = GetActionInfo(button.action)
+    if not actionID then return end
+
+    button.__cooldownSet = true
+    chargeInfo = C_Spell.GetSpellCharges(actionID)
+    cooldownInfo = C_Spell.GetSpellCooldown(actionID)
+    if chargeInfo and chargeInfo.cooldownStartTime and chargeInfo.cooldownDuration then
+        if cooldownInfo.isOnGCD == false then
+            button.__isOnActualCooldown = true
+        else
+            button.__isOnActualCooldown = false
+        end
+        if chargeCooldown:IsVisible() then
+            button.__isOnChargeCooldown = true
+        else
+            button.__isOnChargeCooldown = false
+        end
+    elseif cooldownInfo and cooldownInfo.startTime and cooldownInfo.duration then
+        if not button.__isOnChargeCooldown then
+            if cooldownInfo.isOnGCD == false then
+                button.__isOnActualCooldown = true
+            else
+                button.__isOnActualCooldown = false
+            end
+        end
+    else
+        button.__isOnActualCooldown = false
+        button.__isOnChargeCooldown = false
+    end
+
+    if not cooldownFrame.__cooldownDoneHooked then
+        if cooldownFrame.Clear then
+            hooksecurefunc(cooldownFrame, "Clear", Hook_OnCooldownDone)
+        end
+        cooldownFrame:HookScript("OnCooldownDone", Hook_OnCooldownDone)
+        cooldownFrame.__cooldownDoneHooked = true
+    end
+    if not chargeCooldown.__cooldownDoneHooked then
+        if chargeCooldown.Clear then
+            hooksecurefunc(chargeCooldown, "Clear", Hook_OnChargeDone)
+        end
+        chargeCooldown:SetScript("OnCooldownDone", Hook_OnChargeDone)
+        
+        chargeCooldown.__cooldownDoneHooked = true
+    end
+    if not losCooldown.__cooldownDoneHooked then
+        --losCooldown:HookScript("OnCooldownDone", Hook_OnLosCooldownDone)
+        
+        losCooldown.__cooldownDoneHooked = true
+    end
 
     Addon:RefreshCooldown(button, isStanceBar, barName)
     
@@ -1149,6 +1213,31 @@ local function ApplyProfile()
 
     ActionBarsEnhancedProfilesMixin:SetProfile(currentProfile)
 end
+local function flyoutButtonOnEnter(self, isHover)
+    local parent = self:GetParent()
+
+    local frame = parent.flyoutButton.bar
+    if not frame then
+        return
+    end
+    
+    if frame.fade then
+        Addon:Fade(frame, isHover)
+    end
+end
+local function OnSpellFlyoutSizeChanged(...)
+    for i, button in ipairs(SpellFlyout:GetLayoutChildren()) do
+        if (button.OnEnter and button.OnLeave) and not button.__OnEnterHooked then
+            button:HookScript("OnEnter", function(self)
+                flyoutButtonOnEnter(self, true)
+            end)
+            button:HookScript("OnLeave", function(self)
+                flyoutButtonOnEnter(self, false)
+            end)
+            button.__OnEnterHooked = true
+        end
+    end
+end
 
 local function UpdateStanceAndPetBars()
     if StanceBar then
@@ -1171,6 +1260,9 @@ local function UpdateStanceAndPetBars()
             Hook_UpdateButton(button, true)
         end
     end
+    if SpellFlyout and not SpellFlyout.__hooked then
+        SpellFlyout:HookScript("OnSizeChanged", OnSpellFlyoutSizeChanged)
+    end
 end
 
 local function DisableTalkingHeadFrame()
@@ -1180,7 +1272,7 @@ end
 local function ProcessEvent(self, event, ...)
     if event == "PLAYER_LOGIN" then
         hooksecurefunc(ActionButtonSpellAlertManager, "ShowAlert", Hook_UpdateFlipbook)
-        hooksecurefunc("CooldownFrame_Set", Hook_CooldownFrame_Set)
+        --hooksecurefunc("CooldownFrame_Set", Hook_CooldownFrame_Set)
         if ActionButton_ApplyCooldown then
             hooksecurefunc("ActionButton_ApplyCooldown", Hook_ActionButton_ApplyCooldown)
         end
@@ -1189,8 +1281,6 @@ local function ProcessEvent(self, event, ...)
 
         --UIParent:SetScale(0.53333)
         ApplyProfile()
-
-        Addon:BarsFadeAnim()
 
         --Addon:UpdateAllActionBarGrid()
         Addon:HookActionBarGrid()
@@ -1224,6 +1314,9 @@ local function ProcessEvent(self, event, ...)
         else
             Addon.eventHandlerFrame:UnregisterEvent("TALKINGHEAD_REQUESTED")
         end
+
+        Addon.CurrentProfileTbl = Addon.CurrentProfileTbl or Addon:GetCurrentProfileTable()
+        Addon:BarsFadeAnim()
     end
     if event == "TALKINGHEAD_REQUESTED" then
         DisableTalkingHeadFrame()

@@ -429,7 +429,7 @@ function ActionBarsEnhancedImportDialogMixin:HasDefaultProfiles()
     return i == 0
 end
 
-function ActionBarsEnhancedImportDialogMixin:AcceptImport(_, profileString, profileName, shouldSet)
+function ActionBarsEnhancedImportDialogMixin:AcceptImport(_, profileString, profileName, shouldSet, rewrite)
     if not profileString then
         profileString = ActionBarEnhancedImportProfile.ImportControl.InputContainer.EditBox:GetText()
     end
@@ -438,8 +438,12 @@ function ActionBarsEnhancedImportDialogMixin:AcceptImport(_, profileString, prof
     end
     if profileString ~= "" and profileName ~= "" then
         if Addon.P.profilesList[profileName] ~= nil then
-            Addon.Print("Profile with this name already exists")
-            return false
+            if not rewrite then
+                Addon.Print("Profile with this name already exists")
+                return false
+            else
+                Addon.P.profilesList[profileName] = nil
+            end
         else
             
             local profileTable = Addon.DecompressData(profileString)
@@ -481,10 +485,16 @@ function ActionBarsEnhancedProfilesMixin:GetProfiles()
     return profileTbl
 end
 
-function ABE_ImportProfile(profileName, profileString, shouldSet)
-    return ActionBarsEnhancedImportDialogMixin:AcceptImport(_, profileString, profileName, shouldSet)
+function ABE_ImportProfile(profileName, profileString, shouldSet, rewrite)
+    return ActionBarsEnhancedImportDialogMixin:AcceptImport(_, profileString, profileName, shouldSet, rewrite)
 end
 
 function ABE_GetProfiles()
     return ActionBarsEnhancedProfilesMixin:GetProfiles()
+end
+
+function Addon:GetCurrentProfileTable()
+    local profileName = ActionBarsEnhancedProfilesMixin:GetPlayerProfile()
+    local profileTable = Addon.P.profilesList[profileName]
+    return profileTable
 end

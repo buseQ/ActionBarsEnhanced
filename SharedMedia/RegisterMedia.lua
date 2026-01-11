@@ -14,7 +14,6 @@ LSM:Register("statusbar", "ABE_Gradient2_line",		[[Interface\Addons\ActionBarsEn
 LSM:Register("statusbar", "ABE_Gradient3_line",		[[Interface\Addons\ActionBarsEnhanced\SharedMedia\statusbar\hnd_gradient3_line]], LSM.LOCALE_BIT_ruRU + LSM.LOCALE_BIT_western)
 LSM:Register("statusbar", "ABE_Gradient4_line",		[[Interface\Addons\ActionBarsEnhanced\SharedMedia\statusbar\hnd_gradient4_line]], LSM.LOCALE_BIT_ruRU + LSM.LOCALE_BIT_western)
 LSM:Register("statusbar", "ABE_Gradient5_line",		[[Interface\Addons\ActionBarsEnhanced\SharedMedia\statusbar\hnd_gradient5_line]], LSM.LOCALE_BIT_ruRU + LSM.LOCALE_BIT_western)
-LSM:Register("statusbar", "ABE_Blizz_Shit", "widgetstatusbar-glowcenter", LSM.LOCALE_BIT_ruRU + LSM.LOCALE_BIT_western)
 
 ------------------
 --- Fonts ---

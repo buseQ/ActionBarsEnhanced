@@ -220,7 +220,7 @@ L.BuffBarCooldownViewer     = "Buff Bars"
 -- Cooldown Manager Basic Settings
 -- ==========================================
 L.IconPadding = "Icon Padding"
-L.CDMBackdrop = "Icon Border (creates new frame)"
+L.CDMBackdrop = "Add Border"
 L.CDMCenteredGrid = "Center Icons"
 L.CDMRemoveIconMask = "Remove Icon Mask"
 L.CDMRemovePandemic = "Remove Pandemic Animation"
@@ -262,8 +262,108 @@ L.CDMAuraReverseSwipe = "Reverse Aura Fill"
 L.CDMCooldownTitle = "Cooldown Customization"
 L.CDMCooldownDesc = "Modify cooldown appearance for CDM"
 
-L.IconBorderTitle = "Icon Frame"
+L.IconBorderTitle = "Border Settings"
 L.IconBorderDesc = "Create and configure new frame for rendering icon border"
 
 L.CDMOptionsTitle = "Additional CDM Options"
 L.CDMOptionsDesc = "Global enable additional settings that override standard CDM parameters"
+
+
+-- ========================================
+-- Unsorted
+-- ========================================
+L.CDMAuraTimerColor = "Aura Timer Color"
+
+L.CDMCustomFrameTitle = "Custom CDM Frame"
+L.CDMCustomFrameDesc = "Configure a custom frame to track Spells or Items. You can set an aura timer via the context menu."
+
+L.CDMCustomFrameName = "Frame Name"
+
+L.CDMCustomFrameDelete = "Delete Custom Frame"
+L.Delete = "DELETE"
+
+L.CDMCustomFrameAddSpellByID = "Add Spell by ID"
+L.CDMCustomFrameAddItemByID = "Add Item by ID"
+
+L.CDMCustomFrameTrackSlot13 = "Add Trinket #1 (Slot 13)"
+L.CDMCustomFrameTrackSlot14 = "Add Trinket #2 (Slot 14)"
+
+L.CDMCustomFrameHideWhen0 = "Hide when count is 0"
+
+L.CDMCustomFrameAlphaOnCD = "Opacity when NOT on Cooldown"
+
+L.CDMCustomFrameGridLayoutTitle = "Frame Grid Layout"
+L.CDMCustomFrameGridLayoutDesc = "Set item size, spacing, max columns, and growth direction."
+
+L.CDMCustomFrameElementSize = "Icon Size"
+
+L.Stride = "Max Columns"
+
+L.CenteredLayout = "Centered"
+
+L.VerticalGrowth = "Vertical Growth"
+L.HorizontalGrowth = "Horizontal Growth"
+
+L.GridDirection = "Layout Direction"
+
+L.DragNDropContainer = "Drag and drop a Spell or Item here.\n(LMB - reorder, RMB - menu, sRMB - quick remove)"
+
+L.FakeAura = "Custom Aura"
+
+L.Confirm = "CONFIRM"
+
+L.SetFakeAura = "Set Aura Timer"
+L.SetFakeAuraDesc = "Set a timer in |cff0bbe76SECONDS|r that appears when the item/spell is used (enter 0 or leave blank to remove the timer)."
+
+L.QuickPresets = "Quick Presets"
+L.QuickPresetsDesc = "Quickly apply preset templates. For detailed customization use the Advanced menu."
+
+L.GridCentered = "Center, no gaps"
+L.GridCompact = "Left/Right, no gaps"
+L.GridFixed = "Left/Right, with gaps"
+
+L.GridLayoutType = "Grid Style"
+
+L.Alpha = "Fade Alpha"
+
+L.Scale = "Scale"
+
+L.Size = "Size"
+
+L.OffsetX = "Offset X"
+L.OffsetY = "Offset Y"
+
+L.Rows = "Rows"
+L.Columns = "Columns"
+
+L.Buttons = "Buttons"
+
+L.Padding = "Padding"
+
+L.Offset = "Offset"
+
+L.SizeX = "Size X"
+L.SizeY = "Size Y"
+
+L.AttachPointTOPLEFT = "Top Left"
+L.AttachPointTOP = "Top"
+L.AttachPointTOPRIGHT = "Top Right"
+L.AttachPointBOTTOMLEFT = "Bottom Left"
+L.AttachPointBOTTOM = "Bottom"
+L.AttachPointBOTTOMRIGHT = "Bottom Right"
+L.AttachPointLEFT = "Left"
+L.AttachPointRIGHT = "Right"
+L.AttachPointCENTER = "Center"
+
+L.FontOutlineNONE = "None"
+L.FontOutlineOUTLINE = "Outline"
+L.FontOutlineTHICKOUTLINE = "Thick Outline"
+
+L.VerticalGrowthUP = "Up"
+L.VerticalGrowthDOWN = "Down"
+
+L.HorizontalGrowthRIGHT = "Right"
+L.HorizontalGrowthLEFT = "Left"
+
+L.DirectionHORIZONTAL = "Horizontal"
+L.DirectionVERTICAL = "Vertical"
