@@ -209,6 +209,8 @@
 		</Frames>
 		<Scripts>
 			<OnLoad method="OnLoad"/>
+			<OnShow method="OnShow"/>
+			<OnHide method="OnHide"/>
 		</Scripts>
 	</Frame>
 
@@ -240,14 +242,12 @@
 		<Size x="175" y="20"/>
 		<Layers>
 			<Layer level="BACKGROUND">
-			<!--
-				<Texture parentKey="Border" atlas="UI-Journeys-Delve-Level-Bar" hidden="false">
-					<Size x="190" y="22"/>
-					<Anchors>
-						<Anchor point="CENTER"/>
-					</Anchors>
-				</Texture>
-			-->
+			<Texture parentKey="Border" atlas="shop-card-label-bg" hidden="false" alpha="0.6" desaturated="true">
+				<Size x="190" y="22"/>
+				<Anchors>
+					<Anchor point="TOP" relativePoint="TOP"/>
+				</Anchors>
+			</Texture>
 			</Layer>
 			<Layer level="ARTWORK">
 				<Texture parentKey="Plus" atlas="editmode-new-layout-plus-disabled" desaturated="true" hidden="false">
@@ -336,5 +336,10 @@
 		<HighlightTexture atlas="plunderstorm-spectate-background" alphaMode="ADD" desaturated="true" alpha="0.4">
 			<Size x="195" y="20"/>
 		</HighlightTexture>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnHide method="OnHide"/>
+			<OnShow method="OnShow"/>
+		</Scripts>
 	</Button>
 </Ui>

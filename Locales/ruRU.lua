@@ -222,15 +222,15 @@ L.BuffBarCooldownViewer     = "Полоски"
 -- Cooldown Manager Basic Settings
 -- ==========================================
 L.IconPadding = "Растояние между иконками"
-L.CDMBackdrop = "Рамка иконки (создает новый фрейм)"
+L.CDMBackdrop = "Добавить границу"
 L.CDMCenteredGrid = "Центрировать иконки"
 L.CDMRemoveIconMask = "Убрать маску иконки"
 L.CDMRemovePandemic = "Убрать анимацию пандемика"
 L.CDMSwipeColor = "Цвет Swipe анимации кулдауна"
 L.CDMAuraSwipeColor = "Цвет Swipe анимации ауры"
-L.CDMBackdropColor = "Цвет рамки"
-L.CDMBackdropAuraColor = "Цвет рамки для ауры"
-L.CDMBackdropPandemicColor = "Цвет рамки для пандемика"
+L.CDMBackdropColor = "Цвет границы"
+L.CDMBackdropAuraColor = "Цвет границы для ауры"
+L.CDMBackdropPandemicColor = "Цвет границы для пандемика"
 L.CDMReverseSwipe = "Обратное заполнение кулдауна"
 L.CDMRemoveAuraTypeBorder = "Убрать рамку типа Ауры"
 
@@ -257,15 +257,121 @@ L.BarOffset = "Смещение крепления полоски"
 -- ==========================================
 -- CDM Additional Settings
 -- ==========================================
-L.CDMItemSize = "Размер элемента"
+L.CDMItemSize = "Размер иконки"
 L.CDMRemoveGCDSwipe = "Убрать Swipe анимацию на ГКД"
 L.CDMAuraReverseSwipe = "Обратное заполнение ауры"
 
 L.CDMCooldownTitle = "Кастомизация кулдауна"
 L.CDMCooldownDesc = "Изменить внешний вид кулдауна для CDM."
 
-L.IconBorderTitle = "Рамка иконки"
-L.IconBorderDesc = "Создание и настройка нового фрейма для отрисовки рамки вокруг иконки."
+L.IconBorderTitle = "Настройка границ"
+L.IconBorderDesc = "Создание и настройка нового фрейма для отрисовки границы."
 
 L.CDMOptionsTitle = "Дополнительные настройки CDM"
 L.CDMOptionsDesc = "Глобальное включение дополнительных настроек, перезаписывающих стандартные параметры CDM."
+
+
+
+
+
+-- ========================================
+-- Unsorted
+-- ========================================
+L.CDMAuraTimerColor = "Цвет таймера ауры"
+
+L.CDMCustomFrameTitle = "Кастомный фрейм CDM"
+L.CDMCustomFrameDesc = "Настройка кастомного фрейма для отслеживания способностей или предметов. В контекстном меню можно задать таймер ауры."
+
+L.CDMCustomFrameName = "Название фрейма"
+
+L.CDMCustomFrameDelete = "Удалить кастомный фрейм"
+L.Delete = "УДАЛИТЬ"
+
+L.CDMCustomFrameAddSpellByID = "Добавить Заклинание по ID"
+L.CDMCustomFrameAddItemByID = "Добавить Предмет по ID"
+
+L.CDMCustomFrameTrackSlot13 = "Добавить Тринкет #1 (13 слот)"
+L.CDMCustomFrameTrackSlot14 = "Добавить Тринкет #2 (14 слот)"
+
+L.CDMCustomFrameHideWhen0 = "Скрывать если количество 0"
+
+L.CDMCustomFrameAlphaOnCD = "Прозрачность если НЕ на КД"
+
+L.CDMCustomFrameGridLayoutTitle = "Настройка сетки фрейма"
+L.CDMCustomFrameGridLayoutDesc = "Выбрать размер элемента, расстояние между элементами, количество столбцов и направление роста."
+
+L.CDMCustomFrameElementSize = "Размер одного элемента"
+
+L.Stride = "Макс. количество столбцов"
+
+L.CenteredLayout = "Центрировать"
+
+L.VerticalGrowth = "Вертикальный рост"
+
+L.HorizontalGrowth = "Горизонтальный рост"
+
+L.GridDirection = "Расположение"
+
+L.DragNDropContainer = "Перетащить Предмет или Заклинание.\n(ЛКМ - перестановка, ПКМ - меню, шифт-ПКМ - быстрое удаление)"
+
+L.FakeAura = "Таймер ауры"
+
+L.Confirm = "ПОДТВЕРДИТЬ"
+
+L.SetFakeAura = "Свой таймер ауры"
+L.SetFakeAuraDesc = "Назначить таймер в |cff0bbe76СЕКУНДАХ|r, отображаемый при использовании предмета/заклинания (0 или пустая строка для удаления таймера)"
+
+L.QuickPresets = "Профили"
+L.QuickPresetsDesc = "Быстрый выбор Профиля. Детальная настрйока профиля в меню Advanced."
+
+L.GridCentered = "По центру, скрывать пустые"
+L.GridCompact = "По краю, скрывать пустые"
+L.GridFixed = "По краю, показывать пустые"
+
+L.GridLayoutType = "Расположение иконок"
+
+L.HideWhenInactive = "Скрыть во время неактивности"
+
+L.Alpha = "Прозрачность"
+
+L.Scale = "Масштаб"
+
+L.Size = "Размер"
+
+L.OffsetX = "Смещение по X"
+L.OffsetY = "Смещение по Y"
+
+L.Rows = "Строки"
+L.Columns = "Столбцы"
+
+L.Buttons = "Кнопки"
+
+L.Padding = "Отступ"
+
+L.Offset = "Смещение"
+
+L.SizeX = "Размер X"
+L.SizeY = "Размер Y"
+
+L.AttachPointTOPLEFT = "Сверху Слева"
+L.AttachPointTOP = "Сверху"
+L.AttachPointTOPRIGHT = "Сверху Справа"
+L.AttachPointBOTTOMLEFT = "Снизу Слева"
+L.AttachPointBOTTOM = "Снизу"
+L.AttachPointBOTTOMRIGHT = "Снизу Справа"
+L.AttachPointLEFT = "Слева"
+L.AttachPointRIGHT = "Справа"
+L.AttachPointCENTER = "Центр"
+
+L.FontOutlineNONE = "Нет"
+L.FontOutlineOUTLINE = "Обводка"
+L.FontOutlineTHICKOUTLINE = "Жирная обводка"
+
+L.VerticalGrowthUP = "Вверх"
+L.VerticalGrowthDOWN = "Вниз"
+
+L.HorizontalGrowthRIGHT = "Справа"
+L.HorizontalGrowthLEFT = "Слева"
+
+L.DirectionHORIZONTAL = "Горизонтально"
+L.DirectionVERTICAL = "Вертикально"

@@ -17,76 +17,115 @@ local microBars = {
 }
 local CDMFrames = Addon.CDMFrames
 
-local menuList = {
-    {
-        name = "Quick Presets",
-        buttons = {
-            {
-                name = "Presets",
-                layout = "layoutPresets",
+local function GetNextCustomFrameID()
+    local profileName = ActionBarsEnhancedProfilesMixin:GetPlayerProfile()
+    local profileTable = Addon.P.profilesList[profileName]
+
+    local maxID = 0
+    local frames = profileTable["CDMCustomFrames"]
+    if frames then
+        for index, frameData in ipairs(frames) do
+            if frameData.index then
+                maxID = frameData.index > maxID and frameData.index or maxID
+            end
+        end
+    end
+    return maxID + 1
+end
+
+local function BuildMenuList()
+    local menuList = {
+        {
+            name = "Quick Presets",
+            buttons = {
+                {
+                    name = "Presets",
+                    layout = "layoutPresets",
+                },
             },
         },
-    },
-    {
-        name = "Cooldown Manager",
-        buttons = {},
-    },
-    {
-        name = "Action Bars",
-        buttons = {},
-    },
-    {
-        name = "Something Else",
-        buttons = {},
-    },
-}
+        {
+            name = "Cooldown Manager",
+            buttons = {},
+        },
+        {
+            name = "Custom Frames",
+            buttons = {},
+        },
+        {
+            name = "Action Bars",
+            buttons = {},
+        },
+    }
 
-for _, element in ipairs(menuList) do
-    if element.name == "Action Bars" then
-        for _, bar in ipairs(ActionBarNames) do
-            table.insert(element.buttons, { 
-                label = bar,
-                name = L[bar] or bar,
-                category = 2,
-                layout = (tContains(miniBars, bar) and "layoutMini")
-                        or (tContains(microBars, bar) and "layoutMicro")
-                        or "layout"
+    local profileName = ActionBarsEnhancedProfilesMixin:GetPlayerProfile()
+    local profileTable = Addon.P.profilesList[profileName]
+    for _, element in ipairs(menuList) do
+        if element.name == "Action Bars" then
+            for index, bar in ipairs(ActionBarNames) do
+                table.insert(element.buttons, { 
+                    label = bar,
+                    name = L[bar] or bar,
+                    category = 2,
+                    index = index,
+                    layout = (tContains(miniBars, bar) and "layoutMini")
+                            or (tContains(microBars, bar) and "layoutMicro")
+                            or "layout"
+                })
+            end
+        elseif element.name == "Cooldown Manager" then
+            for index, frame in ipairs(CDMFrames) do
+                table.insert(element.buttons, { 
+                    label = frame,
+                    name = L[frame] or frame,
+                    category = 1,
+                    layout = frame ~= "UtilityCooldownViewer" and frame or "EssentialCooldownViewer",
+                    index = index,
+                })
+            end
+        elseif element.name == "Custom Frames" then
+            if profileTable["CDMCustomFrames"] then
+                for index, data in ipairs(profileTable["CDMCustomFrames"]) do
+                    if data then
+                        local displayName = data.name ~= "" and data.name or ("Custom Frame "..index)
+                        table.insert(element.buttons, {
+                            label = data.label,
+                            name = displayName,
+                            layout = data.layout,
+                            index = index,
+                            point = data.point,
+                        })
+                    end
+                end
+            end
+            table.insert(element.buttons, {
+                label = "AddCustomFrame",
+                name = "",
+                index = 99999,
             })
         end
-    elseif element.name == "Cooldown Manager" then
-        for _, frame in ipairs(CDMFrames) do
-            table.insert(element.buttons, { 
-                label = frame,
-                name = L[frame] or frame,
-                category = 1,
-                layout = frame ~= "UtilityCooldownViewer" and frame or "EssentialCooldownViewer"
-            })
-        end
-    elseif element.name == "Something Else" then
-        table.insert(element.buttons, {
-            label = "AddNewGroup",
-            name = "",
-        })
     end
+
+    return menuList
 end
+
 
 ABE_BarsFrameMixin = {}
 
 function ABE_BarsFrameMixin:OnClick()
-    ABE_BarsFrameMixin:Toggle()
+    self:Toggle()
 end
 function ABE_BarsFrameMixin:OnLoad()
-    ABE_BarsFrameMixin:Collapse()
-
+    self:Collapse()
     if not ABE_BarsFrameMixin.selection then
         ABE_BarsFrameMixin.selection = CreateFrame("Frame", nil, UIParent, "ABE_BarsHighlightTemplate")
     end
 end
 function ABE_BarsFrameMixin:Toggle()
 	if ABE_BarsFrameMixin.collapsed then
-		ABE_BarsFrameMixin:Expand()
+		self:Expand()
 	else
-		ABE_BarsFrameMixin:Collapse()
+		self:Collapse()
 	end
 end
 function ABE_BarsFrameMixin:Expand()
@@ -115,13 +154,32 @@ end
 
 ABE_BarsListMixin = {}
 
-function ABE_BarsListMixin:OnLoad()
-    
+local function OnDeleteMenuFrame(self, frameLabel)
+    if ABE_BarsListMixin.label == frameLabel then
+        ABE_BarsListMixin.label = nil
+        ABE_BarsListMixin.bar = nil
+        ActionBarEnhancedMixin:InitData(nil)
+    end
+
+    ABE_BarsListMixin:RefreshMenu()
 end
+
+function ABE_BarsListMixin:GetDataProvider()
+    return self.dataProvider
+end
+
+function ABE_BarsListMixin:OnLoad()
+    EventRegistry:RegisterCallback("CDMCustomItemList.DeleteFrame", OnDeleteMenuFrame, self)
+end
+
 function ABE_BarsFrameMixin:OnHide()
     if ABE_BarsFrameMixin.selection then
         ABE_BarsFrameMixin.selection:Hide()
         if ABE_BarsListMixin.bar then
+            if ABE_BarsListMixin.bar.ABESelection then
+                ABE_BarsListMixin.bar.ABESelection:Hide()
+                ABE_BarsListMixin.bar.ABESelection:SetSelected(false)
+            end
             Addon:SetFrameAlpha(ABE_BarsListMixin.bar)
             if ABE_BarsListMixin.bar.ShouldHide then
                 ABE_BarsListMixin.bar:Hide()
@@ -130,15 +188,67 @@ function ABE_BarsFrameMixin:OnHide()
     end
 end
 
+function ABE_BarsListMixin:OnShow()
+    if ABE_BarsListMixin.selected then
+        ABE_BarsListMixin.selected:Click()
+    end
+end
+
+function ABE_BarsListMixin:OnHide()
+    self.label = nil
+end
+
+
 ABE_BarsButtonMixin = {}
+
+function ABE_BarsButtonMixin:OnShow()
+
+end
+function ABE_BarsButtonMixin:OnHide()
+    self:SetSelected(false)
+end
+
+function ABE_BarsButtonMixin:SetButtonName(name)
+    self.Label:SetText(name)
+end
+
+local function OnCreateNewMenuFrame(self, frameLabel, frameName)
+    self:SetButtonName(frameName)
+end
+
+function ABE_BarsButtonMixin:OnRenameFrame(frameLabel, frameName)
+    if self.frameLabel ~= frameLabel then return end
+    self:SetButtonName(frameName)
+end
+
+function ABE_BarsButtonMixin:OnLoad()
+    EventRegistry:RegisterCallback("CDMCustomItemList.CreateNewFrame", OnCreateNewMenuFrame, self)
+    EventRegistry:RegisterCallback("CDMCustomItemList.RenameFrame", self.OnRenameFrame, self)
+end
 
 function ABE_BarsButtonMixin:SetSelected(selected)
     local bar = ABE_BarsListMixin.label ~= "GlobalSettings" and _G[ABE_BarsListMixin.label] or nil
+    if not bar then return end
+    local index = ABE_BarsListMixin:GetFrameIndex()
 
+    if bar.ABESelection then
+        if selected then
+            self.active = true
+            self.Texture:Show()
+            bar.ABESelection:Show()
+        else
+            self.active = false
+            bar.ABESelection:Hide()
+            bar.ABESelection:SetSelected(false)
+            self.Texture:Hide()
+        end
+        return
+    end
     if selected then
 		self.Texture:Show()
+        self.active = true
         if bar then
-            ABE_BarsFrameMixin.selection:SetParent(bar)
+            ABE_BarsFrameMixin.selection:ClearAllPoints()
             ABE_BarsFrameMixin.selection:SetPoint("TOPLEFT", bar, "TOPLEFT", -4, 4)
             ABE_BarsFrameMixin.selection:SetPoint("BOTTOMRIGHT", bar, "BOTTOMRIGHT", 4, -4)
             ABE_BarsFrameMixin.selection:SetFrameLevel(bar:GetFrameLevel()-1)
@@ -154,6 +264,7 @@ function ABE_BarsButtonMixin:SetSelected(selected)
             ABE_BarsFrameMixin.selection.PulseAnim:Stop()
         end
 		self.Texture:Hide()
+        self.active = false
 	end
 end
 
@@ -163,12 +274,13 @@ end
 
 function ABE_BarsListMixin:InitButtons(buttons, frame)
     local currentProfile = Addon:GetCurrentProfile()
+    local parentFrame = self
 
     local frames = {}
     for i, buttonData in ipairs(buttons) do
         local template = "ABE_BarsListButtonTemplate"
 
-        if buttonData.label == "AddNewGroup" then
+        if buttonData.label == "AddNewGroup" or buttonData.label == "AddCustomFrame" then
             template = "ABE_BarsListCreateGroupButtonTemplate"
         end
 
@@ -182,11 +294,12 @@ function ABE_BarsListMixin:InitButtons(buttons, frame)
         if button.Label then
             button.Label:SetText(buttonData.name or "Button")
         end
+        button.frameLabel = buttonData.label
 
         local hasConfig = Addon.P.profilesList[currentProfile][buttonData.label] and next(Addon.P.profilesList[currentProfile][buttonData.label])
 
         button:SetScript("OnEnter", function(self)
-            if buttonData.label == "AddNewGroup" then
+            if buttonData.label == "AddNewGroup" or buttonData.label == "AddCustomFrame" then
                 return
             end
 
@@ -220,7 +333,7 @@ function ABE_BarsListMixin:InitButtons(buttons, frame)
         end)
 
         button:SetScript("OnLeave", function(self)
-            if buttonData.label == "AddNewGroup" then
+            if buttonData.label == "AddNewGroup" or buttonData.label == "AddCustomFrame" then
                 return
             end
 
@@ -240,16 +353,41 @@ function ABE_BarsListMixin:InitButtons(buttons, frame)
                 Addon.Print("New feature soon.")
                 return
             end
+            if buttonData.label == "AddCustomFrame" then
+                local profileName = ActionBarsEnhancedProfilesMixin:GetPlayerProfile()
+                local profileTable = Addon.P.profilesList[profileName]
+
+                if not profileTable["CDMCustomFrames"] then
+                    profileTable["CDMCustomFrames"] = {}
+                end
+                local index = GetNextCustomFrameID()
+                local frameLabel = "CDMCustomFrame_" .. index
+                
+                table.insert(profileTable["CDMCustomFrames"], {
+                    label = frameLabel,
+                    name = "",
+                    layout = "CustomFrameCooldownViewer",
+                    point = {},
+                    trackedIDs = {},
+                    index = index,
+                })
+
+                EventRegistry:TriggerEvent("CDMCustomItemList.CreateNewFrame", frameLabel, "Custom Frame "..index)
+
+                parentFrame:RefreshMenu()
+                return
+            end
 
             if ABE_BarsListMixin.selected then
                 if ABE_BarsListMixin.selected.label == buttonData.label then
-                    return
+                    --return
                 end
                 ABE_BarsListMixin.selected:SetSelected(false)
                 ABE_BarsListMixin.selected = nil
             end
             
             ABE_BarsListMixin.label = buttonData.label
+            ABE_BarsListMixin.index = buttonData.index
             if ABE_BarsListMixin.bar then
                 if ABE_BarsListMixin.bar.ShouldHide then
                     if not InCombatLockdown() then
@@ -270,6 +408,7 @@ function ABE_BarsListMixin:InitButtons(buttons, frame)
 
             ABE_BarsListMixin.selected = self
             ABE_BarsListMixin.selected.label = buttonData.label
+            ABE_BarsListMixin.selected.layout = buttonData.layout
             self:SetSelected(true)
             ActionBarEnhancedMixin:InitData(Addon[buttonData.layout])
         end)
@@ -298,7 +437,7 @@ function ABE_BarsListMixin:InitButtons(buttons, frame)
                 ABE_BarsListMixin.copypaste = buttonData.label
                 ABE_BarsListMixin.layout = buttonData.layout
                 local panelName = ABE_BarsListMixin.copypaste
-                Addon.Print(string.format(L["Copied: %s"], L[panelName]))
+                Addon.Print(string.format(L["Copied: %s"], L[panelName] or panelName))
                 self:Hide()
             end
         end)
@@ -321,7 +460,7 @@ function ABE_BarsListMixin:InitButtons(buttons, frame)
             elseif pressed == "LeftButton" then
                 local fromCat = ABE_BarsListMixin.copypaste
                 local toCat = buttonData.label
-                Addon.Print(string.format(L["Pasted: %s → %s"], L[fromCat], L[toCat]))
+                Addon.Print(string.format(L["Pasted: %s → %s"], L[fromCat] or fromCat, L[toCat] or toCat))
                 ActionBarsEnhancedProfilesMixin:CopyProfileCategory(fromCat, toCat, true)
                 --ABE_BarsListMixin.copypaste = nil
                 self:Hide()
@@ -341,8 +480,24 @@ function ABE_BarsListMixin:InitButtons(buttons, frame)
     end
 end
 
-function ABE_BarsListMixin:GetActionBar()
-    return ABE_BarsListMixin.label
+function ABE_BarsListMixin:GetFrameLebel()
+    return self.label
+end
+
+function ABE_BarsListMixin:GetFrameIndex()
+    return self.index
+end
+
+function ABE_BarsListMixin:RefreshMenu()
+    self.dataProvider:Flush()
+
+    local menu = BuildMenuList()
+    for _, element in ipairs(menu) do
+        self.dataProvider:Insert({
+            name = element.name,
+            buttons = element.buttons,
+        })
+    end
 end
 
 function ABE_BarsListMixin:Init()
@@ -361,15 +516,6 @@ function ABE_BarsListMixin:Init()
 
             ABE_BarsListMixin:InitButtons(buttons, frame)
         end
-    end
-
-    for _, element in ipairs(menuList) do
-        self.dataProvider:Insert(
-            {
-                name = element.name,
-                buttons = element.buttons,
-            }
-        )
     end
 
     if not self.view then
@@ -400,6 +546,7 @@ function ABE_BarsListMixin:Init()
         --self.scrollBox:SetPanExtent(20)
         self.scrollBar:Hide()
     end
+    self:RefreshMenu()
 end
 
 ABE_BarsListHeaderMixin = {}

@@ -1,7 +1,5 @@
 local AddonName, Addon = ...
 
-local debugPrint = Addon.DebugPrint
-
 local fadeBars = {
     "MultiActionBar",
 	"StanceBar",
@@ -23,6 +21,19 @@ local fadeBars = {
     "BagsBar",
     "MicroMenu",
 }
+local function SetFadeBars()
+    local profileTable = Addon.CurrentProfileTbl or Addon:GetCurrentProfileTable()
+    if profileTable and profileTable["CDMCustomFrames"] then
+        for index, data in ipairs(profileTable["CDMCustomFrames"]) do
+            if data then
+                local frameName = data.label
+                if not tContains(fadeBars, frameName) then
+                    table.insert(fadeBars, frameName)
+                end
+            end
+        end
+    end
+end
 
 Addon.externalFadeBars = {}
 -----------------------------------------
@@ -209,6 +220,7 @@ end
 function Addon:BarsFadeAnim(frame)
     --if not Addon:GetValue("FadeBars") then return end
     if not frame then
+        SetFadeBars()
         for _, barName in ipairs(fadeBars) do
             frame = _G[barName]
             if frame then
@@ -284,7 +296,6 @@ function ABE_RegisterFrameForFading(frame, options)
     if frame and Addon.externalFadeBars[frameName].onHover then
         Addon:HookExternalFrameForHover(frame)
     end
-    Addon.Print("Frame "..frameName.." registered for fading", Addon.externalFadeBars[frameName].alpha)
     Addon:ExternalBarsFadeAnim(frame, Addon.externalFadeBars[frameName])
 end
 

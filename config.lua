@@ -128,7 +128,7 @@ Addon.config.containers = {
                 min             = 0,
                 max             = 1,
                 step            = 0.1,
-                sliderName      = {top = "Fade Alpha"},
+                sliderName      = {top = L.Alpha},
                 callback        = false,
             },
             ["FadeInOnCombat"] = {
@@ -234,7 +234,7 @@ Addon.config.containers = {
                 min             = 0.5,
                 max             = 1.5,
                 step            = 0.01,
-                sliderName      = {top = "Mask Scale"},
+                sliderName      = {top = L.Scale},
                 callback        = function(_, frames) ActionBarEnhancedDropdownMixin:RefreshPreview(frames.PreviewIcon) end,
             },
             ["IconScale"] = {
@@ -245,7 +245,7 @@ Addon.config.containers = {
                 min             = 0.5,
                 max             = 1.5,
                 step            = 0.01,
-                sliderName      = {top = "Icon Scale"},
+                sliderName      = {top = L.Scale},
                 callback        = function(_, frames) ActionBarEnhancedDropdownMixin:RefreshPreview(frames.PreviewIcon) end,
             },
             ["PreviewIcon"] = {
@@ -370,7 +370,7 @@ Addon.config.containers = {
                 min             = 10,
                 max             = 50,
                 step            = 1,
-                sliderName      = {top = "Size"},
+                sliderName      = {top = L.Size},
                 callback        = function()
                     ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
                 end,
@@ -409,7 +409,7 @@ Addon.config.containers = {
                 min             = 10,
                 max             = 50,
                 step            = 1,
-                sliderName      = {top = "Size"},
+                sliderName      = {top = L.Size},
                 callback        = function()
                     ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
                 end,
@@ -457,7 +457,7 @@ Addon.config.containers = {
                 min             = 5,
                 max             = 40,
                 step            = 1,
-                sliderName      = {top = "Font Size"},
+                sliderName      = {top = L.Size},
                 callback        = function()
                     ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
                 end,
@@ -619,7 +619,7 @@ Addon.config.containers = {
                 min             = 1,
                 max             = 40,
                 step            = 1,
-                sliderName      = {top = "Font Size"},
+                sliderName      = {top = L.Size},
                 callback        = function()
                     ActionBarEnhancedDropdownMixin:RefreshFontPreview()
                 end,
@@ -662,7 +662,7 @@ Addon.config.containers = {
                 min             = -40,
                 max             = 40,
                 step            = 1,
-                sliderName      = {{top = "offset X"}, {top = "offset Y"}},
+                sliderName      = {{top = L.OffsetX}, {top = L.OffsetY}},
                 callback        = function()
                     ActionBarEnhancedDropdownMixin:RefreshFontPreview()
                 end,
@@ -683,7 +683,7 @@ Addon.config.containers = {
                 min             = -6,
                 max             = 6,
                 step            = 1,
-                sliderName      = {{top = "offset X"}, {top = "offset Y"}},
+                sliderName      = {{top = L.OffsetX}, {top = L.OffsetY}},
                 callback        = function()
                     ActionBarEnhancedDropdownMixin:RefreshFontPreview()
                 end,
@@ -696,7 +696,7 @@ Addon.config.containers = {
                 min             = 1,
                 max             = 2,
                 step            = 0.1,
-                sliderName      = {top = "Font Scale"},
+                sliderName      = {top = L.Scale},
                 callback        = function()
                     ActionBarEnhancedDropdownMixin:RefreshFontPreview()
                 end,
@@ -742,7 +742,7 @@ Addon.config.containers = {
                 min             = 1,
                 max             = 40,
                 step            = 1,
-                sliderName      = {top = "Font Size"},
+                sliderName      = {top = L.Size},
                 callback        = function()
                     ActionBarEnhancedDropdownMixin:RefreshFontPreview()
                 end,
@@ -785,7 +785,7 @@ Addon.config.containers = {
                 min             = -40,
                 max             = 40,
                 step            = 1,
-                sliderName      = {{top = "offset X"}, {top = "offset Y"}},
+                sliderName      = {{top = L.OffsetX}, {top = L.OffsetY}},
                 callback        = function()
                     ActionBarEnhancedDropdownMixin:RefreshFontPreview()
                 end,
@@ -806,7 +806,7 @@ Addon.config.containers = {
                 min             = -6,
                 max             = 6,
                 step            = 1,
-                sliderName      = {{top = "offset X"}, {top = "offset Y"}},
+                sliderName      = {{top = L.OffsetX}, {top = L.OffsetY}},
                 callback        = function()
                     ActionBarEnhancedDropdownMixin:RefreshFontPreview()
                 end,
@@ -819,7 +819,7 @@ Addon.config.containers = {
                 min             = 1,
                 max             = 2,
                 step            = 0.1,
-                sliderName      = {top = "Font Scale"},
+                sliderName      = {top = L.Scale},
                 callback        = function()
                     ActionBarEnhancedDropdownMixin:RefreshFontPreview()
                 end,
@@ -840,7 +840,7 @@ Addon.config.containers = {
                 min             = 1,
                 max             = 2,
                 step            = 0.1,
-                sliderName      = {top = "Font Scale"},
+                sliderName      = {top = L.Scale},
                 callback        = function()
                     ActionBarEnhancedDropdownMixin:RefreshFontPreview()
                 end,
@@ -894,9 +894,9 @@ Addon.config.containers = {
                 min             = 1,
                 max             = 12,
                 step            = 1,
-                sliderName      = {top = "Rows"},
+                sliderName      = {top = L.Rows},
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     if frameName == "GlobalSettings" then
                         Addon:UpdateAllActionBarGrid()
                     else
@@ -913,9 +913,9 @@ Addon.config.containers = {
                 min             = 1,
                 max             = 12,
                 step            = 1,
-                sliderName      = {top = "Columns"},
+                sliderName      = {top = L.Columns},
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     if frameName == "GlobalSettings" then
                         Addon:UpdateAllActionBarGrid()
                     else
@@ -932,9 +932,9 @@ Addon.config.containers = {
                 min             = 1,
                 max             = 12,
                 step            = 1,
-                sliderName      = {top = "Buttons"},
+                sliderName      = {top = L.Buttons},
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     if frameName == "GlobalSettings" then
                         Addon:UpdateAllActionBarGrid()
                     else
@@ -951,9 +951,9 @@ Addon.config.containers = {
                 min             = -5,
                 max             = 50,
                 step            = 1,
-                sliderName      = {top = "Padding"},
+                sliderName      = {top = L.Padding},
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     if frameName == "GlobalSettings" then
                         Addon:UpdateAllActionBarGrid()
                     else
@@ -978,7 +978,7 @@ Addon.config.containers = {
                 name            = L.CDMCenteredGrid,
                 value           = "GridCentered",
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     if frameName == "GlobalSettings" then
                         Addon:UpdateAllActionBarGrid()
                     else
@@ -996,7 +996,7 @@ Addon.config.containers = {
                 showNew     = false,
                 OnEnter     = false,
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     if frameName == "GlobalSettings" then
                         Addon:UpdateAllActionBarGrid()
                     else
@@ -1012,8 +1012,8 @@ Addon.config.containers = {
     -------------PRESETS-------------
     ---------------------------------
     PresetsOptionsContainer = {
-        title = "Quick Presets",
-        desc = "Quickly apply preset templates. For detailed customization, use the Advanced tab.",
+        title = L.QuickPresets,
+        desc = L.QuickPresetsDesc,
         new = true,
         childs = {}
     },
@@ -1033,9 +1033,9 @@ Addon.config.containers = {
                 min             = 10,
                 max             = 80,
                 step            = 1,
-                sliderName      = {top = "Size"},
+                sliderName      = {top = L.Size},
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1048,7 +1048,7 @@ Addon.config.containers = {
                 showNew     = false,
                 OnEnter     = false,
                 OnClose     = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1060,9 +1060,9 @@ Addon.config.containers = {
                 min             = 20,
                 max             = 60,
                 step            = 1,
-                sliderName      = {top = "Size"},
+                sliderName      = {top = L.Size},
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1073,7 +1073,7 @@ Addon.config.containers = {
                 checkboxValues  = {"UseCDMSwipeColor"},
                 alpha           = true,
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1084,7 +1084,18 @@ Addon.config.containers = {
                 checkboxValues  = {"UseCDMAuraSwipeColor"},
                 alpha           = true,
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["CDMAuraTimerColor"] = {
+                type            = "colorSwatch",
+                name            = L.CDMAuraTimerColor,
+                value           = "CDMAuraTimerColor",
+                checkboxValues  = {"UseCDMAuraTimerColor"},
+                alpha           = true,
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1093,7 +1104,7 @@ Addon.config.containers = {
                 name            = L.CDMReverseSwipe,
                 value           = "CDMReverseSwipe",
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1102,7 +1113,7 @@ Addon.config.containers = {
                 name            = L.CDMAuraReverseSwipe,
                 value           = "CDMAuraReverseSwipe",
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1111,7 +1122,7 @@ Addon.config.containers = {
                 name            = L.CDMRemoveGCDSwipe,
                 value           = "CDMRemoveGCDSwipe",
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1124,7 +1135,7 @@ Addon.config.containers = {
                 showNew     = false,
                 OnEnter     = false,
                 OnClose     = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1136,9 +1147,9 @@ Addon.config.containers = {
                 min             = 0.5,
                 max             = 2,
                 step            = 0.1,
-                sliderName      = {top = "Scale"},
+                sliderName      = {top = L.Scale},
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1149,7 +1160,7 @@ Addon.config.containers = {
                 checkboxValues  = {"UseCDMEdgeColor"},
                 alpha           = true,
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1158,7 +1169,7 @@ Addon.config.containers = {
                 name            = L.EdgeAlwaysShow,
                 value           = "CDMEdgeAlwaysShow",
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1178,7 +1189,7 @@ Addon.config.containers = {
                 showNew     = false,
                 OnEnter     = false,
                 OnClose     = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1190,9 +1201,9 @@ Addon.config.containers = {
                 min             = 5,
                 max             = 40,
                 step            = 1,
-                sliderName      = {top = "Font Size"},
+                sliderName      = {top = L.Size},
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1203,7 +1214,7 @@ Addon.config.containers = {
                 checkboxValues  = {"UseCooldownCDMFontColor"},
                 alpha           = true,
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1217,7 +1228,7 @@ Addon.config.containers = {
                 showNew     = false,
                 OnEnter     = false,
                 OnClose     = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1240,11 +1251,11 @@ Addon.config.containers = {
                 },
                 OnClose     = {
                     function()
-                        local frameName = ABE_BarsListMixin:GetActionBar()
+                        local frameName = ABE_BarsListMixin:GetFrameLebel()
                         CooldownManagerEnhanced:ForceUpdate(frameName)
                     end,
                     function()
-                        local frameName = ABE_BarsListMixin:GetActionBar()
+                        local frameName = ABE_BarsListMixin:GetFrameLebel()
                         CooldownManagerEnhanced:ForceUpdate(frameName)
                     end,
                 },
@@ -1257,9 +1268,9 @@ Addon.config.containers = {
                 min             = -40,
                 max             = 40,
                 step            = 1,
-                sliderName      = {{top = "offset X"}, {top = "offset Y"}},
+                sliderName      = {{top = L.OffsetX}, {top = L.OffsetY}},
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1271,9 +1282,9 @@ Addon.config.containers = {
                 min             = 5,
                 max             = 40,
                 step            = 1,
-                sliderName      = {top = "Font Size"},
+                sliderName      = {top = L.Size},
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1284,7 +1295,7 @@ Addon.config.containers = {
                 checkboxValues  = {"UseCDMStacksFontColor"},
                 alpha           = true,
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1298,7 +1309,7 @@ Addon.config.containers = {
                 showNew     = false,
                 OnEnter     = false,
                 OnClose     = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1310,9 +1321,9 @@ Addon.config.containers = {
                 min             = 5,
                 max             = 40,
                 step            = 1,
-                sliderName      = {top = "Font Size"},
+                sliderName      = {top = L.Size},
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1323,7 +1334,7 @@ Addon.config.containers = {
                 checkboxValues  = {"UseNameCDMFontColor"},
                 alpha           = true,
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1338,12 +1349,12 @@ Addon.config.containers = {
                 name            = L.CDMBackdrop,
                 checkboxValue   = "UseCDMBackdrop",
                 sliderValue     = "CDMBackdropSize",
-                min             = 0.5,
+                min             = 1,
                 max             = 10,
-                step            = 0.5,
-                sliderName      = {top = "Border Size"},
+                step            = 1,
+                sliderName      = {top = L.Size},
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1354,7 +1365,7 @@ Addon.config.containers = {
                 checkboxValues  = {"UseCDMBackdropColor"},
                 alpha           = true,
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1365,7 +1376,7 @@ Addon.config.containers = {
                 checkboxValues  = {"UseCDMBackdropAuraColor"},
                 alpha           = true,
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1376,7 +1387,7 @@ Addon.config.containers = {
                 checkboxValues  = {"UseCDMBackdropPandemicColor"},
                 alpha           = true,
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1395,9 +1406,9 @@ Addon.config.containers = {
                 min             = 10,
                 max             = 60,
                 step            = 1,
-                sliderName      = {top = "Size"},
+                sliderName      = {top = L.Size},
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1409,9 +1420,9 @@ Addon.config.containers = {
                 min             = 10,
                 max             = 60,
                 step            = 1,
-                sliderName      = {top = "Size"},
+                sliderName      = {top = L.Size},
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1423,9 +1434,9 @@ Addon.config.containers = {
                 min             = 0,
                 max             = 200,
                 step            = 1,
-                sliderName      = {top = "Offset"},
+                sliderName      = {top = L.Offset},
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1439,7 +1450,7 @@ Addon.config.containers = {
                 showNew     = false,
                 OnEnter     = false,
                 OnClose     = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1450,7 +1461,7 @@ Addon.config.containers = {
                 checkboxValues  = {"UseCDMBarColor"},
                 alpha           = true,
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1464,7 +1475,7 @@ Addon.config.containers = {
                 showNew     = false,
                 OnEnter     = false,
                 OnClose     = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1475,7 +1486,7 @@ Addon.config.containers = {
                 checkboxValues  = {"UseCDMBarBGColor"},
                 alpha           = true,
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1483,12 +1494,12 @@ Addon.config.containers = {
                 type        = "dropdown",
                 setting     = Addon.BarsVerticalGrow,
                 name        = L.BarGrow,
-                IsSelected  = function(id) return id == Addon:GetValue("CurrentBarGrow", nil, true) end,
-                OnSelect    = function(id) Addon:SaveSetting("CurrentBarGrow", id, true) end,
+                IsSelected  = function(id) return id == Addon:GetValue("CDMVerticalGrowth", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CDMVerticalGrowth", id, true) end,
                 showNew     = false,
                 OnEnter     = false,
                 OnClose     = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1501,7 +1512,7 @@ Addon.config.containers = {
                 showNew     = false,
                 OnEnter     = false,
                 OnClose     = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1513,9 +1524,9 @@ Addon.config.containers = {
                 min             = 1,
                 max             = 60,
                 step            = 1,
-                sliderName      = {{top = "Size X"}, {top = "Size Y"}},
+                sliderName      = {{top = L.SizeX}, {top = L.SizeY}},
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1530,7 +1541,32 @@ Addon.config.containers = {
                 name            = L.Enable,
                 value           = "CDMEnable",
             },
-            
+            ["CDMBarVerticalGrowth"] = {
+                type        = "dropdown",
+                setting     = Addon.BarsVerticalGrow,
+                name        = L.VerticalGrowth,
+                IsSelected  = function(id) return id == Addon:GetValue("CDMVerticalGrowth", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CDMVerticalGrowth", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose     = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["CDMBarHorizontalGrowth"] = {
+                type        = "dropdown",
+                setting     = Addon.BarsHorizontalGrow,
+                name        = L.HorizontalGrowth,
+                IsSelected  = function(id) return id == Addon:GetValue("CDMHorizontalGrowth", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CDMHorizontalGrowth", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
             ["IconPadding"] = {
                 type            = "checkboxSlider",
                 name            = L.IconPadding,
@@ -1539,18 +1575,31 @@ Addon.config.containers = {
                 min             = -10,
                 max             = 50,
                 step            = 1,
-                sliderName      = {top = "Padding"},
+                sliderName      = {top = L.Padding},
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
-            ["CenteredGrid"] = {
+            ["GridLayoutType"] = {
+                type        = "dropdown",
+                setting     = Addon.GridLayoutType,
+                name        = L.GridLayoutType,
+                IsSelected  = function(id) return id == Addon:GetValue("CDMGridLayoutType", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CDMGridLayoutType", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["HideWhenInactive"] = {
                 type            = "checkbox",
-                name            = L.CDMCenteredGrid,
-                value           = "GridCentered",
+                name            = L.HideWhenInactive,
+                value           = "CDMHideWhenInactive",
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1559,7 +1608,7 @@ Addon.config.containers = {
                 name            = L.CDMRemoveIconMask,
                 value           = "CDMRemoveIconMask",
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1568,7 +1617,7 @@ Addon.config.containers = {
                 name            = L.CDMRemovePandemic,
                 value           = "CDMRemovePandemic",
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1577,7 +1626,7 @@ Addon.config.containers = {
                 name            = L.CDMRemoveAuraTypeBorder,
                 value           = "CDMRemoveAuraTypeBorder",
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1589,7 +1638,7 @@ Addon.config.containers = {
                 name            = L.RemoveDesaturation,
                 value           = "CDMRemoveDesaturation",
                 callback        = function()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1609,7 +1658,7 @@ Addon.config.containers = {
                 OnEnter     = false,
                 OnClose     = function()
                     ActionBarEnhancedDropdownMixin:RefreshAllPreview()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1621,10 +1670,10 @@ Addon.config.containers = {
                 min             = 0.5,
                 max             = 1.5,
                 step            = 0.01,
-                sliderName      = {top = "Mask Scale"},
+                sliderName      = {top = L.Scale},
                 callback        = function()
                     ActionBarEnhancedDropdownMixin:RefreshAllPreview()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
@@ -1636,15 +1685,775 @@ Addon.config.containers = {
                 min             = 0.5,
                 max             = 1.5,
                 step            = 0.01,
-                sliderName      = {top = "Icon Scale"},
+                sliderName      = {top = L.Scale},
                 callback        = function()
                     ActionBarEnhancedDropdownMixin:RefreshAllPreview()
-                    local frameName = ABE_BarsListMixin:GetActionBar()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
         }
-    }
+    },
+
+    CDMCustomFrameContainer = {
+        title = L.CDMCustomFrameTitle,
+        desc = L.CDMCustomFrameDesc,
+        childs = {
+            ["CDMEnable"] = {
+                type            = "checkbox",
+                name            = L.Enable,
+                value           = "CDMEnable",
+            },
+            ["CDMCustomItemListFrame"] = {
+                type        = "itemList",
+                name        = "Item List",
+            },
+            ["CDMCustomFrameEditBox"] = {
+                type            = "editbox",
+                name            = L.CDMCustomFrameName,
+                defaultText     = function()
+                    local frame = _G[ABE_BarsListMixin:GetFrameLebel()]
+                    local frameName = frame:GetDisplayName()
+                    return frameName
+                end,
+                OnEnterPressed  = function(self)
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    name = self:GetText()
+                    self.currentName = name
+                    if frame then
+                        frame:SetDisplayName(name)
+                        frame:SaveDisplayName(name)
+                        EventRegistry:TriggerEvent("CDMCustomItemList.RenameFrame", frameName, name)
+                    end
+                    self:ClearFocus()
+                end,
+                OnEditFocusLost = function(self)
+                    self:SetText(self.currentName)
+                end,
+                OnEditFocusGained = function(self)
+                    self.currentName = self:GetText()
+                end,
+            },
+            ["CDMCustomFrameDeleteButton"] = {
+                type            = "button",
+                name            = L.CDMCustomFrameDelete,
+                buttonName      = L.Delete,
+                OnClick         = function(self)
+                    local frameLabel = ABE_BarsListMixin:GetFrameLebel()
+                    EventRegistry:TriggerEvent("CDMCustomItemList.DeleteFrame", frameLabel)
+                end
+            },
+            ["CDMCustomFrameAddSpellByID"] = {
+                type            = "editbox",
+                name            = L.CDMCustomFrameAddSpellByID,
+                defaultText     = "",
+                numeric         = true,
+                OnEnterPressed  = function(self)
+                    local frameLabel = ABE_BarsListMixin:GetFrameLebel()
+                    local id = self:GetText()
+                    EventRegistry:TriggerEvent("CDMCustomItemList.AddSpellByID", id, frameLabel)
+                    self:ClearFocus()
+                    self:SetText("")
+                end,
+            },
+            ["CDMCustomFrameAddItemByID"] = {
+                type            = "editbox",
+                name            = L.CDMCustomFrameAddItemByID,
+                defaultText     = "",
+                numeric         = true,
+                OnEnterPressed  = function(self)
+                    local frameLabel = ABE_BarsListMixin:GetFrameLebel()
+                    local id = self:GetText()
+                    EventRegistry:TriggerEvent("CDMCustomItemList.AddItemByID", id, frameLabel)
+                    self:ClearFocus()
+                    self:SetText("")
+                end,
+            },
+            ["CDMCustomTrackTrink1"] = {
+                type            = "checkbox",
+                name            = L.CDMCustomFrameTrackSlot13,
+                value           = "CDMCustomTrackTrink1",
+                callback        = function(checked)
+                    local frameLabel = ABE_BarsListMixin:GetFrameLebel()
+                    EventRegistry:TriggerEvent("CDMCustomItemList.AddItemBySlot", 13, frameLabel, checked)
+                end
+            },
+            ["CDMCustomTrackTrink2"] = {
+                type            = "checkbox",
+                name            = L.CDMCustomFrameTrackSlot14,
+                value           = "CDMCustomTrackTrink2",
+                callback        = function(checked)
+                    local frameLabel = ABE_BarsListMixin:GetFrameLebel()
+                    EventRegistry:TriggerEvent("CDMCustomItemList.AddItemBySlot", 14, frameLabel, checked)
+                end
+            },
+            ["CDMCustomHideWhenEmpty"] = {
+                type            = "checkbox",
+                name            = L.CDMCustomFrameHideWhen0,
+                value           = "CDMCustomHideEmpty",
+                callback        = function(checked)
+                    local frameLabel = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameLabel]
+                    frame:RefreshLayout()
+                end
+            },
+            ["CDMCustomAlphaWhenNotCD"] = {
+                type            = "checkboxSlider",
+                name            = L.CDMCustomFrameAlphaOnCD,
+                checkboxValue   = "UseCDMCustomAlphaNoCD",
+                sliderValue     = "CDMCustomAlphaNoCD",
+                min             = 0,
+                max             = 1,
+                step            = 0.1,
+                sliderName      = {top = L.Alpha},
+                callback        = function()
+                    local frameLabel = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameLabel]
+                    frame:RefreshLayout()
+                end,
+            },
+        }
+    },
+    CDMCustomFrameGridContainer = {
+        title = L.CDMCustomFrameGridLayoutTitle,
+        desc = L.CDMCustomFrameGridLayoutDesc,
+        childs = {
+            ["CDMCustomFrameItemSize"] = {
+                type            = "checkboxSlider",
+                name            = L.CDMCustomFrameElementSize,
+                checkboxValue   = "UseCDMCustomItemSize",
+                sliderValue     = "CDMCustomItemSize",
+                min             = 20,
+                max             = 80,
+                step            = 1,
+                sliderName      = {top = L.Size},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshItemSize(frame, frameName)
+                    frame:RefreshLayout()
+                end,
+            },
+            ["CDMCustomFrameIconPadding"] = {
+                type            = "checkboxSlider",
+                name            = L.IconPadding,
+                checkboxValue   = "UseCDMCustomIconPadding",
+                sliderValue     = "CDMCustomIconPadding",
+                min             = -10,
+                max             = 50,
+                step            = 1,
+                sliderName      = {top = L.Padding},
+                callback        = function()
+                    local frameLabel = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameLabel]
+                    frame:SetGridPadding()
+                    frame:RefreshLayout()
+                end,
+            },
+            ["CDMCustomFrameStride"] = {
+                type            = "checkboxSlider",
+                name            = L.Stride,
+                checkboxValue   = "UseCDMCustomStride",
+                sliderValue     = "CDMCustomStride",
+                min             = 1,
+                max             = 20,
+                step            = 1,
+                sliderName      = {top = L.Columns},
+                callback        = function()
+                    local frameLabel = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameLabel]
+                    frame:SetGridStride()
+                    frame:RefreshLayout()
+                end,
+            },
+            ["CDMCustomFrameCenteredGrid"] = {
+                type            = "checkbox",
+                name            = L.CenteredLayout,
+                value           = "CDMCustomCenteredLayout",
+                callback        = function(checked)
+                    local frameLabel = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameLabel]
+                    frame:SetGridCentered(checked)
+                    frame:RefreshLayout()
+                end
+            },
+            ["CDMCustomFrameGridLayoutType"] = {
+                type        = "dropdown",
+                setting     = Addon.GridLayoutType,
+                name        = L.GridLayoutType,
+                IsSelected  = function(id) return id == Addon:GetValue("CDMGridLayoutType", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CDMGridLayoutType", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose        = function()
+                    local frameLabel = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameLabel]
+                    frame:SetupGridLayoutParams()
+                    frame:RefreshLayout()
+                end,
+            },
+            ["CDMCustomFrameHideWhenInactive"] = {
+                type            = "checkbox",
+                name            = L.HideWhenInactive,
+                value           = "CDMHideWhenInactive",
+                callback        = function()
+                    local frameLabel = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameLabel]
+                    frame:SetupGridLayoutParams()
+                    frame:RefreshLayout()
+                end,
+            },
+            ["CDMCustomFrameVerticalGrowth"] = {
+                type        = "dropdown",
+                setting     = Addon.BarsVerticalGrow,
+                name        = L.VerticalGrowth,
+                IsSelected  = function(id) return id == Addon:GetValue("CDMVerticalGrowth", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CDMVerticalGrowth", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose        = function()
+                    local frameLabel = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameLabel]
+                    frame:SetGridVerticalGrowth()
+                    frame:RefreshLayout()
+                end,
+            },
+            ["CDMCustomFrameHorizontalGrowth"] = {
+                type        = "dropdown",
+                setting     = Addon.BarsHorizontalGrow,
+                name        = L.HorizontalGrowth,
+                IsSelected  = function(id) return id == Addon:GetValue("CDMHorizontalGrowth", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CDMHorizontalGrowth", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose        = function()
+                    local frameLabel = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameLabel]
+                    frame:SetGridHorizontalGrowth()
+                    frame:RefreshLayout()
+                end,
+            },
+            ["CDMCustomFrameGridDirection"] = {
+                type        = "dropdown",
+                setting     = Addon.GridDirection,
+                name        = L.GridDirection,
+                IsSelected  = function(id) return id == Addon:GetValue("CDMCustomGridDirection", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CDMCustomGridDirection", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose        = function()
+                    local frameLabel = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameLabel]
+                    frame:SetGridDirection()
+                    frame:RefreshLayout()
+                end,
+            },
+        }
+    },
+    CDMCustomFrameIconContainer = {
+        title = L.IconTitle,
+        desc = L.IconDesc,
+        childs = {
+            ["CDMCustomFrameIconMaskTexture"] = {
+                type        = "dropdown",
+                setting     = T.IconMaskTextures,
+                name        = L.IconMaskTextureType,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentIconMaskTexture", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentIconMaskTexture", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose     = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshSkin(frame, frameName)
+                end,
+            },
+            ["CDMCustomFrameMaskScale"] = {
+                type            = "checkboxSlider",
+                name            = L.IconMaskScale,
+                checkboxValue   = "UseIconMaskScale",
+                sliderValue     = "IconMaskScale",
+                min             = 0.5,
+                max             = 1.5,
+                step            = 0.01,
+                sliderName      = {top = L.Scale},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshSkin(frame, frameName)
+                end,
+            },
+            ["CDMCustomFrameIconScale"] = {
+                type            = "checkboxSlider",
+                name            = L.IconScale,
+                checkboxValue   = "UseIconScale",
+                sliderValue     = "IconScale",
+                min             = 0.5,
+                max             = 1.5,
+                step            = 0.01,
+                sliderName      = {top = L.Scale},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshSkin(frame, frameName)
+                end,
+            },
+        }
+    },
+    CDMCustomFrameCDContainer = {
+        title = L.CDMCooldownTitle,
+        desc = L.CDMCooldownDesc,
+        childs = {
+            ["CDMCustomFrameSwipeTexture"] = {
+                type        = "dropdown",
+                setting     = T.SwipeTextures,
+                name        = L.SwipeTextureType,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentCDMSwipeTexture", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentCDMSwipeTexture", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose     = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshSkin(frame, frameName)
+                end,
+            },
+            ["CDMCustomFrameSwipeSize"] = {
+                type            = "checkboxSlider",
+                name            = L.SwipeSize,
+                checkboxValue   = "UseCDMSwipeSize",
+                sliderValue     = "CDMSwipeSize",
+                min             = 20,
+                max             = 60,
+                step            = 1,
+                sliderName      = {top = L.Size},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshSkin(frame, frameName)
+                end,
+            },
+            ["CDMCustomFrameSwipeColor"] = {
+                type            = "colorSwatch",
+                name            = L.CDMSwipeColor,
+                value           = "CDMSwipeColor",
+                checkboxValues  = {"UseCDMSwipeColor"},
+                alpha           = true,
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshSkin(frame, frameName)
+                end,
+            },
+            ["CDMCustomFrameAuraSwipeColor"] = {
+                type            = "colorSwatch",
+                name            = L.CDMAuraSwipeColor,
+                value           = "CDMAuraSwipeColor",
+                checkboxValues  = {"UseCDMAuraSwipeColor"},
+                alpha           = true,
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshSkin(frame, frameName)
+                end,
+            },
+            ["CDMCustomFrameAuraTimerColor"] = {
+                type            = "colorSwatch",
+                name            = L.CDMAuraTimerColor,
+                value           = "CDMAuraTimerColor",
+                checkboxValues  = {"UseCDMAuraTimerColor"},
+                alpha           = true,
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshSkin(frame, frameName)
+                end,
+            },
+            ["CDMCustomFrameReverseSwipe"] = {
+                type            = "checkbox",
+                name            = L.CDMReverseSwipe,
+                value           = "CDMReverseSwipe",
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshSkin(frame, frameName)
+                end,
+            },
+            ["CDMCustomFrameAuraReverseSwipe"] = {
+                type            = "checkbox",
+                name            = L.CDMAuraReverseSwipe,
+                value           = "CDMAuraReverseSwipe",
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshSkin(frame, frameName)
+                end,
+            },
+            ["CDMCustomFrameRemoveGCDSwipe"] = {
+                type            = "checkbox",
+                name            = L.CDMRemoveGCDSwipe,
+                value           = "CDMRemoveGCDSwipe",
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshSkin(frame, frameName)
+                end,
+            },
+            ["CDMCustomFrameEdgeTexture"] = {
+                type        = "dropdown",
+                setting     = T.EdgeTextures,
+                name        = L.EdgeTextureType,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentCDMEdgeTexture", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentCDMEdgeTexture", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose     = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshSkin(frame, frameName)
+                end,
+            },
+            ["CDMCustomFrameEdgeSize"] = {
+                type            = "checkboxSlider",
+                name            = L.EdgeSize,
+                checkboxValue   = "UseCDMEdgeSize",
+                sliderValue     = "CDMEdgeSize",
+                min             = 0.5,
+                max             = 2,
+                step            = 0.1,
+                sliderName      = {top = L.Scale},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshSkin(frame, frameName)
+                end,
+            },
+            ["CDMCustomFrameEdgeColor"] = {
+                type            = "colorSwatch",
+                name            = L.UseCustomColor,
+                value           = "CDMEdgeColor",
+                checkboxValues  = {"UseCDMEdgeColor"},
+                alpha           = true,
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshSkin(frame, frameName)
+                end,
+            },
+            ["CDMCustomFrameEdgeAlwaysShow"] = {
+                type            = "checkbox",
+                name            = L.EdgeAlwaysShow,
+                value           = "CDMEdgeAlwaysShow",
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshSkin(frame, frameName)
+                end,
+            },
+        }
+    },
+    CDMCustomFrameBackdropContainer = {
+        title = L.IconBorderTitle,
+        desc = L.IconBorderDesc,
+        childs = {
+            ["CDMCustomFrameBackdropSize"] = {
+                type            = "checkboxSlider",
+                name            = L.CDMBackdrop,
+                checkboxValue   = "UseCDMBackdrop",
+                sliderValue     = "CDMBackdropSize",
+                min             = 1,
+                max             = 10,
+                step            = 1,
+                sliderName      = {top = L.Size},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshSkin(frame, frameName)
+                end,
+            },
+            ["CDMCustomFrameBackdropColor"] = {
+                type            = "colorSwatch",
+                name            = L.CDMBackdropColor,
+                value           = "CDMBackdropColor",
+                checkboxValues  = {"UseCDMBackdropColor"},
+                alpha           = true,
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshSkin(frame, frameName)
+                end,
+            },
+            ["CDMCustomFrameBackdropAuraColor"] = {
+                type            = "colorSwatch",
+                name            = L.CDMBackdropAuraColor,
+                value           = "CDMBackdropAuraColor",
+                checkboxValues  = {"UseCDMBackdropAuraColor"},
+                alpha           = true,
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshSkin(frame, frameName)
+                end,
+            },
+        }
+            
+    },
+    CDMCustomFrameGlowContainer = {
+        title = L.GlowTypeTitle,
+        desc = L.GlowTypeDesc,
+        childs = {
+            ["GlowOptions"] = {
+                type        = "dropdown",
+                setting     = T.LoopGlow,
+                name        = L.GlowType,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentLoopGlow", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentLoopGlow", id, true) end,
+                showNew     = true,
+                OnEnter     = function(id, frames) ActionBarEnhancedDropdownMixin:RefreshProcLoop(frames.ProcLoopPreview, id) end,
+                OnClose     = function()
+                    ActionBarEnhancedDropdownMixin:RefreshAllPreview()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshLoopGlow(frame, frameName)
+                end,
+            },
+            ["CustomColorGlow"] = {
+                type            = "colorSwatch",
+                name            = L.UseCustomColor,
+                value           = "LoopGlowColor",
+                checkboxValues  = {"UseLoopGlowColor", "DesaturateGlow"},
+                alpha           = false,
+                callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshAllPreview()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshLoopGlow(frame, frameName)
+                end,
+            },
+            ["ProcLoopPreview"] = {
+                type = "preview",
+                sub = "LoopGlow",
+            },
+            ["HideProc"] = {
+                type        = "checkbox",
+                name        = L.HideProcAnim,
+                value       = "HideProc",
+                callback    = false,
+            },
+            ["ProcOptions"] = {
+                type        = "dropdown",
+                setting     = T.ProcGlow,
+                name        = L.StartProcType,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentProcGlow", nil, true) end,
+                OnSelect    = function(id, frames)
+                    Addon:SaveSetting("CurrentProcGlow", id, true)
+                end,
+                showNew     = false,
+                OnEnter     = function(id, frames) ActionBarEnhancedDropdownMixin:RefreshProcStart(frames.ProcStartPreview, id) end,
+                OnClose     = function()
+                    ActionBarEnhancedDropdownMixin:RefreshAllPreview()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshLoopGlow(frame, frameName)
+                end,
+            },
+            ["CustomColorProc"] = {
+                type            = "colorSwatch",
+                name            = L.UseCustomColor,
+                value           = "ProcColor",
+                checkboxValues  = {"UseProcColor", "DesaturateProc"},
+                alpha           = false,
+                callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshAllPreview()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshLoopGlow(frame, frameName)
+                end,
+            },
+            ["ProcStartPreview"] = {
+                type = "preview",
+                sub = "ProcGlow",
+            }
+        }
+    },
+    CDMCustomFrameFontContainer = {
+        title = L.FontTitle,
+        desc = L.FontDesc,
+        childs = {
+            ["CDMCooldownFont"] = {
+                type        = "dropdown",
+                fontOption  = true,
+                setting     = function() return Addon.Fonts end,
+                name        = L.CooldownFont,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentCDMCooldownFont", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentCDMCooldownFont", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose     = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshCooldownFont(frame, frameName)
+                end,
+            },
+            ["CDMCooldownFontSize"] = {
+                type            = "checkboxSlider",
+                name            = L.CooldownFontSize,
+                checkboxValue   = "UseCooldownCDMFontSize",
+                sliderValue     = "CooldownCDMFontSize",
+                min             = 5,
+                max             = 40,
+                step            = 1,
+                sliderName      = {top = L.Size},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshCooldownFont(frame, frameName)
+                end,
+            },
+            ["CDMCooldownFontColor"] = {
+                type            = "colorSwatch",
+                name            = L.FontColor,
+                value           = "CooldownCDMFontColor",
+                checkboxValues  = {"UseCooldownCDMFontColor"},
+                alpha           = true,
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshCooldownFont(frame, frameName)
+                end,
+            },
+            ["CDMStacksFont"] = {
+                type        = "dropdown",
+                fontOption  = true,
+                setting     = function() return Addon.Fonts end,
+                name        = L.StacksFont,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentCDMStacksFont", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentCDMStacksFont", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose     = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshCooldownFont(frame, frameName)
+                end,
+            },
+            ["CDMStacksPoint"] = {
+                type        = "dropdown",
+                setting     = {Addon.AttachPoints, Addon.AttachPoints},
+                name        = L.StacksAttachPoint,
+                IsSelected  = {
+                    function(id) return id == Addon:GetValue("CDMCurrentStacksPoint", nil, true) end,
+                    function(id) return id == Addon:GetValue("CDMCurrentStacksRelativePoint", nil, true) end,
+                },
+                OnSelect    = {
+                    function(id) Addon:SaveSetting("CDMCurrentStacksPoint", id, true) end,
+                    function(id) Addon:SaveSetting("CDMCurrentStacksRelativePoint", id, true) end,
+                },
+                showNew     = false,
+                OnEnter     = {
+                    false,
+                    false,
+                },
+                OnClose     = {
+                    function()
+                        local frameName = ABE_BarsListMixin:GetFrameLebel()
+                        local frame = _G[frameName]
+                        ABE_CDMCustomFrameCustomized:RefreshCooldownFont(frame, frameName)
+                    end,
+                    function()
+                        local frameName = ABE_BarsListMixin:GetFrameLebel()
+                        local frame = _G[frameName]
+                        ABE_CDMCustomFrameCustomized:RefreshCooldownFont(frame, frameName)
+                    end,
+                },
+            },
+            ["CDMStacksOffset"] = {
+                type            = "checkboxSlider",
+                name            = L.StacksOffset,
+                checkboxValue   = "UseCDMStacksOffset",
+                sliderValue     = {"CDMStacksOffsetX", "CDMStacksOffsetY"},
+                min             = -40,
+                max             = 40,
+                step            = 1,
+                sliderName      = {{top = L.OffsetX}, {top = L.OffsetY}},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshCooldownFont(frame, frameName)
+                end,
+            },
+            ["CDMStacksFontSize"] = {
+                type            = "checkboxSlider",
+                name            = L.FontStacksSize,
+                checkboxValue   = "UseCDMStacksFontSize",
+                sliderValue     = "CDMStacksFontSize",
+                min             = 5,
+                max             = 40,
+                step            = 1,
+                sliderName      = {top = L.Size},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshCooldownFont(frame, frameName)
+                end,
+            },
+            ["CDMStacksFontColor"] = {
+                type            = "colorSwatch",
+                name            = L.FontColor,
+                value           = "CDMStacksFontColor",
+                checkboxValues  = {"UseCDMStacksFontColor"},
+                alpha           = true,
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshCooldownFont(frame, frameName)
+                end,
+            },
+            ["CDMNameFont"] = {
+                type        = "dropdown",
+                fontOption  = true,
+                setting     = function() return Addon.Fonts end,
+                name        = L.NameFont,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentCDMNameFont", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentCDMNameFont", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose     = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshCooldownFont(frame, frameName)
+                end,
+            },
+            ["CDMNameFontSize"] = {
+                type            = "checkboxSlider",
+                name            = L.FontNameSize,
+                checkboxValue   = "UseNameCDMFontSize",
+                sliderValue     = "NameCDMFontSize",
+                min             = 5,
+                max             = 40,
+                step            = 1,
+                sliderName      = {top = L.Size},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshCooldownFont(frame, frameName)
+                end,
+            },
+            ["CDMNameFontColor"] = {
+                type            = "colorSwatch",
+                name            = L.FontColor,
+                value           = "NameCCDMFontColor",
+                checkboxValues  = {"UseNameCDMFontColor"},
+                alpha           = true,
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshCooldownFont(frame, frameName)
+                end,
+            },
+        }
+    },
 }
 
 function Addon:BuildPresetsPreview()

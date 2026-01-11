@@ -1,5 +1,7 @@
 local AddonName, Addon = ...
 
+local L = Addon.L
+
 Addon.command = "ActionBarsEnhanced"
 Addon.shortCommand = "abe"
 
@@ -30,12 +32,21 @@ Addon.FontOutlines = {
     [3] = "THICKOUTLINE",
 }
 Addon.BarsVerticalGrow = {
-    [1] = "Up",
-    [2] = "Down",
+    [1] = L.VerticalGrowthUP,
+    [2] = L.VerticalGrowthDOWN,
 }
 Addon.BarsHorizontalGrow = {
-    [1] = "Left",
-    [2] = "Right",
+    [1] = L.HorizontalGrowthRIGHT,
+    [2] = L.HorizontalGrowthLEFT,
+}
+Addon.GridDirection = {
+    [1] = L.DirectionHORIZONTAL,
+    [2] = L.DirectionVERTICAL,
+}
+Addon.GridLayoutType = {
+    [1] = L.GridCentered,
+    [2] = L.GridCompact,
+    [3] = L.GridFixed,
 }
 
 Addon.Defaults = {
@@ -205,7 +216,7 @@ Addon.Defaults = {
     AddWAMask = false,
 
     UseBarPadding = false,
-    CurrentBarPadding = 2,
+    CurrentBarPadding = 4,
 
     UseButtonSize = false,
     ButtonSizeX = 42,
@@ -265,7 +276,7 @@ Addon.Defaults = {
     UseCDMStacksFontColor = false,
     CDMStacksFontColor = { r=1.0, g=1.0, b=1.0, a=1.0 },
 
-    CurrentCDMStatusBarTexture = 1,
+    CurrentCDMStatusBarTexture = "Blizzard BuffBar",
     UseCDMBarColor = false,
     CDMBarColor = { r=1.0, g=1.0, b=1.0, a=1.0 },
 
@@ -275,11 +286,11 @@ Addon.Defaults = {
     UseNameCDMFontColor = false,
     NameCDMFontColor = { r=1.0, g=1.0, b=1.0, a=1.0 },
 
-    CurrentCDMBGTexture = 1,
+    CurrentCDMBGTexture = "Blizzard BuffBar",
     UseCDMBarBGColor = true,
     CDMBarBGColor = { r=0.0, g=0.0, b=0.0, a=0.5 },
 
-    CurrentBarGrow = 2,
+    CurrentBarGrow = 1,
 
     UseCDMBarIconSize = false,
     CDMBarIconSize = 30,
@@ -321,6 +332,34 @@ Addon.Defaults = {
 
     CDMRemoveAuraTypeBorder = false,
 
+    CDMCustomTrackTrink1 = false,
+    CDMCustomTrackTrink2 = false,
+
+    UseCDMCustomIconPadding = false,
+    CDMCustomIconPadding = 2,
+
+    CDMCustomCenteredLayout = false,
+
+    CDMVerticalGrowth = 2,
+
+    CDMHorizontalGrowth = 1,
+
+    CDMCustomGridDirection = 1,
+
+    UseCDMCustomStride = false,
+    CDMCustomStride = 7,
+
+    CDMCustomHideEmpty = false,
+
+    UseCDMCustomItemSize = false,
+    CDMCustomItemSize = 38,
+
+    UseCDMCustomAlphaNoCD = false,
+    CDMCustomAlphaNoCD = 1,
+
+    CDMGridLayoutType = 3,
+
+    CDMHideWhenInactive = false,
 }
 
 Addon.Templates = {
@@ -1343,7 +1382,7 @@ Addon.Templates = {
     IconMaskTextures = {
         {
             name = "Default Blizzard Icon Mask",
-            texture = "UI-HUD-ActionBar-IconFrame-Mask",
+            texture = "common-iconmask",
             point = "CENTER",
             padding = {0, 0},
             size = {45,45},
@@ -1401,6 +1440,7 @@ Addon.Templates = {
     SwipeTextures = {
         {
             name = "Default Blizzard Swipe",
+            texture = "interface/hud/ui-hud-cooldownmanager-icon-swipe",
         },
         {
             name = "ABE Button",
