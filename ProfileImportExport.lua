@@ -11,8 +11,8 @@ ActionBarsEnhancedImportDialogMixin = {}
 ActionBarsEnhancedExportDialogMixin = {}
 
 local DefaultProfiles = {
-    ["ElvUI Style"] = "9z13pXrvu4DDe1vefMLfeOu2gIXungRIvtAczBbPmglfCxSbs6d3z39YUJmSZnZmlBXNi9PgFR8hqTXh5rsAIV1k)fCZ(KMOMMnwt14pswJ(kEU)AM7my8bsyp375C(oFFNZ5ozVbzSfAV1wFunVwl655w3RtRB4G7G9VZmKrw8dxPmEhVDXRz3QoEhNAiYWFAagmxPJdbVONRNpIm2IT99XTcvMxhFRW2(4ChWcALA2UyRs9NN8LNCYjKrfUFL2(2AHONW6c212UUVhbrgvlKHG1GR61kSB52vD2(TkJB0212Nui(olvVHkRdXrDStvC(C8SrqKHOvSd2wbrYWAPLJLRAABy6N1SrwZQzpcoDrWnSpUEtY4jrjRgKmq(KNiS2xZcdfg8Kjq2QBTvaoCddYuj9uXZsAboHH41SRx3PvJShdxoItrKcsPiQwfEDaJqAzxLDLyfuv5GnHBAbgrMMvOckseUYyx7qhq49CAfMtjBjPveXu3SOMqNQk30aKQuHxg2HLfedyIIQBIFAWlaM6Ef3o27fuPPxNM9w21RQTBfCyiG9G78MDtlGwL((34W7NjtgqczcPF2UjPD6awL(R5M7YzYKLy(FaSUwEHBJ3tE9ZKH1FkmjfCv)51983X2v2nLxmCiNIe382mWZiRk0cOJ0IbVpRQHzdOBZiUxUjU2246YaorcyVz2d4Jm8OrmtKATqkRy6mXdMk(rE5r6dWmHM1NlPClY5vj70nr1WP2F4ZoSiCsuIit()04qFPCGeQFoltuHYNECrCT189QbkCNjugUMNhHz4TpM5RLtD81T3bl2ePotgc(f8c)y8EjlJimiea21owSmzfCDN27qlAv6p(6p5XqldFQ60CBSKVw7GMrk057MabcfWQu3YLrS2VgwL(TBEZ9z)RVrIMQnVwMUmyWkfzR(4km60OPl8xOmhtXNyJroF0RFKjPeY2ne1EGoc(LQZd1lPVNJKxPi6BRHcp0X1jCV0pdqFge1arF2CSPg5EC6ZHOppI(c0C0xCi6GZc6mDOeRoPVmI(ki6Wi6igutdAEeD0SWmaDmeDCe9vr0jq0jZrNcrpdIoTb9S5GwwArd65GnTlfea4ZX2nfykcG52RUAzTv1wL6zAwuY2FZDVldEmn44doawbKvcDi6tWH8KNcXrtmPqmR4sbzOQH6icYaybiRXka0lWEnDbB)uaFogWLh9EQ2KFA0rva)Xx4cxw0MePoSNfwwQoVoFvlRzbSMOjG)4HVfM1WGIwMbwzxMDZVAPBr8XbbW(tA(Mkm8Ur7FSk9Kh8GhXZTvP)8HpKneavCxrGxy54j)F5loK3vhjXaJuOPKogWqf65IkV1xxmfWvPN83)tgwONPjDY89erFnh(lJBoB0aQW(Y(EDm0)UcfBY3Eur6n)PqW9lQY87RY8t3yJ9JZCVJoIvFhRtvNpATL41QW2bWzs2UaObQ9EX09SQ0CrvA(X7DVhj1VFE3D3xYH)6LUeRSjJP)yGMQrh81yRfh)0hl20KAqsL13rtXumlKTN(TFhNwzTTdaTP8NF5lxvSlm4neRv9S5vp9RXDj(ulWbjdmOMaX3oLuW2q8vwXPH)2D)u9NtRG(hOb9FF(5vqxQl8VEsZvjlWxVmpm1(V)",
-    ["CooldownManager Style"] = "Lr1spnruu4PoO1YQA5v0edM4wyHIk6cz0wEmgTucfiYkNPT32zsh69M5H16gmSY1nedln(pGMWEclmU8sjMWsO(yPO1Fa69XCVmJ2KMmZz((oNVZ39CUjwdnA2GQvFszyJCqOtfyZgRzdAcCFx3cfwEwGNPFGRPpWQnfsXYMoa1U0hZB6vN)A7CZMFUgMLCag9xeUQhicl0O5cCDbn8fuwb8kYNi5OqH8rXLMWlwAToimc)TEl4alz6ue47B3OM3BNOBwZY1R4cr5Goq35ZyQRD0NxzFfLezCtKPwImLs0TOpbJxHQv9a(ppbwvxRF1QgkkkOmHYIJyjODd)uD1H(1bTeW7rQppcRcgORfJZYahtF7xc4Cz6xyGC8D44eYtnJRAMAQzkPIh0OtKeh7BOrclsolq56GkH214XAL1t0UytBeOO9RbVaNYqAYcljK1q9jIkkrJ(Zdf6NzR6A)EQPEeXZ6gt7m38uffYxuKUjAir)tRDyjskJksaTcTxYXS1Kzjb6h(1NbHiYjyZuOHIyum1qAcd0vI5T04hSCqj76tMhuXoydM9g7a3OV84jS36jBwoGdOzr3UcyrZnOvqIxwvMBqI9uqR4UHuoNt4dC5q7j8a6ANn4dFdXCWjtk6WLCHLPD4vrP)327MOHfGc8SKhQj7qK0CvQb4wWyIAAxZYH83pe21JnxU(eNp8s5kYfDBrouy0lENoUualcD3W0rqAlr1lIgzvFBhB)wXVe4J4lWxnjR4SSZTw8aQ4lAGVKvhs8CK0cCbvmWjjJ2w4lBHtzHgMt6XK17OevvrJnNNhHITPZ)xl89nOPGLB80SmskflJ4hWypc92QSMUX5(9TcdFh(2KU2j)8xk0P3A6AFD7TFp9rYMNQQa49KRD6A40PVbdGU23ccONRYbaslqaVGlSjRJh0sW)wr4)JzMXiKFVoDixbPiqD7iO(YrhDIOk7T3(SPhPCMwQBmMHIEBGU2XhF8Fi)eOURa1P7U7(NJ6Sn3K2GutAazgNsG9t7Sd7wrIeo9Wd5sq9Vd",
+    ["ElvUI Style"] = "fIv3pXX1vCwpEJlqDbwZcgd2G)G2sBDSJ)inon0nSGHjTH4nGDm8qLUZU7fMrSSZvZmRPBEPvwQs0h6l8MLCLI4H(E8B5Ti(l4O1(XKA6MQkv1Mi1Tp1xA65(1mZDbR6x8o35Ep3Z5353535mK5pXYTOFLgHlg4SnDvgTwTIob7EE25MVrqaTE08oHr4k8)7dWDSOF9OdkvZP5vxHUzJAobhO2Wd9Qg5EY(yJ8GqAQZCFp0QEFmLWU8XBWvO1CI8EeTKVx9ObyJREDyrNkBvnWNnVFn)GInVFtgAJZMyCZnqyJ0LDV3gBesJwllB00EJtWM0O7w3PCnQ7XfIC3LhI7jcXI(1QIE0X63k)nV5BFVk(1l5hEQy3H7LBg43OEvHFUyoNswx)1FZCLZKBZm5cY8k871Z099AGtd1sTQn1Bt3OPzNPlRWH8XydMaxYnsWnAyvvuKJ)OTxv69P)6OI(bvPiIo9Xapc8ZWvY2DgxF94DDmzlc7cMMD1iNOgHLDc4xDJa6kR6xZRANKJkiweJiutQYRHbzgLWM4v5YcA7knk7T1vxMw1RX2Sjn3AsEs5hW4SZ)QSMiW7NL)brE18IAoVpYt83P(h5r3HgS7fydn)clVcDB)hrxA(fwDhpK62cJZkBfQzL7XjkRwXPg1UqNH)4x(TF7)LnmpMxy55Ae4WdWajXUL26A(JDHV6p(77b)xmh6a8GIBHJjU4TlDB5nYJCykCrLz4MpLP8ETppTPqyw6bRqFenqz2KkfPjnY)9Ygs63cQVt1QE13KWgvUMoRhFPksrYBKR2j1k8GWAV445HSXnprjN6vPB7vrEY2M38e90I)0YoHBjqxlKARdiE(qgp7HRPPmdQbgoqXVWXnsvRNvKnxkWR67700VrexiYkvgw7oez(RBuM0ojnWT(Lfh1mhJzclrgWUW)8l(srQnWUWZYLBk8NTnJEcgqPZfQCGUSweFkgCVS8CvmQG4IydsHfI87EnysWc((2f(x)JFhEfNao)4W3Ha9MfUuwz2ujo4jsgy2rvQ(HpmTi2T5E5HLkr4o8Myeyx4G927t6PNmSH7spijmdSeB1sIwjIMs0MaJ2pCwcmbbUiwaE2Ju5PvhHt0swnR6cbN8k5GSe41gGDUUAaL6CUWPisToJBDTj6rsynvyue2rpQ8M4nUqFUWfoIEM(0)IgiOVrt7tbNEGJBpC7O3Jf0pmfmyMoPCnoYpRbqg7tgajCMXGBBH9HCKk4Vx9iAqqdw0C1922nDhZe0qkp)Qq31YiT2roY4Wy8tz2aXJPOBxeohmUic(WgEv2ArV6EHUUWWei3mDmzuRFhyern)8ia4VTGvg2hlFXgBSb)wn1tNc(zKhRE1TK1k2f(6zNvY7Sl83gzKPe1mwjD3WcMLseYheFgXHuu6deLuQUIZOT(n1wV9kROT(F9fV4qP17OReJBMEUKRt2gRyCBm8whnwJquUJ6gQoRWRNQpCk1hKd8JaP2YhrdI8qbSLc83jY1cUgbUEsPpUb9SyGnCZy05n0()F)Z(SdvvLyn6F5t)uUipCll9gVXrcuXg)6V8pZvF0762YDzjGHOOFRsyQTOiVNwsSO4sDPji6Kuod8wZaVTvB5MuW(ANgPQDevqlSSwr8IijpoSstN(PeOagZiQ31jiMwD970EPA(LDQTknIRZfUBrH42tEYVbBRcZq2xK4uYX4VT9J2I2u(8JVB1nf9zSl8FEYt4X1Zs9AtjR4z9CPv2IQhuyuCD(ErBunD20TZh4Jx2c0qKze4erDHB8aOmMKNR3NHV4E3BzvZpE77uTCipw)kDw6RE(Zpurhp86x)Dv5Hx(s(IzGFOOtE7YnK8uf(Vp3hWq5xsBQA62vFos7fD4Yf3dNSy7YorUhiobkHWHBHxjrcLxHJ7Gzc)GTDQPICfcYpM4iXtEWZnY(XVdQSQw0gRzQXRBuNESwPn)64o10BEkrTPt3wUjTtpzlJbhmghcHKNoXei6i6K(jdoOqvOC8pHPZ(yEiJExOl8U9AC)RH3VMhAeKdjNIo9qyKNjtxhLIWNelEYocCNSSChfXKNqLMew3yKfIOfS5udKoIFjwtn14)(M3KhQInhdTkoohaNR2oondx11Fhx8BmKbM(E0diGYntjCaZPXAP0k1dZnsCAvUlnY0rTEPa)kyf4oYp44999z8NuK7eAOPJRpSE7xlM9KKXXPuUTDHVzJn4AuWv7TLHTJrECSPN(0pxLS)cXpv4Ib3HGssX54sncDJlHNPLUuWgvRXo7ZEXwynyQsxEbRwPG0sZIMRgZ1riylCOK9JJvw0pmu9ThI2B7ojCcmEMeR)fZPGJIWh667Dk(Cx9dFx(0eNppoSaotbmq83jglNoyg4KNSpi30yd)0dPPOVei)qTnxAgy0SQHPWoZyVByOb4TJhrmCfCP(zJWf65KIU64om2Xn98HhVcthr)TKptGa(eoJc7uH9KGBLbf7H9D564VDwwEzHq3av7yrfjFbL85frjZpJnlbhsGcInfKptkao5pDXXIZkq(s9Zrye0))GW8Kq(b4jejgoMedNqGEigo0qcmSpx2O3nme5tE8aWaeVcheFhboQ(cpuZbMXf5X825icHatexKa7tcL3xopl)p5a2GaUcj5t24e4u9derFGLkReR(PdJFab(XgFBx8B(jU60ZByPspVPl8wtd7tGFUezJ)SJ0FmcEumjmDwy2ld)brt5H7QFIkvDJF1)l",
+    ["CooldownManager Style"] = "1zvtSnXXx8y26MgCd4yNpO4ayknLpkq5JeoujKbNVCRWHeIdKOasZAVtSxLnEhn7AcohQqi9VkNHdiUH4yovfHQ6fuRYTEBuOQhqQQTMGQuP)lQMEV9nZo7xMqUK1Z8M37373738MxKVI03Oww4Q26QgdBAAOzUC1RQJxgt)jsxdps(RGxY8M4jvRQHxsVufs3ZyHDT7I1OQdBAysrnal)8sMvNuvttVA5iBY)rEvRfNUKQbw5UW2JwvTObg54GrYZpBb9LWuhhiIv41glHQscAUm)y3DNUT2AlrzLefZL5RJhN)lW(wbbyFUmp)yR99CJPrsuosIIri94LdJGTuTbJT1nRI2aqX0lRtWtRVcUcPlhqfifq31B75fGBCQU2LuRBwZUqDcwH0B2AlSa)aHzTVHTJkS3jclQc)ucG5fyCf27IAka0nXujaqK(8GOGaaVN1KQHPi27JijHnZzs1xXSQTQX4uZLTReLTROpsGyH)RqsmMzPAwJrvxcpnbByKvLU6(j7D4Aukuzhw1YgwH)Vjalgd8ej(yGltpvnvnaxQPluG0)BADbvAzSn3(nUif0hPNqLcaG0lp2bmdkzCEcro02hXRGnawhurM6vT3nKsV5ztrsixLtPxEHfSW2Z2FBq5lKhffitR2j77THwrmIUD5opu8CH1hjv4DdHVUADx3SqI(9V97(f1SS1xOEoLnKBCnDn7kBfJ0Blg6KBZfX5IqR5mAt5s5W6LRypqiYIFChYkU)zDmKlucHljA3tlLkbh5uSg4TrHHOJyTwTDbbQP)6ICf1k1mTni7TkQslGVfO)XK4zn0xzfvQwA(DhWcq63AWDAtubk8BhQt5spUDteQMC6AyEmKxBElu(SrBgGU5EBOgJBywu1yASTnCL3A1ZSjG5slAjpGYDfwYBHLlZF)Y)h04zhqeDsshlfCuhnLRnj1Se4YLpeRBudGEYzAViUUSd3EdDWqKChpActrF1aT9A081TjA7LlZlMzge)tO93VF)7)qE7V4bAd74)7mQwzrHrHk7l46P)86x)2sp5(zrVp5nc9Ys06bqSZXve9Dv8ViwbxArSMSKEayDUTqy1CHd)owLMIekyNVoVMa0HEyajA86qi8J5im7vgQSWYAutImwjB6zR8UYDU8LZhktF(R)hxoZ9ZIEF6FdjaqF0O3IqXwwlRwpuTFofs3Uf1Awv8s42xhaHltJ8Szct6sQgU24Pr4gkxStsYaLm)KTRqQcr)P8cwXPs4z4Mo)wQmpUF2iEergKyBWTNFDGl7rUYYlzAs4YYo8IMVZz5B4rRocjw0Cz(RVDQFfOmwCXT8GHgrI3AsmGxfZT46seBgsIkEGUXmxnDOhO7ZfsqBmdERm5H3xOmEUJ3wJW6KdUju9diWAeMWoalgA9aPvlQzzdOWVDVAF3rU(GEMNlZZE2Z(x4pUs6NVXnUDiL0i5ZoUeVStbmZi5b6I39vNiQABWTWTh9jA6mLHFtBwce78jfJxCvm1wVK7l8kUa50Us7xm0qxqkTF58Z7CjwX)zUrY70TnRx3w2PGzqCDZ5cL(WuiEkx4KayLNrPHd8KWF2KWGgHxAUB46YHcqrBn4GxqEz7))KNiuofpSRHNXnf26Xp(79hKtMqWmoSplPRTNnGtFvMmUD9AS(68ts6zgBDdD76TmOkFKlfKZuxqUXAhXEpHJ8NxKhu)zjzDeAyXIcTincBNi2Uu4iQZ5zXQqskhak8CvSEz9X(OTIX2lILA3SbrS91FBSHIYoDf2bIY2F7SpC3SdPWoyu2aryFmID4byhjf7Si2XIXobID8ySZKIDse7tHsu)PyFcIDueBpSpGDUHyPHPt6zsd16yXRxWRsqmfay10ob(Xj8dC)P8Mp4sWDGQLQ7Fr7v7CThkPVF4bp474k4Y(FsvGqLNnuNSZD(TBKg(WsEJ04mESCUcPY2jj9EQL3RUm1SwvnFe8B9uafIEL0Xrzh5G8k1zrK90YedtDn3zfs6nRaVjAwtBBZLADgvzo7k4)so7EY3WPbK3CkVz4ez2U4SpubBz95MQPpO8ZP)yT1(vjR(0N(0FrWQop9CV7XP7)l",
 }
 
 function NewProfile_OnTextChanged(self)
@@ -160,6 +160,14 @@ function ActionBarsEnhancedProfilesMixin:SetProfile(profileName, reload, config)
     Addon.C["GlobalSettings"] = {}
     for key, defaultValue in pairs(Addon.Defaults) do
         if profileData["GlobalSettings"] and profileData["GlobalSettings"][key] ~= nil then
+            if key == "EdgeSize" then
+
+                --todo remove this workaround after some time
+                if profileData["GlobalSettings"][key] > 2 then
+                    Addon.Print("EdgeSize in GlobalSettings set to 2" )
+                    profileData["GlobalSettings"][key] = 2
+                end                
+            end
             Addon.C["GlobalSettings"][key] = profileData["GlobalSettings"][key]
         else
             Addon.C["GlobalSettings"][key] = type(defaultValue) == "table" and CopyTable(defaultValue) or defaultValue
@@ -173,6 +181,12 @@ function ActionBarsEnhancedProfilesMixin:SetProfile(profileName, reload, config)
             local targetCat = Addon.C[catName]
 
             for key, value in pairs(catData) do
+                if key == "EdgeSize" then
+                    if value > 2 then
+                        Addon.Print("EdgeSize in", catName, value, " set to 2" )
+                        profileData[catName][key] = 2
+                    end
+                end
                 Addon.C[catName][key] = value
             end
         end
@@ -444,8 +458,8 @@ function ActionBarsEnhancedImportDialogMixin:AcceptImport(_, profileString, prof
             else
                 Addon.P.profilesList[profileName] = nil
             end
-        else
-            
+        end
+        if Addon.P.profilesList[profileName] == nil then            
             local profileTable = Addon.DecompressData(profileString)
             if profileTable then
                 Addon.P.profilesList[profileName] = CopyTable(profileTable)

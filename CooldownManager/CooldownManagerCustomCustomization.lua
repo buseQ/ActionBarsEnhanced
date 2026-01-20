@@ -14,6 +14,7 @@ function ABE_CDMCustomFrameCustomized:RefreshSkin(frame, frameName)
     self:RefreshBackdrop(frame, frameName)
     self:RefreshLoopGlow(frame, frameName)
     self:RefreshCooldownFont(frame, frameName)
+
 end
 
 function ABE_CDMCustomFrameCustomized:RefreshIconMask(frame, frameName)
@@ -77,33 +78,28 @@ end
 function ABE_CDMCustomFrameCustomized:RefreshCooldownFrame(frame, frameName)
     frameName = frameName or frame.frameName
 
-    frame.cooldownColorCurve = C_CurveUtil.CreateColorCurve()
-    frame.cooldownColorCurve:AddPoint(0, CreateColor(1, 1, 1, 1))
-    frame.cooldownColorCurve:AddPoint(4.9, CreateColor(1, 0, 0, 1))
-    frame.cooldownColorCurve:AddPoint(5, CreateColor(1, 0, 0, 1))
-    frame.cooldownColorCurve:AddPoint(10, CreateColor(1, 1, 0, 1))
-    frame.cooldownColorCurve:AddPoint(30, CreateColor(1, 0.7, 0, 1))
-    frame.cooldownColorCurve:AddPoint(60, CreateColor(1, 1, 1, 1))
-
     for itemFrame in frame.itemPool:EnumerateActive() do
         local cooldownFrame = itemFrame.Cooldown
         local auraFrame = itemFrame.AuraCooldown
-        local swipeTextureIndex = Addon:GetValue("CurrentCDMSwipeTexture", nil, frameName)
+
+        itemFrame.__removeAura = Addon:GetValue("CDMAuraRemoveSwipe", nil, frameName)
+        
+        local swipeTextureIndex = Addon:GetValue("CurrentSwipeTexture", nil, frameName)
 
         if swipeTextureIndex > 1 then
             cooldownFrame:SetSwipeTexture(T.SwipeTextures[swipeTextureIndex].texture)
             auraFrame:SetSwipeTexture(T.SwipeTextures[swipeTextureIndex].texture)
         end
 
-        if Addon:GetValue("UseCDMSwipeSize", nil, frameName) then
+        if Addon:GetValue("UseSwipeSize", nil, frameName) then
             cooldownFrame:ClearAllPoints()
             cooldownFrame:SetPoint("CENTER", itemFrame, "CENTER")
-            local size = Addon:GetValue("CDMSwipeSize", nil, frameName)
+            local size = Addon:GetValue("SwipeSize", nil, frameName)
             cooldownFrame:SetSize(size, size)
 
             auraFrame:ClearAllPoints()
             auraFrame:SetPoint("CENTER", itemFrame, "CENTER")
-            local size = Addon:GetValue("CDMSwipeSize", nil, frameName)
+            local size = Addon:GetValue("SwipeSize", nil, frameName)
             auraFrame:SetSize(size, size)            
         else
             cooldownFrame:SetAllPoints()
@@ -111,39 +107,39 @@ function ABE_CDMCustomFrameCustomized:RefreshCooldownFrame(frame, frameName)
         end
 
         if not cooldownFrame:GetDrawEdge() then
-            cooldownFrame:SetDrawEdge(Addon:GetValue("CDMEdgeAlwaysShow", nil, frameName))
+            cooldownFrame:SetDrawEdge(Addon:GetValue("EdgeAlwaysShow", nil, frameName))
         end
         if not auraFrame:GetDrawEdge() then
-            auraFrame:SetDrawEdge(Addon:GetValue("CDMEdgeAlwaysShow", nil, frameName))
+            auraFrame:SetDrawEdge(Addon:GetValue("EdgeAlwaysShow", nil, frameName))
         end
 
         if cooldownFrame:GetDrawEdge() then
-            cooldownFrame:SetEdgeTexture(T.EdgeTextures[Addon:GetValue("CurrentCDMEdgeTexture", nil, frameName)].texture)
-            if Addon:GetValue("UseCDMEdgeSize", nil, frameName) then
-                local size = Addon:GetValue("CDMEdgeSize", nil, frameName)
+            cooldownFrame:SetEdgeTexture(T.EdgeTextures[Addon:GetValue("CurrentEdgeTexture", nil, frameName)].texture)
+            if Addon:GetValue("UseEdgeSize", nil, frameName) then
+                local size = Addon:GetValue("EdgeSize", nil, frameName)
                 cooldownFrame:SetEdgeScale(size)
             end
-            if Addon:GetValue("UseCDMEdgeColor", nil, frameName) then
-                cooldownFrame:SetEdgeColor(Addon:GetRGBA("CDMEdgeColor", nil, frameName))
+            if Addon:GetValue("UseEdgeColor", nil, frameName) then
+                cooldownFrame:SetEdgeColor(Addon:GetRGBA("EdgeColor", nil, frameName))
             end
         end
         if auraFrame:GetDrawEdge() then
-            auraFrame:SetEdgeTexture(T.EdgeTextures[Addon:GetValue("CurrentCDMEdgeTexture", nil, frameName)].texture)
-            if Addon:GetValue("UseCDMEdgeSize", nil, frameName) then
-                local size = Addon:GetValue("CDMEdgeSize", nil, frameName)
+            auraFrame:SetEdgeTexture(T.EdgeTextures[Addon:GetValue("CurrentEdgeTexture", nil, frameName)].texture)
+            if Addon:GetValue("UseEdgeSize", nil, frameName) then
+                local size = Addon:GetValue("EdgeSize", nil, frameName)
                 auraFrame:SetEdgeScale(size)
             end
-            if Addon:GetValue("UseCDMEdgeColor", nil, frameName) then
-                auraFrame:SetEdgeColor(Addon:GetRGBA("CDMEdgeColor", nil, frameName))
+            if Addon:GetValue("UseEdgeColor", nil, frameName) then
+                auraFrame:SetEdgeColor(Addon:GetRGBA("EdgeColor", nil, frameName))
             end
         end
 
-        if Addon:GetValue("UseCDMSwipeColor", nil, frameName) then
-            cooldownFrame:SetSwipeColor(Addon:GetRGBA("CDMSwipeColor", nil, frameName))
+        if Addon:GetValue("UseCooldownColor", nil, frameName) then
+            cooldownFrame:SetSwipeColor(Addon:GetRGBA("CooldownColor", nil, frameName))
         end
 
-        if Addon:GetValue("UseCDMAuraSwipeColor", nil, frameName) then
-            auraFrame:SetSwipeColor(Addon:GetRGBA("CDMAuraSwipeColor", nil, frameName)) 
+        if Addon:GetValue("UseCooldownAuraColor", nil, frameName) then
+            auraFrame:SetSwipeColor(Addon:GetRGBA("CooldownAuraColor", nil, frameName)) 
         end
 
         local timerString
@@ -284,19 +280,19 @@ function ABE_CDMCustomFrameCustomized:RefreshCooldownFont(frame, frameName)
     frameName = frameName or frame.frameName
     for itemFrame in frame.itemPool:EnumerateActive() do
 
-        itemFrame.Cooldown:SetCountdownAbbrevThreshold(620)
+        itemFrame.Cooldown:SetCountdownAbbrevThreshold(920)
 
         local color = {r = 1.0, g = 1.0, b = 1.0, a = 1.0}
-        if Addon:GetValue("UseCooldownCDMFontColor", nil, frameName) then
-            color.r,color.g,color.b,color.a = Addon:GetRGBA("CooldownCDMFontColor", nil, frameName)
+        if Addon:GetValue("UseCooldownFontColor", nil, frameName) then
+            color.r,color.g,color.b,color.a = Addon:GetRGBA("CooldownFontColor", nil, frameName)
         end
         
-        local fontSize = Addon:GetValue("UseCooldownCDMFontSize", nil, frameName) and Addon:GetValue("CooldownCDMFontSize", nil, frameName) or 17
+        local fontSize = Addon:GetValue("UseCooldownFontSize", nil, frameName) and Addon:GetValue("CooldownFontSize", nil, frameName) or 17
         
         --print("CustomFrame stacks Font:", Addon:GetValue("CurrentCDMCooldownFont", nil, frameName))
         local _, fontName = Addon:GetFontObject(
-            Addon:GetValue("CurrentCDMCooldownFont", nil, frameName),
-            "OUTLINE",
+            Addon:GetValue("CurrentCooldownFont", nil, frameName),
+            "OUTLINE, SLUG",
             color,
             fontSize,
             false,
@@ -308,25 +304,25 @@ function ABE_CDMCustomFrameCustomized:RefreshCooldownFont(frame, frameName)
         local stacksFrame = itemFrame.Applications
         local stacksString = stacksFrame.Applications
         if stacksString then
-            if Addon:GetValue("CurrentCDMStacksFont", nil, frameName) ~= "Default" then
+            if Addon:GetValue("CurrentStacksFont", nil, frameName) ~= "Default" then
                 stacksString:SetFont(
-                    LibStub("LibSharedMedia-3.0"):Fetch("font", Addon:GetValue("CurrentCDMStacksFont", nil, frameName)),
-                    (Addon:GetValue("UseCDMStacksFontSize", nil, frameName) and Addon:GetValue("CDMStacksFontSize", nil, frameName) or 16),
-                    "OUTLINE"
+                    LibStub("LibSharedMedia-3.0"):Fetch("font", Addon:GetValue("CurrentStacksFont", nil, frameName)),
+                    (Addon:GetValue("UseStacksFontSize", nil, frameName) and Addon:GetValue("StacksFontSize", nil, frameName) or 16),
+                    "OUTLINE, SLUG"
                 )
             end
-            if Addon:GetValue("UseCDMStacksFontColor", nil, frameName) then
-                stacksString:SetVertexColor(Addon:GetRGBA("CDMStacksFontColor", nil, frameName))
+            if Addon:GetValue("UseStacksColor", nil, frameName) then
+                stacksString:SetVertexColor(Addon:GetRGBA("StacksColor", nil, frameName))
             end
 
-            local point = Addon.AttachPoints[Addon:GetValue("CDMCurrentStacksPoint", nil, frameName)]
-            local relativePoint = Addon.AttachPoints[Addon:GetValue("CDMCurrentStacksRelativePoint", nil, frameName)]
+            local point = Addon.AttachPoints[Addon:GetValue("CurrentStacksPoint", nil, frameName)]
+            local relativePoint = Addon.AttachPoints[Addon:GetValue("CurrentStacksRelativePoint", nil, frameName)]
             stacksString:SetWidth(0)
             stacksString:ClearAllPoints()
             stacksString:SetPoint(point, stacksString:GetParent(), relativePoint)
 
-            if Addon:GetValue("UseCDMStacksOffset", nil, frameName) then
-                stacksString:AdjustPointsOffset(Addon:GetValue("CDMStacksOffsetX", nil, frameName), Addon:GetValue("CDMStacksOffsetY", nil, frameName))
+            if Addon:GetValue("UseStacksOffset", nil, frameName) then
+                stacksString:AdjustPointsOffset(Addon:GetValue("StacksOffsetX", nil, frameName), Addon:GetValue("StacksOffsetY", nil, frameName))
             end
         end
 

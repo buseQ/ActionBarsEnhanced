@@ -18,7 +18,7 @@ Addon.config.containers = {
                 name        = L.GlowType,
                 IsSelected  = function(id) return id == Addon:GetValue("CurrentLoopGlow", nil, true) end,
                 OnSelect    = function(id) Addon:SaveSetting("CurrentLoopGlow", id, true) end,
-                showNew     = true,
+                showNew     = false,
                 OnEnter     = function(id, frames) ActionBarEnhancedDropdownMixin:RefreshProcLoop(frames.ProcLoopPreview, id) end,
                 OnClose     = function() ActionBarEnhancedDropdownMixin:RefreshAllPreview() end,
             },
@@ -383,10 +383,6 @@ Addon.config.containers = {
                 alpha           = true,
                 callback        = function() ActionBarEnhancedDropdownMixin:RefreshCooldownPreview() end,
             },
-            ["PreviewSwipe"] = {
-                type = "preview",
-                sub = "CooldownSwipe",
-            },
             ["EdgeTexture"] = {
                 type        = "dropdown",
                 setting     = T.EdgeTextures,
@@ -406,9 +402,9 @@ Addon.config.containers = {
                 name            = L.EdgeSize,
                 checkboxValue   = "UseEdgeSize",
                 sliderValue     = "EdgeSize",
-                min             = 10,
-                max             = 50,
-                step            = 1,
+                min             = 0.5,
+                max             = 2,
+                step            = 0.1,
                 sliderName      = {top = L.Size},
                 callback        = function()
                     ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
@@ -429,10 +425,6 @@ Addon.config.containers = {
                 callback        = function()
                     ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
                 end,
-            },
-            ["PreviewEdge"] = {
-                type = "preview",
-                sub    = "CooldownEdge",
             },
             ["CooldownFont"] = {
                 type        = "dropdown",
@@ -470,10 +462,28 @@ Addon.config.containers = {
                 alpha           = true,
                 callback        = function() ActionBarEnhancedDropdownMixin:RefreshCooldownPreview() end,
             },
+            ["ColorizedCooldownFont"] = {
+                type            = "checkbox",
+                name            = L.ColorizedCooldownFont,
+                value           = "ColorizedCooldownFont",
+                showNew         = true,
+                callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
+                end,
+            },
             ["PreviewCooldownFont"] = {
                 type = "preview",
                 sub    = "CooldownFont",
             },
+            ["PreviewSwipe"] = {
+                type = "preview",
+                sub = "CooldownSwipe",
+            },
+            ["PreviewEdge"] = {
+                type = "preview",
+                sub    = "CooldownEdge",
+            },
+
         }
     },
     ColorOverrideOptionsContainer = {
@@ -520,6 +530,13 @@ Addon.config.containers = {
                 name            = L.CustomColorNormal,
                 value           = "NormalColor",
                 checkboxValues  = {"UseNormalColor", "NormalColorDesaturate"},
+                alpha           = false,
+            },
+            ["CustomColorOnAura"] = {
+                type            = "colorSwatch",
+                name            = L.CustomColorAura,
+                value           = "AuraColor",
+                checkboxValues  = {"UseAuraColor", "AuraColorDesaturate"},
                 alpha           = false,
             },
         }
@@ -573,7 +590,6 @@ Addon.config.containers = {
         }
     },
     FontOptionsContainer = {
-        new = true,
         title = L.FontTitle,
         desc = L.FontDesc,
         childs = {
@@ -1043,11 +1059,14 @@ Addon.config.containers = {
                 type        = "dropdown",
                 setting     = T.SwipeTextures,
                 name        = L.SwipeTextureType,
-                IsSelected  = function(id) return id == Addon:GetValue("CurrentCDMSwipeTexture", nil, true) end,
-                OnSelect    = function(id) Addon:SaveSetting("CurrentCDMSwipeTexture", id, true) end,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentSwipeTexture", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentSwipeTexture", id, true) end,
                 showNew     = false,
-                OnEnter     = false,
+                OnEnter     = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
+                end,
                 OnClose     = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
@@ -1055,13 +1074,14 @@ Addon.config.containers = {
             ["CDMSwipeSize"] = {
                 type            = "checkboxSlider",
                 name            = L.SwipeSize,
-                checkboxValue   = "UseCDMSwipeSize",
-                sliderValue     = "CDMSwipeSize",
+                checkboxValue   = "UseSwipeSize",
+                sliderValue     = "SwipeSize",
                 min             = 20,
                 max             = 60,
                 step            = 1,
                 sliderName      = {top = L.Size},
                 callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
@@ -1069,10 +1089,22 @@ Addon.config.containers = {
             ["CDMSwipeColor"] = {
                 type            = "colorSwatch",
                 name            = L.CDMSwipeColor,
-                value           = "CDMSwipeColor",
-                checkboxValues  = {"UseCDMSwipeColor"},
+                value           = "CooldownColor",
+                checkboxValues  = {"UseCooldownColor"},
                 alpha           = true,
                 callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+
+            ["CDMAuraRemoveSwipe"] = {
+                type            = "checkbox",
+                name            = L.CDMAuraRemoveSwipe,
+                value           = "CDMAuraRemoveSwipe",
+                callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
@@ -1080,10 +1112,11 @@ Addon.config.containers = {
             ["CDMAuraSwipeColor"] = {
                 type            = "colorSwatch",
                 name            = L.CDMAuraSwipeColor,
-                value           = "CDMAuraSwipeColor",
-                checkboxValues  = {"UseCDMAuraSwipeColor"},
+                value           = "CooldownAuraColor",
+                checkboxValues  = {"UseCooldownAuraColor"},
                 alpha           = true,
                 callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
@@ -1095,6 +1128,7 @@ Addon.config.containers = {
                 checkboxValues  = {"UseCDMAuraTimerColor"},
                 alpha           = true,
                 callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
@@ -1104,6 +1138,7 @@ Addon.config.containers = {
                 name            = L.CDMReverseSwipe,
                 value           = "CDMReverseSwipe",
                 callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
@@ -1113,6 +1148,7 @@ Addon.config.containers = {
                 name            = L.CDMAuraReverseSwipe,
                 value           = "CDMAuraReverseSwipe",
                 callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
@@ -1130,11 +1166,12 @@ Addon.config.containers = {
                 type        = "dropdown",
                 setting     = T.EdgeTextures,
                 name        = L.EdgeTextureType,
-                IsSelected  = function(id) return id == Addon:GetValue("CurrentCDMEdgeTexture", nil, true) end,
-                OnSelect    = function(id) Addon:SaveSetting("CurrentCDMEdgeTexture", id, true) end,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentEdgeTexture", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentEdgeTexture", id, true) end,
                 showNew     = false,
                 OnEnter     = false,
                 OnClose     = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
@@ -1142,13 +1179,14 @@ Addon.config.containers = {
             ["CDMEdgeSize"] = {
                 type            = "checkboxSlider",
                 name            = L.EdgeSize,
-                checkboxValue   = "UseCDMEdgeSize",
-                sliderValue     = "CDMEdgeSize",
+                checkboxValue   = "UseEdgeSize",
+                sliderValue     = "EdgeSize",
                 min             = 0.5,
                 max             = 2,
                 step            = 0.1,
                 sliderName      = {top = L.Scale},
                 callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
@@ -1156,10 +1194,11 @@ Addon.config.containers = {
             ["CDMEdgeColor"] = {
                 type            = "colorSwatch",
                 name            = L.UseCustomColor,
-                value           = "CDMEdgeColor",
-                checkboxValues  = {"UseCDMEdgeColor"},
+                value           = "EdgeColor",
+                checkboxValues  = {"UseEdgeColor"},
                 alpha           = true,
                 callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
@@ -1167,11 +1206,25 @@ Addon.config.containers = {
             ["CDMEdgeAlwaysShow"] = {
                 type            = "checkbox",
                 name            = L.EdgeAlwaysShow,
-                value           = "CDMEdgeAlwaysShow",
+                value           = "EdgeAlwaysShow",
                 callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
+            },
+            ["PreviewSwipe"] = {
+                type = "preview",
+                sub = "CooldownSwipe",
+            },
+            ["PreviewAuraSwipe"] = {
+                type = "preview",
+                aura = true,
+                sub = "CooldownSwipe",
+            },
+            ["PreviewEdge"] = {
+                type = "preview",
+                sub    = "CooldownEdge",
             },
         }
     },
@@ -1184,11 +1237,12 @@ Addon.config.containers = {
                 fontOption  = true,
                 setting     = function() return Addon.Fonts end,
                 name        = L.CooldownFont,
-                IsSelected  = function(id) return id == Addon:GetValue("CurrentCDMCooldownFont", nil, true) end,
-                OnSelect    = function(id) Addon:SaveSetting("CurrentCDMCooldownFont", id, true) end,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentCooldownFont", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentCooldownFont", id, true) end,
                 showNew     = false,
                 OnEnter     = false,
                 OnClose     = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
@@ -1196,13 +1250,14 @@ Addon.config.containers = {
             ["CDMCooldownFontSize"] = {
                 type            = "checkboxSlider",
                 name            = L.CooldownFontSize,
-                checkboxValue   = "UseCooldownCDMFontSize",
-                sliderValue     = "CooldownCDMFontSize",
+                checkboxValue   = "UseCooldownFontSize",
+                sliderValue     = "CooldownFontSize",
                 min             = 5,
                 max             = 40,
                 step            = 1,
                 sliderName      = {top = L.Size},
                 callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
@@ -1210,10 +1265,11 @@ Addon.config.containers = {
             ["CDMCooldownFontColor"] = {
                 type            = "colorSwatch",
                 name            = L.FontColor,
-                value           = "CooldownCDMFontColor",
-                checkboxValues  = {"UseCooldownCDMFontColor"},
+                value           = "CooldownFontColor",
+                checkboxValues  = {"UseCooldownFontColor"},
                 alpha           = true,
                 callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
@@ -1223,11 +1279,14 @@ Addon.config.containers = {
                 fontOption  = true,
                 setting     = function() return Addon.Fonts end,
                 name        = L.StacksFont,
-                IsSelected  = function(id) return id == Addon:GetValue("CurrentCDMStacksFont", nil, true) end,
-                OnSelect    = function(id) Addon:SaveSetting("CurrentCDMStacksFont", id, true) end,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentStacksFont", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentStacksFont", id, true) end,
                 showNew     = false,
-                OnEnter     = false,
+                OnEnter     = function()
+                    ActionBarEnhancedDropdownMixin:RefreshFontPreview()
+                end,
                 OnClose     = function()
+                    ActionBarEnhancedDropdownMixin:RefreshFontPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
@@ -1237,24 +1296,26 @@ Addon.config.containers = {
                 setting     = {Addon.AttachPoints, Addon.AttachPoints},
                 name        = L.StacksAttachPoint,
                 IsSelected  = {
-                    function(id) return id == Addon:GetValue("CDMCurrentStacksPoint", nil, true) end,
-                    function(id) return id == Addon:GetValue("CDMCurrentStacksRelativePoint", nil, true) end,
+                    function(id) return id == Addon:GetValue("CurrentStacksPoint", nil, true) end,
+                    function(id) return id == Addon:GetValue("CurrentStacksRelativePoint", nil, true) end,
                 },
                 OnSelect    = {
-                    function(id) Addon:SaveSetting("CDMCurrentStacksPoint", id, true) end,
-                    function(id) Addon:SaveSetting("CDMCurrentStacksRelativePoint", id, true) end,
+                    function(id) Addon:SaveSetting("CurrentStacksPoint", id, true) end,
+                    function(id) Addon:SaveSetting("CurrentStacksRelativePoint", id, true) end,
                 },
                 showNew     = false,
                 OnEnter     = {
-                    false,
-                    false,
+                    function() ActionBarEnhancedDropdownMixin:RefreshFontPreview() end,
+                    function() ActionBarEnhancedDropdownMixin:RefreshFontPreview() end,
                 },
                 OnClose     = {
                     function()
+                        ActionBarEnhancedDropdownMixin:RefreshFontPreview()
                         local frameName = ABE_BarsListMixin:GetFrameLebel()
                         CooldownManagerEnhanced:ForceUpdate(frameName)
                     end,
                     function()
+                        ActionBarEnhancedDropdownMixin:RefreshFontPreview()
                         local frameName = ABE_BarsListMixin:GetFrameLebel()
                         CooldownManagerEnhanced:ForceUpdate(frameName)
                     end,
@@ -1263,13 +1324,14 @@ Addon.config.containers = {
             ["CDMStacksOffset"] = {
                 type            = "checkboxSlider",
                 name            = L.StacksOffset,
-                checkboxValue   = "UseCDMStacksOffset",
-                sliderValue     = {"CDMStacksOffsetX", "CDMStacksOffsetY"},
+                checkboxValue   = "UseStacksOffset",
+                sliderValue     = {"StacksOffsetX", "StacksOffsetY"},
                 min             = -40,
                 max             = 40,
                 step            = 1,
                 sliderName      = {{top = L.OffsetX}, {top = L.OffsetY}},
                 callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshFontPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
@@ -1277,13 +1339,14 @@ Addon.config.containers = {
             ["CDMStacksFontSize"] = {
                 type            = "checkboxSlider",
                 name            = L.FontStacksSize,
-                checkboxValue   = "UseCDMStacksFontSize",
-                sliderValue     = "CDMStacksFontSize",
+                checkboxValue   = "UseStacksFontSize",
+                sliderValue     = "StacksFontSize",
                 min             = 5,
                 max             = 40,
                 step            = 1,
                 sliderName      = {top = L.Size},
                 callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshFontPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
@@ -1291,10 +1354,11 @@ Addon.config.containers = {
             ["CDMStacksFontColor"] = {
                 type            = "colorSwatch",
                 name            = L.FontColor,
-                value           = "CDMStacksFontColor",
-                checkboxValues  = {"UseCDMStacksFontColor"},
+                value           = "StacksColor",
+                checkboxValues  = {"UseStacksColor"},
                 alpha           = true,
                 callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshFontPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
@@ -1337,6 +1401,24 @@ Addon.config.containers = {
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
+            },
+            ["CDMColorizedCooldownFont"] = {
+                type            = "checkbox",
+                name            = L.ColorizedCooldownFont,
+                value           = "ColorizedCooldownFont",
+                showNew         = true,
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+            ["PreviewCooldownFont"] = {
+                type = "preview",
+                sub    = "CooldownFont",
+            },
+            ["PreviewFont"] = {
+                type = "preview",
+                sub    = "Font",
             },
         }
     },
@@ -1595,10 +1677,14 @@ Addon.config.containers = {
                 end,
             },
             ["HideWhenInactive"] = {
-                type            = "checkbox",
-                name            = L.HideWhenInactive,
-                value           = "CDMHideWhenInactive",
-                callback        = function()
+                type        = "dropdown",
+                setting     = Addon.GridLayoutHideActive,
+                name        = L.HideWhenInactive,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentHideWhenInactive", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentHideWhenInactive", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose     = function()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
@@ -1655,7 +1741,7 @@ Addon.config.containers = {
                 IsSelected  = function(id) return id == Addon:GetValue("CurrentIconMaskTexture", nil, true) end,
                 OnSelect    = function(id) Addon:SaveSetting("CurrentIconMaskTexture", id, true) end,
                 showNew     = false,
-                OnEnter     = false,
+                OnEnter     = function(id, frames) ActionBarEnhancedDropdownMixin:RefreshIconMaskTexture(frames.PreviewIcon, id) end,
                 OnClose     = function()
                     ActionBarEnhancedDropdownMixin:RefreshAllPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
@@ -1691,6 +1777,9 @@ Addon.config.containers = {
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
+            },
+            ["PreviewIcon"] = {
+                type = "preview",
             },
         }
     },
@@ -1894,10 +1983,14 @@ Addon.config.containers = {
                 end,
             },
             ["CDMCustomFrameHideWhenInactive"] = {
-                type            = "checkbox",
-                name            = L.HideWhenInactive,
-                value           = "CDMHideWhenInactive",
-                callback        = function()
+                type        = "dropdown",
+                setting     = Addon.GridLayoutHideActive,
+                name        = L.HideWhenInactive,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentHideWhenInactive", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentHideWhenInactive", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose     = function()
                     local frameLabel = ABE_BarsListMixin:GetFrameLebel()
                     local frame = _G[frameLabel]
                     frame:SetupGridLayoutParams()
@@ -1964,6 +2057,7 @@ Addon.config.containers = {
                 showNew     = false,
                 OnEnter     = false,
                 OnClose     = function()
+                    ActionBarEnhancedDropdownMixin:RefreshAllPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     local frame = _G[frameName]
                     ABE_CDMCustomFrameCustomized:RefreshSkin(frame, frameName)
@@ -1979,6 +2073,7 @@ Addon.config.containers = {
                 step            = 0.01,
                 sliderName      = {top = L.Scale},
                 callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshAllPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     local frame = _G[frameName]
                     ABE_CDMCustomFrameCustomized:RefreshSkin(frame, frameName)
@@ -1994,10 +2089,14 @@ Addon.config.containers = {
                 step            = 0.01,
                 sliderName      = {top = L.Scale},
                 callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshAllPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     local frame = _G[frameName]
                     ABE_CDMCustomFrameCustomized:RefreshSkin(frame, frameName)
                 end,
+            },
+            ["PreviewIcon"] = {
+                type = "preview",
             },
         }
     },
@@ -2009,11 +2108,14 @@ Addon.config.containers = {
                 type        = "dropdown",
                 setting     = T.SwipeTextures,
                 name        = L.SwipeTextureType,
-                IsSelected  = function(id) return id == Addon:GetValue("CurrentCDMSwipeTexture", nil, true) end,
-                OnSelect    = function(id) Addon:SaveSetting("CurrentCDMSwipeTexture", id, true) end,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentSwipeTexture", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentSwipeTexture", id, true) end,
                 showNew     = false,
-                OnEnter     = false,
+                OnEnter     = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
+                end,
                 OnClose     = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     local frame = _G[frameName]
                     ABE_CDMCustomFrameCustomized:RefreshSkin(frame, frameName)
@@ -2022,13 +2124,14 @@ Addon.config.containers = {
             ["CDMCustomFrameSwipeSize"] = {
                 type            = "checkboxSlider",
                 name            = L.SwipeSize,
-                checkboxValue   = "UseCDMSwipeSize",
-                sliderValue     = "CDMSwipeSize",
+                checkboxValue   = "UseSwipeSize",
+                sliderValue     = "SwipeSize",
                 min             = 20,
                 max             = 60,
                 step            = 1,
                 sliderName      = {top = L.Size},
                 callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     local frame = _G[frameName]
                     ABE_CDMCustomFrameCustomized:RefreshSkin(frame, frameName)
@@ -2037,10 +2140,23 @@ Addon.config.containers = {
             ["CDMCustomFrameSwipeColor"] = {
                 type            = "colorSwatch",
                 name            = L.CDMSwipeColor,
-                value           = "CDMSwipeColor",
-                checkboxValues  = {"UseCDMSwipeColor"},
+                value           = "CooldownColor",
+                checkboxValues  = {"UseCooldownColor"},
                 alpha           = true,
                 callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshSkin(frame, frameName)
+                end,
+            },
+
+            ["CDMCustomFrameRemoveAuraSwipe"] = {
+                type            = "checkbox",
+                name            = L.CDMAuraRemoveSwipe,
+                value           = "CDMAuraRemoveSwipe",
+                callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     local frame = _G[frameName]
                     ABE_CDMCustomFrameCustomized:RefreshSkin(frame, frameName)
@@ -2049,10 +2165,11 @@ Addon.config.containers = {
             ["CDMCustomFrameAuraSwipeColor"] = {
                 type            = "colorSwatch",
                 name            = L.CDMAuraSwipeColor,
-                value           = "CDMAuraSwipeColor",
-                checkboxValues  = {"UseCDMAuraSwipeColor"},
+                value           = "CooldownAuraColor",
+                checkboxValues  = {"UseCooldownAuraColor"},
                 alpha           = true,
                 callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     local frame = _G[frameName]
                     ABE_CDMCustomFrameCustomized:RefreshSkin(frame, frameName)
@@ -2065,6 +2182,7 @@ Addon.config.containers = {
                 checkboxValues  = {"UseCDMAuraTimerColor"},
                 alpha           = true,
                 callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     local frame = _G[frameName]
                     ABE_CDMCustomFrameCustomized:RefreshSkin(frame, frameName)
@@ -2075,6 +2193,7 @@ Addon.config.containers = {
                 name            = L.CDMReverseSwipe,
                 value           = "CDMReverseSwipe",
                 callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     local frame = _G[frameName]
                     ABE_CDMCustomFrameCustomized:RefreshSkin(frame, frameName)
@@ -2085,6 +2204,7 @@ Addon.config.containers = {
                 name            = L.CDMAuraReverseSwipe,
                 value           = "CDMAuraReverseSwipe",
                 callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     local frame = _G[frameName]
                     ABE_CDMCustomFrameCustomized:RefreshSkin(frame, frameName)
@@ -2104,11 +2224,12 @@ Addon.config.containers = {
                 type        = "dropdown",
                 setting     = T.EdgeTextures,
                 name        = L.EdgeTextureType,
-                IsSelected  = function(id) return id == Addon:GetValue("CurrentCDMEdgeTexture", nil, true) end,
-                OnSelect    = function(id) Addon:SaveSetting("CurrentCDMEdgeTexture", id, true) end,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentEdgeTexture", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentEdgeTexture", id, true) end,
                 showNew     = false,
                 OnEnter     = false,
                 OnClose     = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     local frame = _G[frameName]
                     ABE_CDMCustomFrameCustomized:RefreshSkin(frame, frameName)
@@ -2117,13 +2238,14 @@ Addon.config.containers = {
             ["CDMCustomFrameEdgeSize"] = {
                 type            = "checkboxSlider",
                 name            = L.EdgeSize,
-                checkboxValue   = "UseCDMEdgeSize",
-                sliderValue     = "CDMEdgeSize",
+                checkboxValue   = "UseEdgeSize",
+                sliderValue     = "EdgeSize",
                 min             = 0.5,
                 max             = 2,
                 step            = 0.1,
                 sliderName      = {top = L.Scale},
                 callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     local frame = _G[frameName]
                     ABE_CDMCustomFrameCustomized:RefreshSkin(frame, frameName)
@@ -2132,10 +2254,11 @@ Addon.config.containers = {
             ["CDMCustomFrameEdgeColor"] = {
                 type            = "colorSwatch",
                 name            = L.UseCustomColor,
-                value           = "CDMEdgeColor",
-                checkboxValues  = {"UseCDMEdgeColor"},
+                value           = "EdgeColor",
+                checkboxValues  = {"UseEdgeColor"},
                 alpha           = true,
                 callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     local frame = _G[frameName]
                     ABE_CDMCustomFrameCustomized:RefreshSkin(frame, frameName)
@@ -2144,12 +2267,26 @@ Addon.config.containers = {
             ["CDMCustomFrameEdgeAlwaysShow"] = {
                 type            = "checkbox",
                 name            = L.EdgeAlwaysShow,
-                value           = "CDMEdgeAlwaysShow",
+                value           = "EdgeAlwaysShow",
                 callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     local frame = _G[frameName]
                     ABE_CDMCustomFrameCustomized:RefreshSkin(frame, frameName)
                 end,
+            },
+            ["PreviewSwipe"] = {
+                type = "preview",
+                sub = "CooldownSwipe",
+            },
+            ["PreviewAuraSwipe"] = {
+                type = "preview",
+                aura = true,
+                sub = "CooldownSwipe",
+            },
+            ["PreviewEdge"] = {
+                type = "preview",
+                sub    = "CooldownEdge",
             },
         }
     },
@@ -2209,7 +2346,7 @@ Addon.config.containers = {
                 name        = L.GlowType,
                 IsSelected  = function(id) return id == Addon:GetValue("CurrentLoopGlow", nil, true) end,
                 OnSelect    = function(id) Addon:SaveSetting("CurrentLoopGlow", id, true) end,
-                showNew     = true,
+                showNew     = false,
                 OnEnter     = function(id, frames) ActionBarEnhancedDropdownMixin:RefreshProcLoop(frames.ProcLoopPreview, id) end,
                 OnClose     = function()
                     ActionBarEnhancedDropdownMixin:RefreshAllPreview()
@@ -2286,11 +2423,12 @@ Addon.config.containers = {
                 fontOption  = true,
                 setting     = function() return Addon.Fonts end,
                 name        = L.CooldownFont,
-                IsSelected  = function(id) return id == Addon:GetValue("CurrentCDMCooldownFont", nil, true) end,
-                OnSelect    = function(id) Addon:SaveSetting("CurrentCDMCooldownFont", id, true) end,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentCooldownFont", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentCooldownFont", id, true) end,
                 showNew     = false,
                 OnEnter     = false,
                 OnClose     = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     local frame = _G[frameName]
                     ABE_CDMCustomFrameCustomized:RefreshCooldownFont(frame, frameName)
@@ -2299,13 +2437,14 @@ Addon.config.containers = {
             ["CDMCooldownFontSize"] = {
                 type            = "checkboxSlider",
                 name            = L.CooldownFontSize,
-                checkboxValue   = "UseCooldownCDMFontSize",
-                sliderValue     = "CooldownCDMFontSize",
+                checkboxValue   = "UseCooldownFontSize",
+                sliderValue     = "CooldownFontSize",
                 min             = 5,
                 max             = 40,
                 step            = 1,
                 sliderName      = {top = L.Size},
                 callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshFontPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     local frame = _G[frameName]
                     ABE_CDMCustomFrameCustomized:RefreshCooldownFont(frame, frameName)
@@ -2314,25 +2453,39 @@ Addon.config.containers = {
             ["CDMCooldownFontColor"] = {
                 type            = "colorSwatch",
                 name            = L.FontColor,
-                value           = "CooldownCDMFontColor",
-                checkboxValues  = {"UseCooldownCDMFontColor"},
+                value           = "CooldownFontColor",
+                checkboxValues  = {"UseCooldownFontColor"},
                 alpha           = true,
+                callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshFontPreview()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshCooldownFont(frame, frameName)
+                end,
+            },
+            ["CDMColorizedCooldownFont"] = {
+                type            = "checkbox",
+                name            = L.ColorizedCooldownFont,
+                value           = "ColorizedCooldownFont",
+                showNew         = true,
                 callback        = function()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     local frame = _G[frameName]
                     ABE_CDMCustomFrameCustomized:RefreshCooldownFont(frame, frameName)
                 end,
             },
+
             ["CDMStacksFont"] = {
                 type        = "dropdown",
                 fontOption  = true,
                 setting     = function() return Addon.Fonts end,
                 name        = L.StacksFont,
-                IsSelected  = function(id) return id == Addon:GetValue("CurrentCDMStacksFont", nil, true) end,
-                OnSelect    = function(id) Addon:SaveSetting("CurrentCDMStacksFont", id, true) end,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentStacksFont", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentStacksFont", id, true) end,
                 showNew     = false,
                 OnEnter     = false,
                 OnClose     = function()
+                    ActionBarEnhancedDropdownMixin:RefreshFontPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     local frame = _G[frameName]
                     ABE_CDMCustomFrameCustomized:RefreshCooldownFont(frame, frameName)
@@ -2343,25 +2496,27 @@ Addon.config.containers = {
                 setting     = {Addon.AttachPoints, Addon.AttachPoints},
                 name        = L.StacksAttachPoint,
                 IsSelected  = {
-                    function(id) return id == Addon:GetValue("CDMCurrentStacksPoint", nil, true) end,
-                    function(id) return id == Addon:GetValue("CDMCurrentStacksRelativePoint", nil, true) end,
+                    function(id) return id == Addon:GetValue("CurrentStacksPoint", nil, true) end,
+                    function(id) return id == Addon:GetValue("CurrentStacksRelativePoint", nil, true) end,
                 },
                 OnSelect    = {
-                    function(id) Addon:SaveSetting("CDMCurrentStacksPoint", id, true) end,
-                    function(id) Addon:SaveSetting("CDMCurrentStacksRelativePoint", id, true) end,
+                    function(id) Addon:SaveSetting("CurrentStacksPoint", id, true) end,
+                    function(id) Addon:SaveSetting("CurrentStacksRelativePoint", id, true) end,
                 },
                 showNew     = false,
                 OnEnter     = {
-                    false,
-                    false,
+                    function() ActionBarEnhancedDropdownMixin:RefreshFontPreview() end,
+                    function() ActionBarEnhancedDropdownMixin:RefreshFontPreview() end,
                 },
                 OnClose     = {
                     function()
+                        ActionBarEnhancedDropdownMixin:RefreshFontPreview()
                         local frameName = ABE_BarsListMixin:GetFrameLebel()
                         local frame = _G[frameName]
                         ABE_CDMCustomFrameCustomized:RefreshCooldownFont(frame, frameName)
                     end,
                     function()
+                        ActionBarEnhancedDropdownMixin:RefreshFontPreview()
                         local frameName = ABE_BarsListMixin:GetFrameLebel()
                         local frame = _G[frameName]
                         ABE_CDMCustomFrameCustomized:RefreshCooldownFont(frame, frameName)
@@ -2371,13 +2526,14 @@ Addon.config.containers = {
             ["CDMStacksOffset"] = {
                 type            = "checkboxSlider",
                 name            = L.StacksOffset,
-                checkboxValue   = "UseCDMStacksOffset",
-                sliderValue     = {"CDMStacksOffsetX", "CDMStacksOffsetY"},
+                checkboxValue   = "UseStacksOffset",
+                sliderValue     = {"StacksOffsetX", "StacksOffsetY"},
                 min             = -40,
                 max             = 40,
                 step            = 1,
                 sliderName      = {{top = L.OffsetX}, {top = L.OffsetY}},
                 callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshFontPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     local frame = _G[frameName]
                     ABE_CDMCustomFrameCustomized:RefreshCooldownFont(frame, frameName)
@@ -2386,13 +2542,14 @@ Addon.config.containers = {
             ["CDMStacksFontSize"] = {
                 type            = "checkboxSlider",
                 name            = L.FontStacksSize,
-                checkboxValue   = "UseCDMStacksFontSize",
-                sliderValue     = "CDMStacksFontSize",
+                checkboxValue   = "UseStacksFontSize",
+                sliderValue     = "StacksFontSize",
                 min             = 5,
                 max             = 40,
                 step            = 1,
                 sliderName      = {top = L.Size},
                 callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshFontPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     local frame = _G[frameName]
                     ABE_CDMCustomFrameCustomized:RefreshCooldownFont(frame, frameName)
@@ -2401,10 +2558,11 @@ Addon.config.containers = {
             ["CDMStacksFontColor"] = {
                 type            = "colorSwatch",
                 name            = L.FontColor,
-                value           = "CDMStacksFontColor",
-                checkboxValues  = {"UseCDMStacksFontColor"},
+                value           = "StacksColor",
+                checkboxValues  = {"UseStacksColor"},
                 alpha           = true,
                 callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshFontPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     local frame = _G[frameName]
                     ABE_CDMCustomFrameCustomized:RefreshCooldownFont(frame, frameName)
@@ -2452,6 +2610,903 @@ Addon.config.containers = {
                     ABE_CDMCustomFrameCustomized:RefreshCooldownFont(frame, frameName)
                 end,
             },
+            ["PreviewCooldownFont"] = {
+                type = "preview",
+                sub    = "CooldownFont",
+            },
+            ["PreviewFont"] = {
+                type = "preview",
+                sub    = "Font",
+            },
+        }
+    },
+    CastBarsOptionsContainer = {
+        title = L.CastBarsOptionsTitle,
+        desc = L.CastBarsOptionsDesc,
+        childs = {
+            ["CastBarEnable"] = {
+                type            = "checkbox",
+                name            = L.Enable,
+                value           = "CastBarEnable",
+                callback        = function()
+
+                end,
+            },
+            ["CastBarWidth"] = {
+                type            = "checkboxSlider",
+                name            = L.Width,
+                checkboxValue   = "UseCastBarWidth",
+                sliderValue     = "CastBarWidth",
+                min             = 10,
+                max             = 800,
+                step            = 1,
+                sliderName      = {top = L.Width},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.SetLook(frame)
+                end,
+            },
+            ["CastBarHeight"] = {
+                type            = "checkboxSlider",
+                name            = L.Height,
+                checkboxValue   = "UseCastBarHeight",
+                sliderValue     = "CastBarHeight",
+                min             = 10,
+                max             = 100,
+                step            = 1,
+                sliderName      = {top = L.Height},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.SetLook(frame)
+                end,
+            },
+
+            ["CastBarPoint"] = {
+                type        = "dropdown",
+                setting     = {Addon.AttachPoints, Addon.AttachPoints},
+                name        = L.AttachPoint,
+                IsSelected  = {
+                    function(id) return id == Addon:GetValue("CurrentCastBarPoint", nil, true) end,
+                    function(id) return id == Addon:GetValue("CurrentCastBarRelativePoint", nil, true) end,
+                },
+                OnSelect    = {
+                    function(id) Addon:SaveSetting("CurrentCastBarPoint", id, true) end,
+                    function(id) Addon:SaveSetting("CurrentCastBarRelativePoint", id, true) end,
+                },
+                showNew     = false,
+                OnEnter     = {
+                    false,
+                    false,
+                },
+                OnClose     = {
+                    function()
+                        local frameName = ABE_BarsListMixin:GetFrameLebel()
+                        local frame = _G[frameName]
+                        ABE_CastingBarMixin.SetLook(frame)
+                    end,
+                    function()
+                        local frameName = ABE_BarsListMixin:GetFrameLebel()
+                        local frame = _G[frameName]
+                        ABE_CastingBarMixin.SetLook(frame)
+                    end,
+                },
+            },
+            ["CastBarOffsetX"] = {
+                type            = "checkboxSlider",
+                name            = L.OffsetX,
+                checkboxValue   = "UseCastBarOffsetX",
+                sliderValue     = "CastBarOffsetX",
+                min             = -1000,
+                max             = 1000,
+                step            = 1,
+                sliderName      = {top = L.Offset},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.SetLook(frame)
+                end,
+            },
+            ["CastBarOffsetY"] = {
+                type            = "checkboxSlider",
+                name            = L.OffsetY,
+                checkboxValue   = "UseCastBarOffsetY",
+                sliderValue     = "CastBarOffsetY",
+                min             = -1000,
+                max             = 1000,
+                step            = 1,
+                sliderName      = {top = L.Offset},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.SetLook(frame)
+                end,
+            },
+            ["CastBarStatusbarTexture"] = {
+                type        = "dropdown",
+                statusBar   = true,
+                setting     = function() return T.StatusBarTextures end,
+                name        = L.StatusBarTextures,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentCastBarStatusbarTexture", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentCastBarStatusbarTexture", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose     = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.SetStatusBarTexture(frame)
+                end,
+            },
+            ["CastBarBackgroundTexture"] = {
+                type        = "dropdown",
+                statusBar   = true,
+                setting     = function() return T.StatusBarTextures end,
+                name        = L.StatusBarBGTextures,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentCastBarBackgroundTexture", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentCastBarBackgroundTexture", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose     = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.SetStatusBarTexture(frame)
+                end,
+            },
+            ["CastBarBackgroundColor"] = {
+                type            = "colorSwatch",
+                name            = L.UseCustomBGColor,
+                value           = "CastBarBackgroundColor",
+                checkboxValues  = {"UseCastBarBackgroundColor"},
+                alpha           = true,
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.SetStatusBarTexture(frame)
+                end,
+            },
+            ["CastBarPipTexture"] = {
+                type        = "dropdown",
+                setting     = function() return T.PipTextures end,
+                name        = L.BarPipTexture,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentCastBarPipTexture", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentCastBarPipTexture", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose     = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.ShowSpark(frame)
+                end,
+            },
+            ["PipSize"] = {
+                type            = "checkboxSlider",
+                name            = L.BarPipSize,
+                checkboxValue   = "UseCastBarPipSize",
+                sliderValue     = {"CastBarPipSizeX", "CastBarPipSizeY"},
+                min             = 1,
+                max             = 60,
+                step            = 1,
+                sliderName      = {{top = L.SizeX}, {top = L.SizeY}},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.ShowSpark(frame)
+                end,
+            },
+            ["CastHideTextBorder"] = {
+                type            = "checkbox",
+                name            = L.CastHideTextBorder,
+                value           = "CastHideTextBorder",
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.SetLook(frame)
+                end,
+            },
+            ["CastHideInterruptAnim"] = {
+                type            = "checkbox",
+                name            = L.CastHideInterruptAnim,
+                value           = "CastHideInterruptAnim",
+            },
+            ["CastQuickFinish"] = {
+                type            = "checkbox",
+                name            = L.CastQuickFinish,
+                value           = "CastQuickFinish",
+            },
+            ["CastBarShieldIconTexture"] = {
+                type        = "dropdown",
+                setting     = function() return T.CastBarShieldIcons end,
+                name        = L.ShieldIconTexture,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentCastBarShieldIconTexture", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentCastBarShieldIconTexture", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose     = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.SetStatusBarTexture(frame)
+                end,
+            },
+            ["CastBarShieldIconSize"] = {
+                type            = "checkboxSlider",
+                name            = L.Size,
+                checkboxValue   = "UseCastBarShieldIconSize",
+                sliderValue     = "CastBarShieldIconSize",
+                min             = 5,
+                max             = 100,
+                step            = 1,
+                sliderName      = {top = L.Size},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.SetLook(frame)
+                end,
+            },
+            ["CastBarShieldIconPoint"] = {
+                type        = "dropdown",
+                setting     = {Addon.AttachPoints, Addon.AttachPoints},
+                name        = L.AttachPoint,
+                IsSelected  = {
+                    function(id) return id == Addon:GetValue("CurrentCastBarShieldIconPoint", nil, true) end,
+                    function(id) return id == Addon:GetValue("CurrentCastBarShieldIconRelativePoint", nil, true) end,
+                },
+                OnSelect    = {
+                    function(id) Addon:SaveSetting("CurrentCastBarShieldIconPoint", id, true) end,
+                    function(id) Addon:SaveSetting("CurrentCastBarShieldIconRelativePoint", id, true) end,
+                },
+                showNew     = false,
+                OnEnter     = {
+                    false,
+                    false,
+                },
+                OnClose     = {
+                    function()
+                        local frameName = ABE_BarsListMixin:GetFrameLebel()
+                        local frame = _G[frameName]
+                        ABE_CastingBarMixin.SetLook(frame)
+                    end,
+                    function()
+                        local frameName = ABE_BarsListMixin:GetFrameLebel()
+                        local frame = _G[frameName]
+                        ABE_CastingBarMixin.SetLook(frame)
+                    end,
+                },
+            },
+            ["CastBarShieldIconOffset"] = {
+                type            = "checkboxSlider",
+                name            = L.Offset,
+                checkboxValue   = "UseCastBarShieldIconOffset",
+                sliderValue     = {"CastBarShieldIconOffsetX", "CastBarShieldIconOffsetY"},
+                min             = -100,
+                max             = 100,
+                step            = 1,
+                sliderName      = {{top = L.OffsetX}, {top = L.OffsetY}},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.SetLook(frame)
+                end,
+            },
+
+            ["CastBarStandardColor"] = {
+                type            = "colorSwatch",
+                name            = L.CastBarStandartColor,
+                value           = "CastBarStandardColor",
+                checkboxValues  = {"UseCastBarStandardColor"},
+                alpha           = true,
+            },
+            ["CastBarImportantColor"] = {
+                type            = "colorSwatch",
+                name            = L.CastBarImportantColor,
+                value           = "CastBarImportantColor",
+                checkboxValues  = {"UseCastBarImportantColor"},
+                alpha           = true,
+            },
+            ["CastBarChannelColor"] = {
+                type            = "colorSwatch",
+                name            = L.CastBarChannelColor,
+                value           = "CastBarChannelColor",
+                checkboxValues  = {"UseCastBarChannelColor"},
+                alpha           = true,
+            },
+            ["CastBarUninterruptableColor"] = {
+                type            = "colorSwatch",
+                name            = L.CastBarUninterruptableColor,
+                value           = "CastBarUninterruptableColor",
+                checkboxValues  = {"UseCastBarUninterruptableColor"},
+                alpha           = true,
+            },
+            ["CastBarInterruptedColor"] = {
+                type            = "colorSwatch",
+                name            = L.CastBarInterruptedColor,
+                value           = "CastBarInterruptedColor",
+                checkboxValues  = {"UseCastBarInterruptedColor"},
+                alpha           = true,
+            },
+            ["CastBarReadyColor"] = {
+                type            = "colorSwatch",
+                name            = L.CastBarReadyColor,
+                value           = "CastBarReadyColor",
+                checkboxValues  = {"UseCastBarReadyColor"},
+                alpha           = true,
+            },
+        }
+        
+    },
+    CastBarsIconOptionsContainer = {
+        title = L.CastBarsIconOptionsTitle,
+        desc = L.CastBarsIconOptionsDesc,
+        childs = {
+            ["CastBarIconSize"] = {
+                type            = "checkboxSlider",
+                name            = L.IconSize,
+                checkboxValue   = "UseCastBarIconSize",
+                sliderValue     = "CastBarIconSize",
+                min             = 10,
+                max             = 80,
+                step            = 1,
+                sliderName      = {top = L.Size},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.UpdateIconShown(frame)
+                end,
+            },
+            ["CastBarIconPosition"] = {
+                type        = "dropdown",
+                setting     = Addon.CastingBarIconPosition,
+                name        = L.CastBarIconPos,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentCastBarIconPos", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentCastBarIconPos", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose     = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.UpdateIconShown(frame)
+                end,
+            },
+            ["CastBarIconPoint"] = {
+                type        = "dropdown",
+                setting     = {Addon.AttachPoints, Addon.AttachPoints},
+                name        = L.AttachPoint,
+                IsSelected  = {
+                    function(id) return id == Addon:GetValue("CurrentCastBarIconPoint", nil, true) end,
+                    function(id) return id == Addon:GetValue("CurrentCastBarIconRelativePoint", nil, true) end,
+                },
+                OnSelect    = {
+                    function(id) Addon:SaveSetting("CurrentCastBarIconPoint", id, true) end,
+                    function(id) Addon:SaveSetting("CurrentCastBarIconRelativePoint", id, true) end,
+                },
+                showNew     = false,
+                OnEnter     = {
+                    false,
+                    false,
+                },
+                OnClose     = {
+                    function()
+                        local frameName = ABE_BarsListMixin:GetFrameLebel()
+                        local frame = _G[frameName]
+                        ABE_CastingBarMixin.UpdateIconShown(frame)
+                    end,
+                    function()
+                        local frameName = ABE_BarsListMixin:GetFrameLebel()
+                        local frame = _G[frameName]
+                        ABE_CastingBarMixin.UpdateIconShown(frame)
+                    end,
+                },
+            },
+            ["CastBarIconOffset"] = {
+                type            = "checkboxSlider",
+                name            = L.Offset,
+                checkboxValue   = "UseCastBarIconOffset",
+                sliderValue     = {"CastBarIconOffsetX", "CastBarIconOffsetY"},
+                min             = -40,
+                max             = 40,
+                step            = 1,
+                sliderName      = {{top = L.OffsetX}, {top = L.OffsetY}},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.UpdateIconShown(frame)
+                end,
+            },
+            ["IconMaskTextureOptions"] = {
+                type        = "dropdown",
+                setting     = T.IconMaskTextures,
+                name        = L.IconMaskTextureType,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentIconMaskTexture", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentIconMaskTexture", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose     = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.UpdateIconShown(frame)
+                end,
+            },
+            ["MaskScale"] = {
+                type            = "checkboxSlider",
+                name            = L.IconMaskScale,
+                checkboxValue   = "UseIconMaskScale",
+                sliderValue     = "IconMaskScale",
+                min             = 0.5,
+                max             = 1.5,
+                step            = 0.01,
+                sliderName      = {top = L.Scale},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.UpdateIconShown(frame)
+                end,
+            },
+            ["IconScale"] = {
+                type            = "checkboxSlider",
+                name            = L.IconScale,
+                checkboxValue   = "UseIconScale",
+                sliderValue     = "IconScale",
+                min             = 0.5,
+                max             = 1.5,
+                step            = 0.01,
+                sliderName      = {top = L.Scale},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.UpdateIconShown(frame)
+                end,
+            },
+        }
+    },
+    CastBarsSQWLatencyOptionsContainer = {
+        title = L.CastBarsSQWLatencyOptionsTitle,
+        desc = L.CastBarsSQWLatencyOptionsDesc,
+        childs = {
+            ["CastBarShowLatency"] = {
+                type            = "checkbox",
+                name            = L.Enable,
+                value           = "CastBarShowLatency",
+                callback        = function()
+
+                end,
+            },
+            ["CastBarLatencyTexture"] = {
+                type        = "dropdown",
+                statusBar   = true,
+                setting     = function() return T.StatusBarTextures end,
+                name        = L.StacksFont,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentCastBarLatencyTexture", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentCastBarLatencyTexture", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose     = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.SetLook(frame)
+                end,
+            },
+            ["CastBarLatencyColor"] = {
+                type            = "colorSwatch",
+                name            = L.UseCustomColor,
+                value           = "CastBarLatencyColor",
+                checkboxValues  = {"UseCastBarLatencyColor"},
+                alpha           = true,
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.SetLook(frame)
+                end,
+            },
+
+            ["CastBarShowSQW"] = {
+                type            = "checkbox",
+                name            = L.Enable,
+                value           = "CastBarShowSQW",
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.SetLook(frame)
+                end,
+            },
+            ["CastBarSQWTexture"] = {
+                type        = "dropdown",
+                statusBar   = true,
+                setting     = function() return T.StatusBarTextures end,
+                name        = L.StacksFont,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentCastBarSQWTexture", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentCastBarSQWTexture", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose     = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.SetLook(frame)
+                end,
+            },
+            ["CastBarSQWColor"] = {
+                type            = "colorSwatch",
+                name            = L.UseCustomColor,
+                value           = "CastBarSQWColor",
+                checkboxValues  = {"UseCastBarSQWColor"},
+                alpha           = true,
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.SetLook(frame)
+                end,
+            },
+        }
+    },
+    CastBarsFontContainer = {
+        title = L.FontTitle,
+        desc = L.CastBarsFontDesc,
+        childs = {
+            ["CastBarCastNameFont"] = {
+                type        = "dropdown",
+                fontOption  = true,
+                setting     = function() return Addon.Fonts end,
+                name        = L.NameFont,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentCastBarCastNameFont", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentCastBarCastNameFont", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose     = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.SetLook(frame)
+                end,
+            },
+            ["CastBarCastNameSize"] = {
+                type            = "checkboxSlider",
+                name            = L.FontNameSize,
+                checkboxValue   = "UseCastBarCastNameSize",
+                sliderValue     = "CastBarCastNameSize",
+                min             = 5,
+                max             = 40,
+                step            = 1,
+                sliderName      = {top = L.Size},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.SetLook(frame)
+                end,
+            },
+            ["CastBarCastNameColor"] = {
+                type            = "colorSwatch",
+                name            = L.FontColor,
+                value           = "CastBarCastNameColor",
+                checkboxValues  = {"UseCastBarCastNameColor"},
+                alpha           = true,
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.SetLook(frame)
+                end,
+            },
+            ["CastBarCastNamePoint"] = {
+                type        = "dropdown",
+                setting     = {Addon.AttachPoints, Addon.AttachPoints},
+                name        = L.AttachPoint,
+                IsSelected  = {
+                    function(id) return id == Addon:GetValue("CurrentCastBarCastNamePoint", nil, true) end,
+                    function(id) return id == Addon:GetValue("CurrentCastBarCastNameRelativePoint", nil, true) end,
+                },
+                OnSelect    = {
+                    function(id) Addon:SaveSetting("CurrentCastBarCastNamePoint", id, true) end,
+                    function(id) Addon:SaveSetting("CurrentCastBarCastNameRelativePoint", id, true) end,
+                },
+                showNew     = false,
+                OnEnter     = {
+                    false,
+                    false,
+                },
+                OnClose     = {
+                    function()
+                        local frameName = ABE_BarsListMixin:GetFrameLebel()
+                        local frame = _G[frameName]
+                        ABE_CastingBarMixin.SetLook(frame)
+                    end,
+                    function()
+                        local frameName = ABE_BarsListMixin:GetFrameLebel()
+                        local frame = _G[frameName]
+                        ABE_CastingBarMixin.SetLook(frame)
+                    end,
+                },
+            },
+            ["CastBarCastNameOffset"] = {
+                type            = "checkboxSlider",
+                name            = L.Offset,
+                checkboxValue   = "UseCastBarCastNameOffset",
+                sliderValue     = {"CastBarCastNameOffsetX", "CastBarCastNameOffsetY"},
+                min             = -40,
+                max             = 40,
+                step            = 1,
+                sliderName      = {{top = L.OffsetX}, {top = L.OffsetY}},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.SetLook(frame)
+                end,
+            },
+            ["CastBarCastNameJustifyH"] = {
+                type        = "dropdown",
+                setting     = Addon.BarTextJustifyH,
+                name        = L.JustifyH,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentCastBarCastNameJustifyH", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentCastBarCastNameJustifyH", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose     = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.SetLook(frame)
+                end,
+            },
+
+            ["CastBarCastTimeFormat"] = {
+                type        = "dropdown",
+                setting     = Addon.CastingBarCastTimeFormat,
+                name        = L.CastTimeFormat,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentCastBarCastTimeFormat", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentCastBarCastTimeFormat", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose     = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.SetLook(frame)
+                end,
+            },
+            ["CastBarCastTimeFont"] = {
+                type        = "dropdown",
+                fontOption  = true,
+                setting     = function() return Addon.Fonts end,
+                name        = L.TimerFont,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentCastBarCastTimeFont", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentCastBarCastTimeFont", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose     = function()
+                    
+                end,
+            },
+            ["CastBarCastTimeSize"] = {
+                type            = "checkboxSlider",
+                name            = L.FontTimerSize,
+                checkboxValue   = "UseCastBarCastTimeSize",
+                sliderValue     = "CastBarCastTimeSize",
+                min             = 5,
+                max             = 40,
+                step            = 1,
+                sliderName      = {top = L.Size},
+                callback        = function()
+                    
+                end,
+            },
+            ["CastBarCastTimeColor"] = {
+                type            = "colorSwatch",
+                name            = L.FontColor,
+                value           = "CastBarCastTimeColor",
+                checkboxValues  = {"UseCastBarCastTimeColor"},
+                alpha           = true,
+                callback        = function()
+
+                end,
+            },
+            ["CastBarCastTimePoint"] = {
+                type        = "dropdown",
+                setting     = {Addon.AttachPoints, Addon.AttachPoints},
+                name        = L.AttachPoint,
+                IsSelected  = {
+                    function(id) return id == Addon:GetValue("CurrentCastBarCastTimePoint", nil, true) end,
+                    function(id) return id == Addon:GetValue("CurrentCastBarCastTimeRelativePoint", nil, true) end,
+                },
+                OnSelect    = {
+                    function(id) Addon:SaveSetting("CurrentCastBarCastTimePoint", id, true) end,
+                    function(id) Addon:SaveSetting("CurrentCastBarCastTimeRelativePoint", id, true) end,
+                },
+                showNew     = false,
+                OnEnter     = {
+                    false,
+                    false,
+                },
+                OnClose     = {
+                    function()
+                        local frameName = ABE_BarsListMixin:GetFrameLebel()
+                        local frame = _G[frameName]
+                        ABE_CastingBarMixin.SetLook(frame)
+                    end,
+                    function()
+                        local frameName = ABE_BarsListMixin:GetFrameLebel()
+                        local frame = _G[frameName]
+                        ABE_CastingBarMixin.SetLook(frame)
+                    end,
+                },
+            },
+            ["CastBarCastTimeOffset"] = {
+                type            = "checkboxSlider",
+                name            = L.Offset,
+                checkboxValue   = "UseCastBarCastTimeOffset",
+                sliderValue     = {"CastBarCastTimeOffsetX", "CastBarCastTimeOffsetY"},
+                min             = -40,
+                max             = 40,
+                step            = 1,
+                sliderName      = {{top = L.OffsetX}, {top = L.OffsetY}},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.SetLook(frame)
+                end,
+            },
+            ["CastBarCastTimeJustifyH"] = {
+                type        = "dropdown",
+                setting     = Addon.BarTextJustifyH,
+                name        = L.JustifyH,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentCastBarCastTimeJustifyH", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentCastBarCastTimeJustifyH", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose     = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.SetLook(frame)
+                end,
+            },
+
+            ["CastBarCastTargetEnable"] = {
+                type            = "checkbox",
+                name            = L.EnableSpellTargetName,
+                value           = "CastBarCastTargetEnable",
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.SetLook(frame)
+                end,
+            },
+            ["CastBarCastTargetFont"] = {
+                type        = "dropdown",
+                fontOption  = true,
+                setting     = function() return Addon.Fonts end,
+                name        = L.SpellTargetFont,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentCastBarCastTargetFont", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentCastBarCastTargetFont", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose     = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.SetLook(frame)
+                end,
+            },
+            ["CastBarCastTargetSize"] = {
+                type            = "checkboxSlider",
+                name            = L.SpellTargetSize,
+                checkboxValue   = "UseCastBarCastTargetSize",
+                sliderValue     = "CastBarCastTargetSize",
+                min             = 5,
+                max             = 40,
+                step            = 1,
+                sliderName      = {top = L.Size},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.SetLook(frame)
+                end,
+            },
+            ["CastBarCastTargetColor"] = {
+                type            = "colorSwatch",
+                name            = L.FontColor,
+                value           = "CastBarCastTargetColor",
+                checkboxValues  = {"UseCastBarCastTargetColor"},
+                alpha           = true,
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.SetLook(frame)
+                end,
+            },
+            ["CastBarCastTargetPoint"] = {
+                type        = "dropdown",
+                setting     = {Addon.AttachPoints, Addon.AttachPoints},
+                name        = L.AttachPoint,
+                IsSelected  = {
+                    function(id) return id == Addon:GetValue("CurrentCastBarCastTargetPoint", nil, true) end,
+                    function(id) return id == Addon:GetValue("CurrentCastBarCastTargetRelativePoint", nil, true) end,
+                },
+                OnSelect    = {
+                    function(id) Addon:SaveSetting("CurrentCastBarCastTargetPoint", id, true) end,
+                    function(id) Addon:SaveSetting("CurrentCastBarCastTargetRelativePoint", id, true) end,
+                },
+                showNew     = false,
+                OnEnter     = {
+                    false,
+                    false,
+                },
+                OnClose     = {
+                    function()
+                        local frameName = ABE_BarsListMixin:GetFrameLebel()
+                        local frame = _G[frameName]
+                        ABE_CastingBarMixin.SetLook(frame)
+                    end,
+                    function()
+                        local frameName = ABE_BarsListMixin:GetFrameLebel()
+                        local frame = _G[frameName]
+                        ABE_CastingBarMixin.SetLook(frame)
+                    end,
+                },
+            },
+            ["CastBarCastTargetOffset"] = {
+                type            = "checkboxSlider",
+                name            = L.Offset,
+                checkboxValue   = "UseCastBarCastTargetOffset",
+                sliderValue     = {"CastBarCastTargetOffsetX", "CastBarCastTargetOffsetY"},
+                min             = -100,
+                max             = 100,
+                step            = 1,
+                sliderName      = {{top = L.OffsetX}, {top = L.OffsetY}},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.SetLook(frame)
+                end,
+            },
+            ["CastBarCastTargetJustifyH"] = {
+                type        = "dropdown",
+                setting     = Addon.BarTextJustifyH,
+                name        = L.JustifyH,
+                IsSelected  = function(id) return id == Addon:GetValue("CurrentCastBarCastTargetJustifyH", nil, true) end,
+                OnSelect    = function(id) Addon:SaveSetting("CurrentCastBarCastTargetJustifyH", id, true) end,
+                showNew     = false,
+                OnEnter     = false,
+                OnClose     = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.SetLook(frame)
+                end,
+            },
+        }
+    },
+    CastBarsBackdropContainer = {
+        title = L.IconBorderTitle,
+        desc = L.IconBorderDesc,
+        childs = {
+            ["CastBarsBackdropSize"] = {
+                type            = "checkboxSlider",
+                name            = L.CDMBackdrop,
+                checkboxValue   = "UseCastBarsBackdrop",
+                sliderValue     = "CastBarsBackdropSize",
+                min             = 1,
+                max             = 10,
+                step            = 1,
+                sliderName      = {top = L.Size},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.SetLook(frame)
+                end,
+            },
+            ["CastBarsBackdropColor"] = {
+                type            = "colorSwatch",
+                name            = L.CDMBackdropColor,
+                value           = "CastBarsBackdropColor",
+                checkboxValues  = {"UseCastBarsBackdropColor"},
+                alpha           = true,
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.SetLook(frame)
+                end,
+            },
+            ["CastBarsBackdropColorByType"] = {
+                type            = "checkbox",
+                name            = L.ColorByCastbarType,
+                value           = "CastBarsBackdropColorByType",
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.SetLook(frame)
+                end,
+            },
         }
     },
 }
@@ -2482,7 +3537,101 @@ function Addon:BuildPresetsPreview()
     end
 end
 
-function Addon:BuildContainerChildren(container, containerDef, containerConfig)
+--[[ local ElementsFramePools = CreateFramePoolCollection()
+
+function Addon:BuildContainerChildren(container, elementData, containerConfig)
+
+    local frames = {}
+    frames[elementData.name] = container
+
+    local elementResetCallback = function(pool, elementFrame)
+        Pool_HideAndClearAnchors(pool, elementFrame)
+        elementFrame:UnregisterAllEvents()
+        
+        if elementFrame.OnClick then
+            elementFrame:SetScript("OnClick", nil)
+        end
+        if elementFrame.OnEnter then
+            elementFrame:SetScript("OnEnter", nil)
+        end
+        if elementFrame.OnLeave then
+            elementFrame:SetScript("OnLeave", nil)
+        end
+        
+        if elementFrame.Checkbox then elementFrame.Checkbox:SetScript("OnClick", nil) end
+        if elementFrame.ColorSwatch then elementFrame.ColorSwatch:SetScript("OnClick", nil) end
+        if elementFrame.EditBox then elementFrame.EditBox:SetScript("OnEnterPressed", nil) elementFrame.EditBox:SetScript("OnEditFocusLost", nil) end
+    end
+
+    if container.activeChildren then
+        for _, poolData in ipairs(container.activeChildren) do
+            poolData.pool:Release(poolData.frame)
+        end
+    end
+
+    container.activeChildren = {}
+
+    for i, data in ipairs(elementData.childs) do
+        local childName = data.name
+
+        local elementFramePool = ElementsFramePools:GetOrCreatePool(
+            data.template:find("Button") and "CheckButton" or "Frame", 
+            container, 
+            data.template, 
+            elementResetCallback
+        )
+
+        local child = elementFramePool:Acquire()
+
+        child:ClearAllPoints()
+
+        if data.point then
+            local parentName = data.point[2]
+            local parent
+            if parentName == "container" then
+                parent = container
+            elseif parentName == "desc" then
+                parent = container.Desc
+            elseif parentName == "title" then
+                parent = container.Title
+            else
+                parent = frames[parentName]
+                if not parent then parent = container end -- Fallback
+            end 
+            child:SetPoint(data.point[1], parent, data.point[3], data.point[4], data.point[5])
+        else
+            if i == 1 then
+                child:SetPoint("TOP", container.Desc, "BOTTOM", 0, -10)
+            else
+                local prev = frames[elementData.childs[i-1].name]
+                if prev then
+                    child:SetPoint("TOP", prev, "BOTTOM", 0, -10)
+                end
+            end
+        end
+
+        if data.scale then
+            child:SetScale(data.scale)
+        else
+            child:SetScale(1)
+        end
+
+        frames[data.name] = child
+
+        if containerConfig and containerConfig.childs then
+            local childConfig = containerConfig.childs[data.name]
+            if childConfig then
+                Addon:InitChildElement(child, childConfig, frames)
+            end
+        end
+
+        child:Show()
+        table.insert(container.activeChildren, { frame = child, pool = elementFramePool })
+    end
+end ]]
+
+function Addon:BuildContainerChildren(container, containerDef, containerConfig, childList)
+    
 
     local frames = {}
     frames[containerDef.name] = container
@@ -2526,5 +3675,7 @@ function Addon:BuildContainerChildren(container, containerDef, containerConfig)
                 Addon:InitChildElement(child, childConfig, frames)
             end
         end
+
+        table.insert(childList, child)
     end
 end

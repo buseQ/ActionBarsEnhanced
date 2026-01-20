@@ -21,13 +21,12 @@ function ABE_CDMCustomItemMixin:OnLoad()
     self.Cooldown:SetScript("OnCooldownDone", GenerateClosure(self.OnCooldownDone, self))
     self.AuraCooldown:SetScript("OnCooldownDone", GenerateClosure(self.OnAuraDone, self))
     self:SetMouseClickEnabled(false)
-    
 end
 
 function ABE_CDMCustomItemMixin:OnShow()
-    --[[ if self:GetSpellID() then
+    if self:GetSpellID() then
         self:RefreshData()
-    end ]]
+    end
     
     --self:FindAuraInstanceIDForCurrentSpellID()
 end
@@ -184,7 +183,7 @@ end
 
 function ABE_CDMCustomItemMixin:GetCooldownDurationObj()
     if self.type == "spell" then
-        self.durationObj = C_Spell.GetSpellCooldownDuration(self.baseSpellID or self.spellID)
+        self.durationObj = C_Spell.GetSpellChargeDuration(self.baseSpellID or self.spellID) or C_Spell.GetSpellCooldownDuration(self.baseSpellID or self.spellID)
     end
     return self.durationObj or nil
 end
@@ -352,18 +351,22 @@ function ABE_CDMCustomItemMixin:RefreshSpellCooldownInfo()
     local chargeCooldownInfo = self:GetChargesCooldownInfo()
     local cooldownInfo = self:GetCooldownInfo()
 
-    --[[ local durationObj = self:GetCooldownDurationObj()
-    if durationObj then
-        local timerString = cooldownFrame:GetCountdownFontString()
-        local EvaluateDuration = durationObj.EvaluateRemainingDuration and durationObj:EvaluateRemainingDuration(self.cooldownColorCurve) or nil
- 
-        if EvaluateDuration then
-            timerString:SetVertexColor(EvaluateDuration:GetRGBA())
+    --[[ cooldownFrame:SetScript("OnUpdate", function()
+        local durationObj = self:GetCooldownDurationObj()
+        if durationObj then
+            local timerString = cooldownFrame:GetCountdownFontString()
+            if not timerString:IsVisible() then return end
+
+            local EvaluateDuration = durationObj.EvaluateRemainingDuration and durationObj:EvaluateRemainingDuration(Addon.cooldownColorCurve) or nil
+    
+            if EvaluateDuration then
+                timerString:SetVertexColor(EvaluateDuration:GetRGBA())
+            end
+            
         end
-    end ]]
+    end) ]]
 
     if chargeCooldownInfo and chargeCooldownInfo.startTime and chargeCooldownInfo.duration then
-        
         cooldownFrame:SetDrawSwipe(false)
         if cooldownInfo.isOnGCD == false then
             self.isOnActualCooldown = true
@@ -450,14 +453,23 @@ function ABE_CDMCustomItemMixin:RefreshVisibility()
     else
         self:SetAlpha(1)
     end ]]
-    if parentFrame.Container.hideInactive then
+    local hideType = parentFrame.Container.hideInactiveType
+
+    if hideType == 3 then
         if self.isOnActualCooldown or self.isOnAuraTimer or self.isOnChargeCooldown then
             self.__isActive = true
         else
             self.__isActive = false
         end
         parentFrame:RefreshVisibileOnCD()
-    else
+    elseif hideType == 2 then
+        if self.isOnAuraTimer then
+            self.__isActive = true
+        else
+            self.__isActive = false
+        end
+        parentFrame:RefreshVisibileOnCD()
+    elseif hideType == 1 then
         self.__isActive = nil
     end
 end
@@ -575,7 +587,6 @@ function ABE_CDMCustomFrameMixin:OnLoad()
         CooldownFrame_Clear(itemFrame.Cooldown)
         CooldownFrame_Clear(itemFrame.AuraCooldown)
         itemFrame:UnregisterAllEvents()
-
 	end
 
     self.itemPool = CreateFramePool("Frame", self.Container, "ABE_CDMCustomItemTemplate", itemResetCallback)
@@ -699,7 +710,7 @@ local CooldownManagerFrames = {
 
 function ABE_CDMCustomFrameMixin:OnAuraAddedEvent(spellID, auraData)
     for itemFrame in self.itemPool:EnumerateActive() do
-        if itemFrame.spellID == spellID then
+        if not itemFrame.__removeAura and itemFrame.spellID == spellID then
             itemFrame.auraInstanceID = auraData.auraInstanceID
             itemFrame.auraDuration = auraData.duration
             local auraDurationObject = C_UnitAuras.GetAuraDuration("player", itemFrame.auraInstanceID)
@@ -898,7 +909,7 @@ function ABE_CDMCustomFrameMixin:SetupGridLayoutParams()
 	container.layoutFramesGoingUp = goingUp
     container.alwaysUpdateLayout = true
     container.gridLayoutType = Addon:GetValue("CDMGridLayoutType", nil, self.frameName)
-    container.hideInactive = Addon:GetValue("CDMHideWhenInactive", nil, self.frameName)
+    container.hideInactiveType = Addon:GetValue("CurrentHideWhenInactive", nil, self.frameName)
     container.isCentered = tonumber(container.gridLayoutType) == 1
     container.keepEmpty = tonumber(container.gridLayoutType) == 3
     container.childrenSize = 30

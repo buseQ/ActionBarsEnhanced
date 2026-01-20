@@ -318,7 +318,7 @@
 				</Texture>
 			</Layer>
 			<Layer level="OVERLAY">
-				<FontString parentKey="Title" inherits="GameFontHighlightMedium" justifyH="LEFT" maxLines="1" hidden="false">
+				<FontString parentKey="Title" inherits="GameFontHighlightMedium" justifyH="LEFT" maxLines="2" hidden="false">
 					<Size x="170"/>
 					<Shadow x="1" y="-1">
 						<Color r="0" g="0" b="0"/>
@@ -414,7 +414,7 @@
 						<Anchor point="BOTTOM" x="0" y="4" relativeKey="$parent.Header" relativePoint="TOP"/>
 					</Anchors>
 				</FontString>
-				<FontString parentKey="Desc" inherits="GameFontHighlightMedium" justifyH="MIDDLE" maxLines="2" >
+				<FontString parentKey="Desc" inherits="GameFontHighlightMedium" justifyH="MIDDLE" maxLines="4" >
 					<Size x="600"/>
 					<Shadow x="1" y="-1">
 						<Color r="0" g="0" b="0"/>

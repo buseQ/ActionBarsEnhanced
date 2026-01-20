@@ -130,6 +130,7 @@ L.CustomColorNoUse = "Свой цвет если кнопка недоступн
 L.CustomColorGCD = "Свой цвет если спелл на ГКД"
 L.CustomColorCD = "Свой цвет если спелл на КД"
 L.CustomColorNormal = "Свой цвет для обычного состояния"
+L.CustomColorAura = "Свой цвет если активна Аура"
 
 L.RemoveOORColor = "Убрать цвет OOR"
 L.RemoveOOMColor = "Убрать цвет OOM"
@@ -239,7 +240,7 @@ L.CDMRemoveAuraTypeBorder = "Убрать рамку типа Ауры"
 -- ==========================================
 L.CDMBarContainerTitle = "Настройки полосок"
 L.CDMBarContainerDesc = "Настройте внешний вид и расположение полосок."
-L.StatusBarTextures = "Текстура статусбара"
+L.StatusBarTextures = "Текстура полоски"
 L.FontNameSize = "Размер шрифта названия"
 L.StatusBarBGTextures = "Текстура фона"
 
@@ -322,7 +323,7 @@ L.SetFakeAura = "Свой таймер ауры"
 L.SetFakeAuraDesc = "Назначить таймер в |cff0bbe76СЕКУНДАХ|r, отображаемый при использовании предмета/заклинания (0 или пустая строка для удаления таймера)"
 
 L.QuickPresets = "Профили"
-L.QuickPresetsDesc = "Быстрый выбор Профиля. Детальная настрйока профиля в меню Advanced."
+L.QuickPresetsDesc = "Быстрый выбор Профиля. Детальная настройка профиля в меню Advanced."
 
 L.GridCentered = "По центру, скрывать пустые"
 L.GridCompact = "По краю, скрывать пустые"
@@ -375,3 +376,81 @@ L.HorizontalGrowthLEFT = "Слева"
 
 L.DirectionHORIZONTAL = "Горизонтально"
 L.DirectionVERTICAL = "Вертикально"
+
+L.ColorizedCooldownFont = "Красить текст по времени"
+
+
+-- ========================================
+-- Cast Bars
+-- ========================================
+
+L.CastBarsOptionsTitle = "Настройки кастбара"
+L.CastBarsOptionsDesc = "Кастомизация кастбара"
+
+L.None = "Нет"
+L.Left = "Слева"
+L.Right = "Справа"
+L.LeftAndRight = "Слева и справа"
+
+L.CastBarsIconOptionsTitle = "Иконка кастбара"
+L.CastBarsIconOptionsDesc = "Кастомизация иконки кастбара"
+
+L.CastBarIconPos = "Отображать иконку каста"
+
+L.AttachPoint = "Точка крепления"
+
+L.CastBarsSQWLatencyOptionsTitle = "Задержка и Очередь заклинаний"
+L.CastBarsSQWLatencyOptionsDesc = "Отображает текущую задержку и окно очереди заклинаний. |cff0bbe76Spell Queue Window|r позволяет поставить в очередь следующую способность до того, как закончится чтение предыдущего. По умолчанию это окно установлено на 400 мс. За доп. инфо выйди с этим вопросом в интернет."
+
+L.CastBarStandartColor = "Цвет обычного заклинания"
+L.CastBarImportantColor = "Цвет важного заклинания"
+L.CastBarChannelColor = "Цвет потокового заклинания"
+L.CastBarUninterruptableColor = "Цвет непрерываемого заклинания"
+L.CastBarInterruptedColor = "Цвет прерванного заклинания"
+L.CastBarReadyColor = "Цвет заклинания если кик не в кд"
+
+
+L.CastTimeCurrent = "Текущее"
+L.CastTimeMax = "Общее"
+L.CastTimeCurrentAndMax = "Текущее / Общее"
+
+L.CastTimeFormat = "Формат таймера"
+
+L.CastHideTextBorder = "Скрыть рамку текста"
+
+L.CastHideInterruptAnim = "Скрыть анимацию прерывания"
+
+L.CastQuickFinish = "Скрывать кастбар без анимации"
+
+L.ColorByCastbarType = "Цвет рамки по типу кастбара"
+
+L.Width = "Ширина"
+L.Height = "Высота"
+
+L.PlayerCastingBarFrame = "Кастбар игрока"
+L.TargetFrameSpellBar = "Кастбар цели"
+L.FocusFrameSpellBar = "Кастбар фокуса"
+L.BossTargetFrames = "Кастбар босса"
+
+L.ShieldIconTexture = "Иконка непрерываемого заклинания"
+
+L.EnableSpellTargetName = "Отображать цель заклинания"
+
+L.SpellTargetFont = "Шрифт цели заклинания"
+L.SpellTargetSize = "Размер шрифта цели заклинания"
+
+L.CastBarsFontDesc = "Настройка шрифтов для названия заклинания, таймера и цели заклинания."
+
+L.AlwaysShow = "Всегда отображать"
+L.ShowOnAura = "Только во время ауры"
+L.ShowOnAuraAndCD = "Во время ауры и кд"
+
+L.TimerFont = "Шрифт Таймера"
+
+L.FontTimerSize = "Размер шрифта Таймера"
+
+L.UseCustomBGColor = "Свой цвет фона"
+
+L.CDMAuraRemoveSwipe = "Не показывать ауру"
+
+L.JustifyH = "Горизонтальное выравнивание"

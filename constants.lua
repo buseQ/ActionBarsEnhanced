@@ -15,6 +15,22 @@ Addon.C = {
     ["GlobalSettings"] = {}
 }
 
+--Shamelessly stolen from Platynator
+Addon.InterruptMap = {
+    ["DEATHKNIGHT"] = {47528, 47476},
+    ["WARRIOR"] = {6552},
+    ["WARLOCK"] = {19647},
+    ["SHAMAN"] = {57994},
+    ["ROGUE"] = {1766},
+    ["PRIEST"] = {15487},
+    ["PALADIN"] = {96231, 31935},
+    ["MONK"] = {116705},
+    ["MAGE"] = {2139},
+    ["HUNTER"] = {187707, 147362},
+    ["EVOKER"] = {351338},
+    ["DRUID"] = {38675, 78675, 106839},
+    ["DEMONHUNTER"] = {183752},
+}
 Addon.AttachPoints = {
     [1] = "TOPLEFT",
     [2] = "TOP",
@@ -29,7 +45,7 @@ Addon.AttachPoints = {
 Addon.FontOutlines = {
     [1] = "NONE",
     [2] = "OUTLINE",
-    [3] = "THICKOUTLINE",
+    [3] = "OUTLINE, SLUG",
 }
 Addon.BarsVerticalGrow = {
     [1] = L.VerticalGrowthUP,
@@ -48,6 +64,45 @@ Addon.GridLayoutType = {
     [2] = L.GridCompact,
     [3] = L.GridFixed,
 }
+Addon.CastingBarIconPosition = {
+    [1] = L.None,
+    [2] = L.Left,
+    [3] = L.Right,
+    [4] = L.LeftAndRight,
+}
+Addon.CastingBarCastTimeFormat = {
+    [1] = L.CastTimeCurrent,
+    [2] = L.CastTimeMax,
+    [3] = L.CastTimeCurrentAndMax,
+}
+Addon.GridLayoutHideActive = {
+    [1] = L.AlwaysShow,
+    [2] = L.ShowOnAura,
+    [3] = L.ShowOnAuraAndCD,
+}
+Addon.BarTextJustifyH = {
+    [1] = "LEFT",
+    [2] = "CENTER",
+    [3] = "RIGHT",
+}
+Addon.BarTextJustifyV = {
+    [1] = "TOP",
+    [2] = "MIDDLE",
+    [3] = "BOTTOM",
+}
+
+do
+    local cooldownColorCurve = C_CurveUtil.CreateColorCurve()
+    cooldownColorCurve:SetType(Enum.LuaCurveType.Linear)
+    cooldownColorCurve:AddPoint(0, CreateColor(1, 1, 1, 1))
+    cooldownColorCurve:AddPoint(0.01, CreateColor(1, 0, 0, 1))
+    cooldownColorCurve:AddPoint(5, CreateColor(1, 0, 0, 1))
+    cooldownColorCurve:AddPoint(5.2, CreateColor(1, 1, 0, 1))
+    cooldownColorCurve:AddPoint(10, CreateColor(1, 1, 0, 1))
+    cooldownColorCurve:AddPoint(10.2, CreateColor(1, 1, 1, 1))
+
+    Addon.cooldownColorCurve = cooldownColorCurve
+end
 
 Addon.Defaults = {
     CurrentLoopGlow = 1,
@@ -132,6 +187,10 @@ Addon.Defaults = {
     NormalColorDesaturate = false,
     NormalColor = { r=1.0, g=1.0, b=1.0, a=1.0 },
 
+    UseAuraColor = false,
+    AuraColorDesaturate = false,
+    AuraColor = { r=1.0, g=1.0, b=1.0, a=1.0 },
+
     HideBagsBar = false,
     HideMicroMenu = false,
     HideStanceBar = false,
@@ -149,7 +208,7 @@ Addon.Defaults = {
     FontNameScale = 1.0,
 
     CurrentHotkeyFont = "Default",
-    CurrentHotkeyOutline = 2,
+    CurrentHotkeyOutline = 3,
     UseHotkeyShadow = false,
     HotkeyShadow = { r=0.0, g=0.0, b=0.0, a=1.0 },
     UseHotkeyShadowOffset = false,
@@ -166,7 +225,7 @@ Addon.Defaults = {
     CurrentHotkeyRelativePoint = 3,
 
     CurrentStacksFont = "Default",
-    CurrentStacksOutline = 2,
+    CurrentStacksOutline = 3,
     UseStacksShadow = false,
     StacksShadow = { r=0.0, g=0.0, b=0.0, a=1.0 },
     UseStacksShadowOffset = false,
@@ -190,7 +249,7 @@ Addon.Defaults = {
 
     CurrentEdgeTexture = 1,
     UseEdgeSize = false,
-    EdgeSize = 42,
+    EdgeSize = 1,
     UseEdgeColor = false,
     EdgeColor = { r=1.0, g=1.0, b=1.0, a=1.0 },
     EdgeAlwaysShow = false,
@@ -359,7 +418,146 @@ Addon.Defaults = {
 
     CDMGridLayoutType = 3,
 
-    CDMHideWhenInactive = false,
+    CurrentHideWhenInactive = 1,
+
+    ColorizedCooldownFont = false,
+
+    CastBarEnable = false,
+
+    CurrentCastBarStatusBarTexture = "Blizzard BuffBar",
+    CurrentCastBarBackgroundTexture = "Blizzard BuffBar",
+
+    CurrentCastBarPipTexture = 1,
+
+    UseCastBarPipSize = false,
+    CastBarPipSizeX = 8,
+    CastBarPipSizeY = 22,
+
+    UseCastBarStandardColor = true,
+    CastBarStandardColor = "CLASS_COLOR",
+    
+    UseCastBarImportantColor = true,
+    CastBarImportantColor = { r=0.95, g=0.55, b=0.2, a=1.0 },
+
+    UseCastBarChannelColor = true,
+    CastBarChannelColor = "CLASS_COLOR",
+
+    UseCastBarUninterruptableColor = true,
+    CastBarUninterruptableColor = { r=0.5, g=0.5, b=0.5, a=1.0 },
+    
+    UseCastBarInterruptedColor = true,
+    CastBarInterruptedColor = { r=1.0, g=0.2, b=0.2, a=1.0 },
+
+    UseCastBarReadyColor = true,
+    CastBarReadyColor = { r=0.2, g=0.98, b=0.2, a=1.0 },
+
+    UseCastBarBackgroundColor = true,
+    CastBarBackgroundColor = { r=0, g=0, b=0, a=0.6 },
+
+    UseCastBarIconSize = true,
+    CastBarIconSize = 20,
+
+    CurrentCastBarIconPos = 2,
+
+    CurrentCastBarIconPoint = 8,
+    CurrentCastBarIconRelativePoint = 7,
+
+    UseCastBarIconOffset = false,
+    CastBarIconOffsetX = -2,
+    CastBarIconOffsetY = 0,
+
+    CastBarShowLatency = true,
+    CurrentCastBarLatencyTexture = "Solid",
+    UseCastBarLatencyColor = true,
+    CastBarLatencyColor = { r=1.0, g=0.2, b=0.2, a=0.5 },
+
+    CastBarShowSQW = true,
+    CurrentCastBarSQWTexture = "Solid",
+    UseCastBarSQWColor = true,
+    CastBarSQWColor = { r=1.0, g=1.0, b=0.2, a=0.5 },
+
+    CurrentCastBarCastNameFont = "Default",
+    UseCastBarCastNameSize = false,
+    CastBarCastNameSize = 16,
+
+    UseCastBarCastNameColor = false,
+    CastBarCastNameColor = { r=1.0, g=1.0, b=1.0, a=1.0 },
+
+    CurrentCastBarCastNamePoint = 2,
+    CurrentCastBarCastNameRelativePoint = 5,
+    UseCastBarCastNameOffset = true,
+    CastBarCastNameOffsetX = 0,
+    CastBarCastNameOffsetY = 2,
+
+    CurrentCastBarCastTimeFormat = 3,
+    CurrentCastBarCastTimeFont = "Default",
+
+    UseCastBarCastTimeSize = false,
+    CastBarCastTimeSize = 16,
+
+    UseCastBarCastTimeColor = false,
+    CastBarCastTimeColor = { r=1.0, g=1.0, b=1.0, a=1.0 },
+
+    CurrentCastBarCastTimePoint = 8,
+    CurrentCastBarCastTimeRelativePoint = 8,
+
+    UseCastBarCastTimeOffset = false,
+    CastBarCastTimeOffsetX = 0,
+    CastBarCastTimeOffsetY = 0,
+
+    CastHideTextBorder = false,
+
+    CastHideInterruptAnim = false,
+    CastQuickFinish = false,
+
+    UseCastBarsBackdrop = false,
+    CastBarsBackdropSize = 1,
+
+    UseCastBarsBackdropColor = false,
+    CastBarsBackdropColor = { r=0.0, g=0.0, b=0.0, a=1.0 },
+
+    CastBarsBackdropColorByType = false,
+
+    CurrentCastBarPoint = 2,
+    CurrentCastBarRelativePoint = 5,
+
+    UseCastBarOffsetX = false,
+    CastBarOffsetX = 0,
+    UseCastBarOffsetY = false,
+    CastBarOffsetY = 0,
+
+    UseCastBarWidth = false,
+    CastBarWidth = 208,
+    UseCastBarHeight = false,
+    CastBarHeight = 11,
+
+    CastBarCastTargetEnable = false,
+    CurrentCastBarCastTargetFont = "Default",
+    UseCastBarCastTargetSize = false,
+    CastBarCastTargetSize = 12,
+    UseCastBarCastTargetColor = false,
+    CastBarCastTargetColor = { r=1.0, g=1.0, b=1.0, a=1.0 },
+
+    CurrentCastBarCastTargetPoint = 9,
+    CurrentCastBarCastTargetRelativePoint = 9,
+    UseCastBarCastTargetOffset = false,
+    CastBarCastTargetOffsetX = 0,
+    CastBarCastTargetOffsetY = 0,
+
+    CurrentCastBarShieldIconTexture = 1,
+    UseCastBarShieldIconSize = false,
+    CastBarShieldIconSize = 10,
+    CurrentCastBarShieldIconPoint = 8,
+    CurrentCastBarShieldIconRelativePoint = 9,
+    UseCastBarShieldIconOffset = false,
+    CastBarShieldIconOffsetX = 0,
+    CastBarShieldIconOffsetY = 0,
+
+    CDMAuraRemoveSwipe = false,
+
+    CurrentCastBarCastNameJustifyH = 2,
+    CurrentCastBarCastTimeJustifyH = 3,
+    CurrentCastBarCastTargetJustifyH = 2,
 }
 
 Addon.Templates = {
@@ -1524,8 +1722,99 @@ Addon.Templates = {
             texture = "plunderstorm-stormbar-spark",
         },
         {
-            name = "Junkyard",
-            texture = "junkyard-scorebar-spark",
+            name = "Dial",
+            texture = "SpecDial_Divider",
         },
+        {
+            name = "Empower",
+            texture = "ui-castingbar-empower-cursor-2x",
+        },
+        {
+            name = "DemonHunter",
+            texture = "Unit_DemonHunter_Fury_EndCap",
+        },
+        {
+            name = "AstralPower",
+            texture = "Unit_Druid_AstralPower_EndCap",
+        },
+        {
+            name = "Ebon",
+            texture = "Unit_Evoker_EbonMight_EndCap",
+        },
+        {
+            name = "Maelstorm",
+            texture = "Unit_Shaman_Maelstrom_EndCap",
+        },
+        {
+            name = "Combat Timeline",
+            texture = "combattimeline-pip",
+        },
+        {
+            name = "Obelisk",
+            texture = "FlightMaster_ProgenitorObelisk-TaxiNode_Neutral",
+        },
+        {
+            name = "Paw",
+            texture = "WildBattlePet",
+        },
+        {
+            name = "Activities",
+            texture = "activities-bar-end",
+        },
+        {
+            name = "Gem",
+            texture = "plunderstorm-new-dot-lg",
+        },
+        {
+            name = "Pointer",
+            texture = "glues-characterSelect-icon-restoreCharacter-pointer",
+        },
+        {
+            name = "Arrow",
+            texture = "cyphersetupgrade-arrow-full",
+        },
+        {
+            name = "Arrow2",
+            texture = "friendslist-categorybutton-arrow-right",
+        },
+        {
+            name = "Arrow3",
+            texture = "perks-forwardarrow",
+        },
+        {
+            name = "Arrow4",
+            texture = "uitools-icon-chevron-right",
+        },
+    },
+    CastBarShieldIcons = {
+        {
+            name = "None",
+            hide = true,
+        },
+        {
+            name = "Default Blizzard Shield",
+            texture = "UI-CastingBar-Shield",
+        },
+        {
+            name = "Small Shield",
+            texture = "GM-icon-role-tank",
+        },
+        {
+            name = "Conduit Shield",
+            texture = "Soulbinds_Tree_Conduit_Icon_Protect",
+        },
+        {
+            name = "Conduit Cross",
+            texture = "Soulbinds_Tree_Conduit_Icon_Attack",
+        },
+        {
+            name = "Lock",
+            texture = "Soulbinds_Portrait_Lock",
+        },
+        {
+            name = "Red Marker",
+            texture = "GM-raidMarker-remove",
+        },
+
     }
 }

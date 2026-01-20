@@ -45,6 +45,10 @@ local function BuildMenuList()
             },
         },
         {
+            name = "Action Bars",
+            buttons = {},
+        },
+        {
             name = "Cooldown Manager",
             buttons = {},
         },
@@ -53,7 +57,7 @@ local function BuildMenuList()
             buttons = {},
         },
         {
-            name = "Action Bars",
+            name = "Cast Bars",
             buttons = {},
         },
     }
@@ -103,6 +107,16 @@ local function BuildMenuList()
                 name = "",
                 index = 99999,
             })
+        elseif element.name == "Cast Bars" then
+            for index, frame in ipairs(Addon.CASTBARS) do
+                table.insert(element.buttons, {
+                    label = frame,
+                    name = L[frame] or frame,
+                    category = 1,
+                    layout = frame ~= "PlayerCastingBarFrame" and "TargetFrameSpellBar" or "PlayerCastingBarFrame",
+                    index = index,
+                })
+            end
         end
     end
 
@@ -543,7 +557,7 @@ function ABE_BarsListMixin:Init()
         self.scrollBox:Init(self.view)
         self.scrollBox:SetInterpolateScroll(true)
         self.scrollBox:SetDataProvider(self.dataProvider)
-        --self.scrollBox:SetPanExtent(20)
+        self.scrollBox:SetPanExtent(40)
         self.scrollBar:Hide()
     end
     self:RefreshMenu()

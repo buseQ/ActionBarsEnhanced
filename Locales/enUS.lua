@@ -128,6 +128,7 @@ L.CustomColorNoUse = "Custom color for Not Usable spells"
 L.CustomColorGCD = "Custom color for icon On GCD"
 L.CustomColorCD = "Custom color for icon On CD"
 L.CustomColorNormal = "Custom color for Normal state"
+L.CustomColorAura = "Custom color for icon with Aura"
 
 L.RemoveOORColor = "Remove OOR Color"
 L.RemoveOOMColor = "Remove OOM Color" 
@@ -263,7 +264,7 @@ L.CDMCooldownTitle = "Cooldown Customization"
 L.CDMCooldownDesc = "Modify cooldown appearance for CDM"
 
 L.IconBorderTitle = "Border Settings"
-L.IconBorderDesc = "Create and configure new frame for rendering icon border"
+L.IconBorderDesc = "Create and configure a pixel border."
 
 L.CDMOptionsTitle = "Additional CDM Options"
 L.CDMOptionsDesc = "Global enable additional settings that override standard CDM parameters"
@@ -323,6 +324,7 @@ L.GridCompact = "Left/Right, no gaps"
 L.GridFixed = "Left/Right, with gaps"
 
 L.GridLayoutType = "Grid Style"
+L.HideWhenInactive = "Hide when inactive"
 
 L.Alpha = "Fade Alpha"
 
@@ -367,3 +369,75 @@ L.HorizontalGrowthLEFT = "Left"
 
 L.DirectionHORIZONTAL = "Horizontal"
 L.DirectionVERTICAL = "Vertical"
+
+L.ColorizedCooldownFont = "Colorize font by time"
+
+-- ========================================
+-- Cast Bars
+-- ========================================
+
+L.CastBarsOptionsTitle = "Cast Bar Options"
+L.CastBarsOptionsDesc = "Customize size, texture, color and extra options of Cast Bar."
+
+L.None = "None"
+L.Left = "On Left"
+L.Right = "On Right"
+L.LeftAndRight = "On Left and Right"
+
+L.CastBarsIconOptionsTitle = "Cast Bar Icon Options"
+L.CastBarsIconOptionsDesc = "Customize spell Icon appearance."
+
+L.CastBarIconPos = "Show Icon"
+
+L.AttachPoint = "Attach Point"
+
+L.CastBarsSQWLatencyOptionsTitle = "Latency and Spell Queue Window"
+L.CastBarsSQWLatencyOptionsDesc = "Show current |cffe35522Latency|r and |cff0bbe76Spell Queue Window|r.\nThe |cff0bbe76Spell Queue Window|r is a mechanic that allows to queue up next ability before the current one has finished casting. By default it is set to 400 ms.\nFor more info Google |cff0bbe76\"SpellQueueWindow\""
+
+L.CastBarStandartColor = "Color of Regular cast"
+L.CastBarImportantColor = "Color of Important cast"
+L.CastBarChannelColor = "Color of Channeled cast"
+L.CastBarUninterruptableColor = "Color of Uninterruptible cast"
+L.CastBarInterruptedColor = "Color of Interrupted cast"
+L.CastBarReadyColor = "Color when interrupt not on CD"
+
+L.CastTimeCurrent = "Current"
+L.CastTimeMax = "Total"
+L.CastTimeCurrentAndMax = "Current / Total"
+
+L.CastTimeFormat = "Timer Format"
+
+L.CastHideTextBorder = "Hide Font Border"
+
+L.CastHideInterruptAnim = "Hide Interruption Animation"
+
+L.CastQuickFinish = "Hide Cast bar without animation"
+
+L.ColorByCastbarType = "Border color by cast bar type"
+
+L.Width = "Width"
+L.Height = "Height"
+
+L.PlayerCastingBarFrame = "Player Castbar"
+L.TargetFrameSpellBar = "Target Castbar"
+L.FocusFrameSpellBar = "Focus Castbar"
+L.BossTargetFrames = "Boss Castbar"
+
+L.ShieldIconTexture = "Uninteraptable Icon"
+
+L.EnableSpellTargetName = "Show Spell Target"
+
+L.SpellTargetFont = "Spell Target Font"
+L.SpellTargetSize = "Spell Target Font Size"
+
+L.CastBarsFontDesc = "Customize font of a cast Name, Timer and Target."
+
+L.TimerFont = "Timer Font"
+
+L.FontTimerSize = "Timer font Size"
+
+L.UseCustomBGColor = "Custom background color"
+
+L.CDMAuraRemoveSwipe = "Don't show Aura"
+
+L.JustifyH = "Horizontal text Justification"

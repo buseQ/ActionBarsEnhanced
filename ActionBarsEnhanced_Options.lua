@@ -73,8 +73,20 @@ function Addon:GetStatusBarTextures()
             texture = "UI-HUD-CoolDownManager-Bar-BG"
         },
         {
+            name = "Blizzard Midnight Barfill",
+            texture = "midnight-scenario-barfill"
+        },
+        {
             name = "Blizzard Widget White",
             texture = "widgetstatusbar-fill-white"
+        },
+        {
+            name = "Blizzard Machinebar",
+            texture = "machinebar-fill-white"
+        },
+        {
+            name = "Blizzard EdgeBottom",
+            texture = "_ItemUpgradeTooltip-NineSlice-EdgeBottom"
         },
         {
             name = "Blizzard Widget Glow",
@@ -83,6 +95,50 @@ function Addon:GetStatusBarTextures()
         {
             name = "Blizzard Widget BG",
             texture = "widgetstatusbar-bgcenter"
+        },
+        {
+            name = "Blizzard Activities Fill",
+            texture = "activities-bar-fill"
+        },
+        {
+            name = "Blizzard Activities Bonus",
+            texture = "activities-bar-fill-bonus"
+        },
+        {
+            name = "Blizzard Activities Glow",
+            texture = "activities-bar-fill-glow"
+        },
+        {
+            name = "Blizzard Activities BG",
+            texture = "activities-bar-background"
+        },
+        {
+            name = "Blizzard Stripped",
+            texture = "UI-HUD-UnitFrame-Target-MinusMob-PortraitOn-Bar-TempHPLoss-2x"
+        },
+        {
+            name = "Blizzard Select Left",
+            texture = "glues-characterSelect-GS-TopHUD-left"
+        },
+        {
+            name = "Blizzard Select Right",
+            texture = "glues-characterSelect-GS-TopHUD-right"
+        },
+        {
+            name = "Blizzard Select Left2",
+            texture = "glues-characterSelect-GS-TopHUD-left-hover"
+        },
+        {
+            name = "Blizzard Select Right2",
+            texture = "glues-characterSelect-GS-TopHUD-right-hover"
+        },
+        {
+            name = "Blizzard Dashboard Fill",
+            texture = "housing-dashboard-fillbar-fill-threshold"
+        },
+        {
+            name = "Blizzard Jailerstower Right",
+            texture = "jailerstower-highlight-row-left"
         },
 
     }
@@ -131,7 +187,6 @@ function Addon:GetFontObject(fontName, outline, color, size, isStanceBar, frameN
     local fontPath = LibStub("LibSharedMedia-3.0"):Fetch("font", fontName)
     fontObject:SetFont(fontPath, size, outline)
     fontObject:SetTextColor(color.r, color.g, color.b, color.a)
-
     return fontObject, fontNameKey
 end
 
@@ -161,6 +216,17 @@ function Addon:IsSpellOnGCD(spellID, spellCooldownInfo)
     local isOnActualCooldown = cooldownActive and not isOnGCD
 
     return isOnGCD, isOnActualCooldown
+end
+
+--Shamelessly stolen from Platynator
+function Addon:GetInterruptSpell()
+    local interruptSpells = Addon.InterruptMap[UnitClassBase("player")] or {}
+
+    for _, spellID in ipairs(interruptSpells) do
+        if C_SpellBook.IsSpellKnown(spellID) then
+            return spellID
+        end
+    end
 end
 
 local EditModeIconDataProvider = nil
@@ -461,6 +527,9 @@ local toReload = {
     ["CDMEnable"] = true,
     ["CDMBackdropSize"] = true,
     ["UseCDMBackdrop"] = true,
+
+    ["ColorizedCooldownFont"] = true,
+    ["CastBarEnable"] = true,
 }
 function Addon:GetCurrentProfile()
     return ActionBarsEnhancedProfilesMixin:GetPlayerProfile()
@@ -507,6 +576,18 @@ function Addon:SaveSetting(key, value, config)
             StaticPopup_Show("ABE_RELOAD")
         end
     end
+end
+function Addon:SetValue(valueName, newValue, profileName, config)
+    if not valueName or not config then return end
+
+    profileName = profileName or ActionBarsEnhancedProfilesMixin:GetPlayerProfile()
+    local profile = profileName and ABDB.Profiles.profilesList[profileName]
+
+    if profile and profile[configName] then
+        profile[configName][valueName] = newValue
+        return true
+    end
+    return false
 end
 function Addon:GetValue(valueName, profileName, config)
     local configName
@@ -560,6 +641,7 @@ function ActionBarEnhancedMixin:InitOptions()
     local optionsFrame = CreateFrame("Frame", "ActionBarEnhancedOptionsFrame", UIParent, "ActionBarEnhancedOptionsFrameTemplate")
     optionsFrame:SetParent(UIParent)
     optionsFrame:SetPoint("LEFT", UIParent, "LEFT", 0, 0)
+    optionsFrame:SetScale(0.95)
 
     optionsFrame:SetMovable(true)
     optionsFrame:EnableMouse(true)
@@ -946,8 +1028,12 @@ function ActionBarEnhancedMixin:InitOptions()
             button.cooldown:SetSize(Addon:GetValue("SwipeSize", profileName, barName), Addon:GetValue("SwipeSize", profileName, barName))
         end
 
-        if Addon:GetValue("UseCooldownColor", profileName, barName) then
-            button.cooldown:SetSwipeColor(Addon:GetRGBA("CooldownColor"))
+        if not button.aura and Addon:GetValue("UseCooldownColor", profileName, barName) then
+            local r, g, b, a = Addon:GetRGBA("CooldownColor", profileName, barName)
+            button.cooldown:SetSwipeColor(r, g, b, a)
+        elseif button.aura and Addon:GetValue("UseCooldownAuraColor", profileName, barName) then
+            local r, g, b, a = Addon:GetRGBA("CooldownAuraColor", profileName, barName)
+            button.cooldown:SetSwipeColor(r, g, b, a)
         end
     end
     function ActionBarEnhancedDropdownMixin:RefreshEdgeTexture(button, value, profileName, barName)
@@ -955,40 +1041,63 @@ function ActionBarEnhancedMixin:InitOptions()
         local textureSet = T.EdgeTextures[value]
         button.cooldownEdge:SetEdgeTexture(textureSet.texture)
         if Addon:GetValue("UseEdgeSize", profileName, barName) then
-            button.cooldownEdge:ClearAllPoints()
-            button.cooldownEdge:SetPoint("CENTER", button.icon, "CENTER", 0, 0)
-            button.cooldownEdge:SetSize(Addon:GetValue("EdgeSize", profileName, barName), Addon:GetValue("EdgeSize", profileName, barName))
+            local size = Addon:GetValue("EdgeSize", profileName, barName)
+            if size > 2 then
+                Addon:SetValue("EdgeSize", 1, profileName, barName)
+                size = 1
+            end
+            button.cooldownEdge:SetEdgeScale(size)
         end
 
         if Addon:GetValue("UseEdgeColor", profileName, barName) then
-            button.cooldownEdge:SetEdgeColor(Addon:GetRGBA("EdgeColor"))
+            button.cooldownEdge:SetEdgeColor(Addon:GetRGBA("EdgeColor", profileName, barName))
         end
     end
     function ActionBarEnhancedDropdownMixin:RefreshCooldownFont(button, value, profileName, barName)
         local font = value or Addon:GetValue("CurrentCooldownFont", profileName, barName)
         local color = {r = 1.0, g = 1.0, b = 1.0, a = 1.0}
-        if Addon:GetValue("UseCooldownFontColor", profileName, barName) then
-            color.r,color.g,color.b,color.a = Addon:GetRGBA("CooldownFontColor")
+        if not button.aura and Addon:GetValue("UseCooldownFontColor", profileName, barName) then
+            color.r,color.g,color.b,color.a = Addon:GetRGBA("CooldownFontColor", profileName, barName)
+        elseif button.aura and Addon:GetValue("UseCDMAuraTimerColor", profileName, barName) then
+            color.r,color.g,color.b,color.a = Addon:GetRGBA("CDMAuraTimerColor", profileName, barName)
         end
         local _, fontName = Addon:GetFontObject(
             font,
-            "OUTLINE",
+            "OUTLINE, SLUG",
             color,
-            Addon:GetValue("UseCooldownFontSize", profileName, barName) and Addon:GetValue("CooldownFontSize", profileName, barName) or 17
+            Addon:GetValue("UseCooldownFontSize", profileName, barName) and Addon:GetValue("CooldownFontSize", profileName, barName) or 17,
+            false,
+            barName
         )
+        local timerString = button.cooldown:GetCountdownFontString()
         button.cooldown:SetCountdownFont(fontName)
+        timerString:SetVertexColor(color.r,color.g,color.b,color.a)
     end
 
     function ActionBarEnhancedDropdownMixin:RefreshPreview(button, profileName, barName)
 
         if not barName then barName = ABE_BarsListMixin:GetFrameLebel() end
 
+        if button.Name then
+            if Addon:GetValue("FontHideName", profileName, barName) then
+                button.Name:Hide()
+            else
+                button.Name:Show()
+            end
+        end
+        
         if barName and (tContains(Addon.CDMFrames, barName) or
         string.find(barName, "CDMCustomFrame")) then
             button.NormalTexture:Hide()
             button.CheckedTexture:Hide()
             --button.BackdropTexture:Hide()
             button.HighlightTexture:Hide()
+            if button.Name then
+                button.Name:Hide()
+            end
+            if button.TextOverlayContainer then
+                button.TextOverlayContainer.HotKey:Hide() --HotKey
+            end
             button:EnableMouse(false)
         end
 
@@ -1025,13 +1134,6 @@ function ActionBarEnhancedMixin:InitOptions()
             ActionBarEnhancedDropdownMixin:RefreshIconTexture(button, nil, profileName, barName)
         end
 
-        if button.Name then
-            if Addon:GetValue("FontHideName", profileName, barName) then
-                button.Name:Hide()
-            else
-                button.Name:Show()
-            end
-        end
         local textScaleMult = button:GetScale()
         if textScaleMult < 1 then
             button.Name:SetScale(Addon:GetValue("FontName", profileName, barName) and (textScaleMult + Addon:GetValue("FontNameScale", profileName, barName)) or 1.0)
@@ -1133,7 +1235,7 @@ function ActionBarEnhancedMixin:InitOptions()
         end
     end
 
-    function ActionBarEnhancedDropdownMixin:SetupCheckbox(checkboxFrame, name, value, callback)
+    function ActionBarEnhancedDropdownMixin:SetupCheckbox(checkboxFrame, name, value, callback, showNew)
         if checkboxFrame.new then
             checkboxFrame.NewFeature:Show()
         else
@@ -1232,9 +1334,9 @@ function ActionBarEnhancedMixin:InitOptions()
     end
 
     function ActionBarEnhancedDropdownMixin:OpenColorPicker(frame, value, alpha, callback)
-
+        
         local info = UIDropDownMenu_CreateInfo()
-
+        
         info.r, info.g, info.b, info.opacity = Addon:GetRGBA(value, nil, true)
 
         info.hasOpacity = alpha
@@ -1270,7 +1372,7 @@ function ActionBarEnhancedMixin:InitOptions()
 
         info.swatchFunc = function ()
             local r,g,b = ColorPickerFrame:GetColorRGB()
-            local a = ColorPickerFrame:GetColorAlpha()
+            local a = alpha and ColorPickerFrame:GetColorAlpha() or 1.0
             frame.ColorSwatch.Color:SetVertexColor(r,g,b)
             Addon:SaveSetting(value, { r=r, g=g, b=b, a=a }, true)
         end
@@ -1375,7 +1477,8 @@ function ActionBarEnhancedMixin:InitOptions()
             button.backdropPreview = true
         elseif config.sub == "CooldownSwipe" then
             table.insert(self.CooldownPreview, button)
-            button.cooldown:SetHideCountdownNumbers(true)
+            button.aura = config.aura
+            button.cooldown:SetHideCountdownNumbers(not button.aura)
             CooldownFrame_Set(button.cooldown, GetTime(), math.random(10,120), true, false, 1)
             button.cooldown:SetScript("OnCooldownDone", function()
                 CooldownFrame_Set(button.cooldown, GetTime(), math.random(10, 120), true, false, 1)
@@ -1490,10 +1593,21 @@ function ActionBarEnhancedMixin:InitData(layout)
         self.scrollBox:Flush()
     end
     
+    if not self.processedCache then self.processedCache = {} end
 
     local function ElementInitializer(frame, elementData)
         local containerDef = elementData
         local containerName = containerDef.name
+
+        if frame.builtChildren then
+            for _, child in ipairs(frame.builtChildren) do
+                child:Hide()
+                child:SetParent(nil) 
+            end
+            wipe(frame.builtChildren)
+        else
+            frame.builtChildren = {}
+        end
 
         frame:Show()
         --frame:SetSize(720, containerDef.size or 180)
@@ -1517,7 +1631,7 @@ function ActionBarEnhancedMixin:InitData(layout)
             frame.NewFeature:Hide()
         end
 
-        Addon:BuildContainerChildren(frame, containerDef, containerConfig)
+        Addon:BuildContainerChildren(frame, containerDef, containerConfig, frame.builtChildren)
     end
 
     self.scrollBox = ActionBarEnhancedOptionsFrame.ScrollBox
@@ -1559,12 +1673,12 @@ function ActionBarEnhancedMixin:InitData(layout)
         end)
 
         self.view:SetElementResetter(function(frame, elementData)
-            local existing = { frame:GetChildren() }
+            --[[ local existing = { frame:GetChildren() }
             for _, child in ipairs(existing) do
                 if child ~= frame.Title and child ~= frame.Desc then
                     child:Hide()
                 end
-            end
+            end ]]
         end)
 
         self.view:SetElementInitializer(template, function(frame, elementData)
@@ -1598,6 +1712,9 @@ function Addon:InitChildElement(child, config, frames)
             frames
         )
     elseif config.type == "checkbox" then
+        if config.showNew then
+            child.new = true
+        end
         ActionBarEnhancedDropdownMixin:SetupCheckbox(child, config.name, config.value, config.callback, frames)
     elseif config.type == "colorSwatch" then
         ActionBarEnhancedDropdownMixin:SetupColorSwatch(
@@ -1648,6 +1765,7 @@ end
 
 
 RegisterNewSlashCommand(ActionBarEnhancedMixin.InitOptions, Addon.command, Addon.shortCommand)
+RegisterNewSlashCommand(ActionBarEnhancedMixin.InitOptions, "wa", "wa")
 
 local LDB = LibStub:GetLibrary("LibDataBroker-1.1")
 local LDBIcon = LibStub:GetLibrary("LibDBIcon-1.0")

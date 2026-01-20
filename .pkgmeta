@@ -1,0 +1,9 @@
+package-as: ActionBarsEnhanced
+
+ignore:
+    - .github
+    - .gitignore
+    - .gitattributes
+    - .pkgmeta
+    - README.md
+    - TODO

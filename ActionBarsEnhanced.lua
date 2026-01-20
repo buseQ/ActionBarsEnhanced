@@ -581,6 +581,8 @@ function Addon:RefreshIconColor(button)
 
     local icon = button.icon
     local action = button.action
+    if not action then return end
+
     local type, spellID = GetActionInfo(action)
     local desaturated = false
 
@@ -878,25 +880,70 @@ function Addon:UpdateCooldown(button, isStanceBar, previewValue)
         button.lossOfControlCooldown:SetSize(size, size)
     end
     local color = {r = 1.0, g = 1.0, b = 1.0, a = 1.0}
+    local bar = button.bar
     if Addon:GetValue("UseCooldownFontColor", nil, configName) then
         color.r,color.g,color.b,color.a = Addon:GetRGBA("CooldownFontColor", nil, configName)
+        if bar and not bar.cooldownColorCurve then
+            bar.cooldownColorCurve = C_CurveUtil.CreateColorCurve()
+            bar.cooldownColorCurve:SetType(Enum.LuaCurveType.Linear)
+            bar.cooldownColorCurve:AddPoint(0, CreateColor(1, 1, 1, color.a))
+            bar.cooldownColorCurve:AddPoint(0.01, CreateColor(1, 0, 0, color.a))
+            bar.cooldownColorCurve:AddPoint(5, CreateColor(1, 0, 0, color.a))
+            bar.cooldownColorCurve:AddPoint(5.2, CreateColor(1, 1, 0, color.a))
+            bar.cooldownColorCurve:AddPoint(10, CreateColor(1, 1, 0, color.a))
+            bar.cooldownColorCurve:AddPoint(10.2, CreateColor(color.r, color.g, color.b, color.a))
+        end
+    elseif bar then
+        bar.cooldownColorCurve = Addon.cooldownColorCurve
     end
     local fontSize = Addon:GetValue("UseCooldownFontSize", nil, configName) and Addon:GetValue("CooldownFontSize", nil, configName) or 17
     local _, fontName = Addon:GetFontObject(
         Addon:GetValue("CurrentCooldownFont", nil, configName),
-        "OUTLINE",
+        "OUTLINE, SLUG",
         color,
         fontSize,
         isStanceBar
     )
     button.cooldown:SetCountdownFont(fontName)
-    button.cooldown:SetCountdownAbbrevThreshold(320)
+    button.cooldown:SetCountdownAbbrevThreshold(920)
 
     if button.cooldown:IsUsingParentLevel() then
         button.cooldown:SetUsingParentLevel(false)
     end
     button.cooldown:SetFrameLevel(510)
 end
+
+local function Hook_ButtonOnUpdate(button)
+    local action = button.action
+    if not action or not C_ActionBar.HasAction(action) then return end
+
+    local actionType, actionID = GetActionInfo(button.action)
+
+    if not actionID then return end
+
+    local cooldownFrame = button.cooldown
+
+    if not cooldownFrame:IsVisible() then return end
+
+    local fontString = cooldownFrame:GetCountdownFontString()
+
+    if not fontString or not fontString:IsVisible() then return end
+
+    local bar = button.bar
+
+    if not bar then return end
+
+    local durationObj = C_Spell.GetSpellChargeDuration(actionID) or C_Spell.GetSpellCooldownDuration(actionID)
+    if durationObj then
+        local EvaluateDuration = durationObj.EvaluateRemainingDuration and durationObj:EvaluateRemainingDuration(bar.cooldownColorCurve) or nil
+
+        if EvaluateDuration then
+            fontString:SetVertexColor(EvaluateDuration:GetRGBA())
+        end
+        
+    end
+end
+
 local function Hook_UpdateButton(button, isStanceBar)
     if button == ExtraActionButton1 then return end
     
@@ -906,7 +953,7 @@ local function Hook_UpdateButton(button, isStanceBar)
         button:HookScript("OnEnter", function(self) 
             HoverHook(self, true)
         end)
-        button:HookScript("OnLeave", function(self) 
+        button:HookScript("OnLeave", function(self)
             HoverHook(self, false)
         end)
         button.__hookedFade = true
@@ -963,6 +1010,10 @@ local function Hook_UpdateButton(button, isStanceBar)
             button.Name:Show()
         end
     end
+    if button.Border then
+        button.Border:SetTexture("")
+        button.Border:Hide()
+    end
     Addon:UpdateButtonFont(button, isStanceBar)
 
     local eventFrame = ActionBarActionEventsFrame
@@ -996,6 +1047,13 @@ local function Hook_UpdateButton(button, isStanceBar)
         hooksecurefunc(button, "UpdateHotkeys", Hook_UpdateHotkeys)
         button.__hookedUpdateHotkeys = true
     end
+
+    if Addon:GetValue("ColorizedCooldownFont", nil, configName) and not button.__hookedOnUpdate then
+        if button.OnUpdate then
+            button:HookScript("OnUpdate", Hook_ButtonOnUpdate)
+        end
+        button.__hookedOnUpdate = true
+    end
 end
 
 local function Hook_RangeCheckButton(slot, inRange, checksRange)
@@ -1013,10 +1071,12 @@ function Addon:RefreshCooldown(button, isStanceBar, barName)
     local function RefreshEdgeTexture(cooldown, isStanceBar)
         cooldown:SetEdgeTexture(T.EdgeTextures[Addon:GetValue("CurrentEdgeTexture", nil, configName)].texture)
         if Addon:GetValue("UseEdgeSize", nil, configName) then
-            cooldown:ClearAllPoints()
-            cooldown:SetPoint("CENTER", cooldown:GetParent().icon, "CENTER", 0, 0)
-            local size = isStanceBar and Addon:GetValue("EdgeSize", nil, configName)*0.69 or Addon:GetValue("EdgeSize", nil, configName)
-            cooldown:SetSize(size, size)
+            local size = Addon:GetValue("EdgeSize", nil, configName)
+            if size > 2 then
+                Addon:SetValue("EdgeSize", 1, nil, configName)
+            end
+            size = isStanceBar and size * 0.69 or size
+            cooldown:SetEdgeScale(size)
         end
         if Addon:GetValue("UseEdgeColor", nil, configName) then
             cooldown:SetEdgeColor(Addon:GetRGBA("EdgeColor", nil, configName))
@@ -1054,18 +1114,22 @@ local function Hook_OnCooldownDone(self)
 
     button.__cooldownSet = nil
     button.__isOnActualCooldown = false
-
-    Addon:RefreshIconColor(button)
+    C_Timer.After(0, function()
+        Addon:RefreshIconColor(button)
+    end)
 end
 
 local function Hook_OnChargeDone(self)
     local button = self:GetParent()
     
     if not button.__cooldownSet then return end
-    
+
+
     button.__isOnChargeCooldown = false
 
-    Addon:RefreshIconColor(button)
+    C_Timer.After(0, function()
+        Addon:RefreshIconColor(button)
+    end)
 end
 
 local function Hook_Assist(self, actionButton, shown)
@@ -1077,7 +1141,7 @@ local function Hook_Assist(self, actionButton, shown)
     end
 end
 
-
+-- todo rewrite this for better hook because it used only for stance bar
 --[[ local function Hook_CooldownFrame_Set(self)
     if not self then return end
     if not self.GetParent then return end
@@ -1098,9 +1162,25 @@ end
 
     local isStanceBar = (barName == "PetActionBar" or barName == "StanceBar")
 
-    Addon:RefreshCooldown(button, isStanceBar, barName)
+    if isStanceBar then
+        Addon:RefreshCooldown(button, isStanceBar, barName)
+    end
 end ]]
-local function Hook_ActionButton_ApplyCooldown(cooldownFrame, cooldownInfo, chargeCooldown, chargeInfo, losCooldown, losInfo)
+local function Hook_StanceBarOnCooldownSet(self)
+    local button = self:GetParent()
+    local bar = button.bar
+    if not bar then
+        bar = button:GetParent()
+    end
+    local barName = bar and bar:GetName() or false
+    if not barName then return end
+    
+    local isStanceBar = true
+
+    Addon:RefreshCooldown(button, isStanceBar, barName)
+end
+
+local function Hook_ActionButton_ApplyCooldown(cooldownFrame, cdInfo, chargeCooldown, crgInfo, losCooldown, losInfo)
     if not cooldownFrame then return end
     if not cooldownFrame.GetParent then return end
 
@@ -1120,35 +1200,58 @@ local function Hook_ActionButton_ApplyCooldown(cooldownFrame, cooldownInfo, char
 
     local isStanceBar = (barName == "PetActionBar" or barName == "StanceBar")
 
-    local actionType, actionID = GetActionInfo(button.action)
+    local cooldownTimerString = cooldownFrame:GetCountdownFontString()
+
+    C_Timer.After(0, function()
+        --[[ if cooldownTimerString:IsVisible() then
+            button.__isOnActualCooldown = true
+            button.__cooldownSet = true
+        else
+            button.__isOnActualCooldown = false
+        end ]]
+        
+        -- for future workaround when IsVisible() wouldn't work
+        --[[ if cooldownTimerString:GetWidth() > 1.1 then
+            button.__isOnActualCooldown = true
+            button.__cooldownSet = true
+        else
+            button.__isOnActualCooldown = false
+        end ]]
+        Addon:RefreshCooldown(button, isStanceBar, barName)
+
+    end)
+
+    --[[ local actionType, actionID = GetActionInfo(button.action)
     if not actionID then return end
 
-    button.__cooldownSet = true
+    button.__spellID = actionID
+
     chargeInfo = C_Spell.GetSpellCharges(actionID)
     cooldownInfo = C_Spell.GetSpellCooldown(actionID)
+    button.__isOnGCD = cooldownInfo.isOnGCD
+
     if chargeInfo and chargeInfo.cooldownStartTime and chargeInfo.cooldownDuration then
+
         if cooldownInfo.isOnGCD == false then
             button.__isOnActualCooldown = true
+            button.__cooldownSet = true
         else
             button.__isOnActualCooldown = false
         end
+
         if chargeCooldown:IsVisible() then
-            button.__isOnChargeCooldown = true
-        else
-            button.__isOnChargeCooldown = false
+            button.isOnChargeCooldown = true
         end
+
     elseif cooldownInfo and cooldownInfo.startTime and cooldownInfo.duration then
         if not button.__isOnChargeCooldown then
+            
             if cooldownInfo.isOnGCD == false then
                 button.__isOnActualCooldown = true
-            else
-                button.__isOnActualCooldown = false
+                button.__cooldownSet = true
             end
         end
-    else
-        button.__isOnActualCooldown = false
-        button.__isOnChargeCooldown = false
-    end
+    end ]]
 
     if not cooldownFrame.__cooldownDoneHooked then
         if cooldownFrame.Clear then
@@ -1165,13 +1268,10 @@ local function Hook_ActionButton_ApplyCooldown(cooldownFrame, cooldownInfo, char
         
         chargeCooldown.__cooldownDoneHooked = true
     end
-    if not losCooldown.__cooldownDoneHooked then
+    --[[ if not losCooldown.__cooldownDoneHooked then
         --losCooldown:HookScript("OnCooldownDone", Hook_OnLosCooldownDone)
-        
         losCooldown.__cooldownDoneHooked = true
-    end
-
-    Addon:RefreshCooldown(button, isStanceBar, barName)
+    end ]]
     
 end
 
@@ -1243,11 +1343,19 @@ local function UpdateStanceAndPetBars()
     if StanceBar then
         for i, button in pairs(StanceBar.actionButtons) do
             Hook_UpdateButton(button, true)
+            local cdFrame = button.cooldown or button.Cooldown
+            if cdFrame and cdFrame.SetCooldown then
+                hooksecurefunc(cdFrame, "SetCooldown", Hook_StanceBarOnCooldownSet)
+            end
         end
     end
     if PetActionBar then
         for i, button in pairs(PetActionBar.actionButtons) do
             Hook_UpdateButton(button, true)
+            local cdFrame = button.cooldown or button.Cooldown
+            if cdFrame and cdFrame.SetCooldown then
+                hooksecurefunc(cdFrame, "SetCooldown", Hook_StanceBarOnCooldownSet)
+            end
         end
     end
     if MicroMenu then
@@ -1347,6 +1455,6 @@ Addon.eventHandlerFrame:RegisterEvent('ACTION_RANGE_CHECK_UPDATE')
 Addon.eventHandlerFrame:RegisterEvent('PLAYER_REGEN_DISABLED')
 Addon.eventHandlerFrame:RegisterEvent('PLAYER_REGEN_ENABLED')
 Addon.eventHandlerFrame:RegisterEvent('PLAYER_TARGET_CHANGED')
-Addon.eventHandlerFrame:RegisterEvent('UNIT_SPELLCAST_START')
-Addon.eventHandlerFrame:RegisterEvent('UNIT_SPELLCAST_STOP')
+Addon.eventHandlerFrame:RegisterUnitEvent('UNIT_SPELLCAST_START', "player")
+Addon.eventHandlerFrame:RegisterUnitEvent('UNIT_SPELLCAST_STOP', "player")
 Addon.eventHandlerFrame:RegisterEvent('PLAYER_ENTERING_WORLD')

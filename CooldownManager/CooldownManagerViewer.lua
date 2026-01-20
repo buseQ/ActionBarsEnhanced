@@ -78,7 +78,7 @@ function Addon.SetBackdropBorderSize(frame, borderSize)
     frame:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", 0, 0)
     frame:SetBackdrop({
         edgeFile = "Interface\\Buttons\\WHITE8x8",
-        edgeSize = ppBorderSize,
+        edgeSize = borderSize,
     })
 end
 
@@ -119,29 +119,6 @@ local function Hook_OnCooldownDone(self)
     end
 end
 
---[[ local function Hook_CooldownFrame_Clear(self)
-     if not self then return end
-    local button = self:GetParent()
-    if not button then return end
-
-    if not button.__cooldownSet then return end
-
-    local bar = button:GetParent()
-    local barName = bar and bar:GetName() or ""
-
-    if bar and tContains(CooldownManagerFrames, barName) then
-
-        button.__cooldownSet = nil
-        button.__isOnGCD = false
-        button.__isOnActualCooldown = false
-        button.__isOnAura = false
-
-        if Addon:GetValue("UseCDMBackdrop", nil, barName) then
-            Addon.SetBorderColor(button, {Addon:GetRGBA("CDMBackdropColor", nil, barName)}, "reset")
-        end
-    end
-end ]]
-
 local function OnCooldownClear(cooldownFrame, button)
     if not cooldownFrame or not button then return end
 
@@ -160,6 +137,20 @@ local function OnCooldownClear(cooldownFrame, button)
     end
 end
 
+local function CheckCooldownState(button)
+    if not button.cooldownUseAuraDisplayTime then
+        if (button.isOnGCD and not button.isOnActualCooldown) then
+            button.__isOnGCD = true
+        else
+            if not button.wasSetFromCharges then
+                button.__isOnActualCooldown = true
+            else
+                button.__isOnActualCooldown = false
+            end
+        end
+    end
+end
+
 local function OnCooldownSet(cooldownFrame, button)
     if not cooldownFrame or not button then return end
 
@@ -168,7 +159,13 @@ local function OnCooldownSet(cooldownFrame, button)
 
     if not cooldownFrame then return end
 
+    if barName == "BuffIconCooldownViewer" and button.__cooldownSet then
+        return
+    end
+
     if not Addon:GetValue("CDMEnable", nil, barName) then return end
+
+    button.__cooldownSet = true
     button.__isOnActualCooldown = false
     if not button.__cooldownDoneHooked then
        cooldownFrame:HookScript("OnCooldownDone", Hook_OnCooldownDone)
@@ -193,211 +190,62 @@ local function OnCooldownSet(cooldownFrame, button)
         timerString = cooldownFrame:GetCountdownFontString()
     end
 
-    button.__cooldownSet = true
-    if button.cooldownUseAuraDisplayTime or button.pandemicAlertTriggerTime then
-        button.__isOnAura = true
+    button.__removeAura = Addon:GetValue("CDMAuraRemoveSwipe", nil, barName)
 
-        if Addon:GetValue("UseCDMAuraSwipeColor", nil, barName) then
-            cooldownFrame:SetSwipeColor(Addon:GetRGBA("CDMAuraSwipeColor", nil, barName)) 
+    if button.cooldownUseAuraDisplayTime or button.pandemicAlertTriggerTime then
+        button.__isOnAura = not button.__removeAura
+
+        if button.__removeAura then
+            local duration = C_Spell.GetSpellChargeDuration(button:GetSpellID()) or C_Spell.GetSpellCooldownDuration(button:GetSpellID())
+            cooldownFrame:SetUseAuraDisplayTime(false)
+            cooldownFrame:Clear()
+            if Addon:GetValue("UseCooldownColor", nil, barName) then
+                cooldownFrame:SetSwipeColor(Addon:GetRGBA("CooldownColor", nil, barName))
+            end
+            cooldownFrame:SetCooldownFromDurationObject(duration, true)
+            CheckCooldownState(button)
         end
-        if Addon:GetValue("UseCDMBackdropAuraColor", nil, barName) and not button.__isInPandemic then
+
+        if not button.__removeAura and Addon:GetValue("UseCooldownAuraColor", nil, barName) then
+            cooldownFrame:SetSwipeColor(Addon:GetRGBA("CooldownAuraColor", nil, barName)) 
+        end
+        if not button.__removeAura and Addon:GetValue("UseCDMBackdropAuraColor", nil, barName) and not button.__isInPandemic then
             Addon.SetBorderColor(button, {Addon:GetRGBA("CDMBackdropAuraColor", nil, barName)}, "aura")
-        end
-        if Addon:GetValue("UseCDMAuraTimerColor", nil, barName) then
-            timerString:SetVertexColor(Addon:GetRGBA("CDMAuraTimerColor", nil, barName)) 
-        else
-            timerString:SetVertexColor(1,1,1,1)
         end
 
         cooldownFrame:SetReverse(Addon:GetValue("CDMAuraReverseSwipe", nil, barName))
     else
         button.__isOnAura = false
 
-        if Addon:GetValue("UseCDMSwipeColor", nil, barName) then
-            cooldownFrame:SetSwipeColor(Addon:GetRGBA("CDMSwipeColor", nil, barName))
+        if Addon:GetValue("UseCooldownColor", nil, barName) then
+            cooldownFrame:SetSwipeColor(Addon:GetRGBA("CooldownColor", nil, barName))
         end
         if Addon:GetValue("UseCDMBackdrop", nil, barName) then
             Addon.SetBorderColor(button, {Addon:GetRGBA("CDMBackdropColor", nil, barName)}, "reset")
         end
         
-        if not isBeta then
-            local spellID = button:GetSpellID()
-            button.__isOnGCD, button.__isOnActualCooldown = Addon:IsSpellOnGCD(spellID)
-            if (button.__isOnGCD and not button.__isOnActualCooldown) and Addon:GetValue("CDMRemoveGCDSwipe", nil, barName) then
-                cooldownFrame:SetSwipeColor(0,0,0,0)
-            end
-        else
-            if (button.isOnGCD and not button.isOnActualCooldown) then
-                button.__isOnGCD = true
-            else
-                if not button.wasSetFromCharges then
-                    button.__isOnActualCooldown = true
-                else
-                    button.__isOnActualCooldown = false
-                end
-            end
-            if (button.isOnGCD and not button.isOnActualCooldown) and Addon:GetValue("CDMRemoveGCDSwipe", nil, barName) then
-                cooldownFrame:Clear()
-            end
-            
-        end
+        CheckCooldownState(button)
 
-        timerString:SetVertexColor(1,1,1,1)
+        if (button.isOnGCD and not button.isOnActualCooldown) and Addon:GetValue("CDMRemoveGCDSwipe", nil, barName) then
+            cooldownFrame:Clear()
+        end
 
         cooldownFrame:SetReverse(Addon:GetValue("CDMReverseSwipe", nil, barName))
     end
 
-    cooldownFrame:SetCountdownAbbrevThreshold(620)
-
-    if Addon:GetValue("CurrentCDMSwipeTexture", nil, barName) > 1 then
-        cooldownFrame:SetSwipeTexture(T.SwipeTextures[Addon:GetValue("CurrentCDMSwipeTexture", nil, barName)].texture)
-    end
-    if Addon:GetValue("UseCDMSwipeSize", nil, barName) then
-        cooldownFrame:ClearAllPoints()
-        cooldownFrame:SetPoint("CENTER", button, "CENTER")
-        local size = Addon:GetValue("CDMSwipeSize", nil, barName)
-        cooldownFrame:SetSize(size, size)
+    if not button.__removeAura and button.__isOnAura and Addon:GetValue("UseCDMAuraTimerColor", nil, barName) then
+        timerString:SetVertexColor(Addon:GetRGBA("CDMAuraTimerColor", nil, barName))
     else
-        cooldownFrame:SetAllPoints()
-    end
-
-    if not cooldownFrame:GetDrawEdge() then
-        cooldownFrame:SetDrawEdge(Addon:GetValue("CDMEdgeAlwaysShow", nil, barName))
-    end
-
-    if cooldownFrame:GetDrawEdge() then
-        cooldownFrame:SetEdgeTexture(T.EdgeTextures[Addon:GetValue("CurrentCDMEdgeTexture", nil, barName)].texture)
-        if Addon:GetValue("UseCDMEdgeSize", nil, barName) then
-            local size = Addon:GetValue("CDMEdgeSize", nil, barName)
-            cooldownFrame:SetEdgeScale(size)
+        local color = { r=1, g=1, b=1, a=1 }
+        if Addon:GetValue("UseCooldownFontColor", nil, barName) then
+            color.r,color.g,color.b,color.a = Addon:GetRGBA("CooldownFontColor", nil, barName)
         end
-        if Addon:GetValue("UseCDMEdgeColor", nil, barName) then
-            cooldownFrame:SetEdgeColor(Addon:GetRGBA("CDMEdgeColor", nil, barName))
-        end
+        timerString:SetVertexColor(color.r,color.g,color.b,color.a)
     end
+    cooldownFrame:SetCountdownAbbrevThreshold(920)
 
+    ABE_CDMCustomized:RefreshCooldownFrame(button, barName)
 end
---[[ local function Hook_CooldownFrame_Set(self)
-    if not self then return end
-    if not self.GetParent then return end
-
-    local button = self:GetParent()
-    if not button then return end
-
-    local bar = button:GetParent()
-    local barName = bar and bar:GetName() or ""
-
-    if bar and tContains(CooldownManagerFrames, barName) then
-        if not Addon:GetValue("CDMEnable", nil, barName) then return end
-        button.__isOnActualCooldown = false
-
-        if not button.__cooldownDoneHooked then
-            button.Cooldown:HookScript("OnCooldownDone", Hook_OnCooldownDone)
-            button.__cooldownDoneHooked = true
-        end
-
-        local timerString
-        if not isBeta then
-            if not button.Cooldown.__timer then
-                local cdRegions = { button.Cooldown:GetRegions() }
-                if cdRegions then
-                    for i, region in ipairs(cdRegions) do
-                        if region:IsObjectType("FontString") then
-                            button.Cooldown.__timer = region
-                            break
-                        end
-                    end
-                end
-            end
-            timerString = button.Cooldown.__timer
-        else
-            timerString = button.Cooldown:GetCountdownFontString()
-        end
-        
-        button.__cooldownSet = true
-        if button.cooldownUseAuraDisplayTime or button.pandemicAlertTriggerTime then
-            button.__isOnAura = true
-            
-            if Addon:GetValue("UseCDMAuraSwipeColor", nil, barName) then
-                button.Cooldown:SetSwipeColor(Addon:GetRGBA("CDMAuraSwipeColor", nil, barName)) 
-            end
-            if Addon:GetValue("UseCDMBackdropAuraColor", nil, barName) and not button.__isInPandemic then
-                Addon.SetBorderColor(button, {Addon:GetRGBA("CDMBackdropAuraColor", nil, barName)}, "aura")
-            end
-            if Addon:GetValue("UseCDMAuraTimerColor", nil, barName) then
-                timerString:SetVertexColor(Addon:GetRGBA("CDMAuraTimerColor", nil, barName)) 
-            else
-                timerString:SetVertexColor(1,1,1,1)
-            end
-
-            button.Cooldown:SetReverse(Addon:GetValue("CDMAuraReverseSwipe", nil, barName))
-        else
-            button.__isOnAura = false
-
-            if Addon:GetValue("UseCDMSwipeColor", nil, barName) then
-                button.Cooldown:SetSwipeColor(Addon:GetRGBA("CDMSwipeColor", nil, barName))
-            end
-            if Addon:GetValue("UseCDMBackdrop", nil, barName) then
-                Addon.SetBorderColor(button, {Addon:GetRGBA("CDMBackdropColor", nil, barName)}, "reset")
-            end
-            
-            if not isBeta then
-                local spellID = button:GetSpellID()
-                button.__isOnGCD, button.__isOnActualCooldown = Addon:IsSpellOnGCD(spellID)
-                if (button.__isOnGCD and not button.__isOnActualCooldown) and Addon:GetValue("CDMRemoveGCDSwipe", nil, barName) then
-                    button.Cooldown:SetSwipeColor(0,0,0,0)
-                end
-            else
-                if (button.isOnGCD and not button.isOnActualCooldown) then
-                    button.__isOnGCD = true
-                else
-                    if not button.wasSetFromCharges then
-                        button.__isOnActualCooldown = true
-                    else
-                        button.__isOnActualCooldown = false
-                    end
-                end
-                if (button.isOnGCD and not button.isOnActualCooldown) and Addon:GetValue("CDMRemoveGCDSwipe", nil, barName) then
-                    button.Cooldown:Clear()
-                end
-                
-            end
-
-            timerString:SetVertexColor(1,1,1,1)
-
-            button.Cooldown:SetReverse(Addon:GetValue("CDMReverseSwipe", nil, barName))
-        end
-
-        button.Cooldown:SetCountdownAbbrevThreshold(620)
-
-        if Addon:GetValue("CurrentCDMSwipeTexture", nil, barName) > 1 then
-            button.Cooldown:SetSwipeTexture(T.SwipeTextures[Addon:GetValue("CurrentCDMSwipeTexture", nil, barName)].texture)
-        end
-        if Addon:GetValue("UseCDMSwipeSize", nil, barName) then
-            button.Cooldown:ClearAllPoints()
-            button.Cooldown:SetPoint("CENTER", button, "CENTER")
-            local size = Addon:GetValue("CDMSwipeSize", nil, barName)
-            button.Cooldown:SetSize(size, size)
-        else
-            button.Cooldown:SetAllPoints()
-        end
-
-        if not button.Cooldown:GetDrawEdge() then
-            button.Cooldown:SetDrawEdge(Addon:GetValue("CDMEdgeAlwaysShow", nil, barName))
-        end
-
-        if button.Cooldown:GetDrawEdge() then
-            button.Cooldown:SetEdgeTexture(T.EdgeTextures[Addon:GetValue("CurrentCDMEdgeTexture", nil, barName)].texture)
-            if Addon:GetValue("UseCDMEdgeSize", nil, barName) then
-                local size = Addon:GetValue("CDMEdgeSize", nil, barName)
-                button.Cooldown:SetEdgeScale(size)
-            end
-            if Addon:GetValue("UseCDMEdgeColor", nil, barName) then
-                button.Cooldown:SetEdgeColor(Addon:GetRGBA("CDMEdgeColor", nil, barName))
-            end
-        end
-    end
-end ]]
 
 local function tContainsByIndex(table, item)
     for index, data in ipairs(table) do
@@ -412,23 +260,32 @@ local function CheckItemVisibility(child, isVisible, frame)
     if not frame then
         frame = child:GetParent()
     end
-    if frame.hideInactive then
-        local frameName = frame:GetName()
 
-        if frameName == "BuffBarCooldownViewer" or frameName == "BuffIconCooldownViewer" then
-            if child:IsVisible() then
-                child.__isActive = true
-            else
-                child.__isActive = false
-            end
-            return
+    --[[ local frameName = frame:GetName()
+
+    if frameName == "BuffBarCooldownViewer" or frameName == "BuffIconCooldownViewer" then
+        if child:IsVisible() then
+            child.__isActive = true
+        else
+            child.__isActive = false
         end
+        return
+    end ]]    
+    
+
+    if child.__hideType == 3 then
         if child.__isOnActualCooldown or child.__isOnAura or child.wasSetFromCharges then
             child.__isActive = true
         else
             child.__isActive = false
         end
-    else
+    elseif child.__hideType == 2 then
+        if child.__isOnAura then
+            child.__isActive = true
+        else
+            child.__isActive = false
+        end
+    elseif child.__hideType == 1 then
         child.__isActive = nil
     end
 end
@@ -437,30 +294,16 @@ local function OnButtonVisibilityChanged(child)
     local isVisible = child:IsVisible()
     local frame = child:GetParent()
 
-    CheckItemVisibility(child, isVisible, frame)
-
-    --[[ if child.__isActive == child.__wasActive then
-        return
+    --BuffIconCooldownViewer doesn't have RefreshIconColor so put it here
+    if frame:GetName() == "BuffIconCooldownViewer" then
+        Addon.OnButtonRefreshIconColor(child)
     end
 
-    child.__wasActive = child.__isActive ]]
+    CheckItemVisibility(child, isVisible, frame)
 
-    frame:RefreshLayoutGrid()
-
-    --[[ local newCount = #frame.__visibleChildren
-
-    if frame.__wasVisibleChildren ~= newCount then
-        frame.__wasVisibleChildren = newCount
-        if newCount > 0 then
-            table.sort(frame.__visibleChildren, function(a, b)
-                local aIdx = a.layoutIndex or 9999
-                local bIdx = b.layoutIndex or 9999
-                return aIdx < bIdx
-            end)
-            --frame:ShouldUpdateLayout(true)
-            frame:Layout()
-        end
-    end ]]
+    if frame.RefreshLayoutGrid then
+        frame:RefreshLayoutGrid()
+    end
 end
 
 local function RefreshDesaturation(self)
@@ -475,7 +318,7 @@ local function RefreshDesaturation(self)
     icon:SetDesaturated(self.__desaturated)
 end
 
-local function OnButtonRefreshIconColor(self)
+function Addon.OnButtonRefreshIconColor(self)
     local spellID = self:GetSpellID()
     if not spellID then
         return
@@ -484,9 +327,11 @@ local function OnButtonRefreshIconColor(self)
     local frame = self:GetParent()
     local frameName = frame:GetName()
     local iconTexture = self:GetIconTexture()
-    local outOfRangeTexture = self:GetOutOfRangeTexture()
+    local outOfRangeTexture = self.GetOutOfRangeTexture and self:GetOutOfRangeTexture() or nil
     
     local color = {1, 1, 1, 1}
+
+    --todo rewrite for SetVertexColorFromBoolean
 
     local iconColor = {iconTexture:GetVertexColor()}
     if iconColor then
@@ -502,7 +347,9 @@ local function OnButtonRefreshIconColor(self)
     if Addon:GetValue("UseOORColor", nil, frameName) and 
        (iconColor[1] == OORColor[1] and iconColor[2] == OORColor[2] and iconColor[3] == OORColor[3]) then
         color = {Addon:GetRGBA("OORColor", nil, frameName)}
-        outOfRangeTexture:SetShown(false)
+        if outOfRangeTexture then
+            outOfRangeTexture:SetShown(false)
+        end
         self.__desaturated = Addon:GetValue("OORDesaturate", nil, frameName)
     
     elseif self.__isOnActualCooldown and Addon:GetValue("UseCDColor", nil, frameName) then
@@ -525,13 +372,12 @@ local function OnButtonRefreshIconColor(self)
             self.__desaturated = Addon:GetValue("OOMDesaturate", nil, frameName)
         
         else
-            if not self.__isOnAura then
-                if Addon:GetValue("UseNormalColor", nil, frameName) then
-                    color = {Addon:GetRGBA("NormalColor", nil, frameName)}
-                    self.__desaturated = Addon:GetValue("NormalColorDesaturate", nil, frameName)
-                else
-                    self.__desaturated = false
-                end
+            if not self.__removeAura and self.__isOnAura and Addon:GetValue("UseAuraColor", nil, frameName) then
+                color = {Addon:GetRGBA("AuraColor", nil, frameName)}
+                self.__desaturated = Addon:GetValue("AuraColorDesaturate", nil, frameName)
+            elseif Addon:GetValue("UseNormalColor", nil, frameName) then
+                color = {Addon:GetRGBA("NormalColor", nil, frameName)}
+                self.__desaturated = Addon:GetValue("NormalColorDesaturate", nil, frameName)
             else
                 self.__desaturated = false
             end
@@ -548,12 +394,6 @@ local function OnButtonRefreshIconDesaturation(self)
     local iconTexture = self:GetIconTexture()
     
     RefreshDesaturation(self)
-end
-
-local function Hook_OnItemSetScale(frame, scale)
-    if scale ~= 1 then
-        frame:SetScale(1)
-    end
 end
 
 --[[ local function OnTriggerAvailableAlert(self)
@@ -576,6 +416,35 @@ local function OnUpdateFromAuraData(self, auraData)
     local frameName = self:GetParent():GetParent():GetName()
     if auraData and Addon:GetValue("CDMRemoveAuraTypeBorder", nil, frameName) then
         self:Hide()
+    end
+end
+
+local function OnUpdateButton(child, elapsed)
+
+    local parentFrame = child:GetParent()
+    local parentName = parentFrame:GetName()
+    if not child:IsVisible() then return end
+
+    if child.__isOnAura then return end
+    if not child.Cooldown then return end
+
+    local cooldownFrame = child.Cooldown
+
+    local fontString = cooldownFrame:GetCountdownFontString()
+
+    if not fontString or not fontString:IsVisible() then return end
+
+    local spellID = child:GetSpellID()
+    if not spellID then return end
+
+    local durationObj = C_Spell.GetSpellChargeDuration(spellID) or C_Spell.GetSpellCooldownDuration(spellID)
+    if durationObj then
+        local EvaluateDuration = durationObj.EvaluateRemainingDuration and durationObj:EvaluateRemainingDuration(parentFrame.cooldownColorCurve) or nil
+
+        if EvaluateDuration then
+            fontString:SetVertexColor(EvaluateDuration:GetRGBA())
+        end
+        
     end
 end
 
@@ -622,10 +491,6 @@ local function Hook_Layout(self)
         self.gridLayoutType = Addon:GetValue("CDMGridLayoutType", nil, frameName)
     end
 
-    if self.hideInactive == nil or forceUpdate then
-        self.hideInactive = Addon:GetValue("CDMHideWhenInactive", nil, frameName)
-    end
-
     local layoutChildren = self:GetLayoutChildren()
     if not self:ShouldUpdateLayout(layoutChildren) then
         self.__locked = false
@@ -639,6 +504,7 @@ local function Hook_Layout(self)
             return
         end
 
+        child.__hideType = Addon:GetValue("CurrentHideWhenInactive", nil, frameName)
         --for future visible alert hook
 
         --[[ if child.TriggerAvailableAlert and not child.__alertHook then
@@ -671,14 +537,21 @@ local function Hook_Layout(self)
             end
             child.__hooked = true
         end
+        if not child.__onUpdateHooked and Addon:GetValue("ColorizedCooldownFont", nil, frameName) then
+            if child.OnUpdate and frameName ~= "BuffIconCooldownViewer" then --"BuffIconCooldownViewer" have weird behavior right now
+                child:HookScript("OnUpdate", OnUpdateButton)
+            end
+            child.__onUpdateHooked = true
+        end
 
         if not child.__refreshIconHook then
             if child.RefreshIconColor then
-                hooksecurefunc(child, "RefreshIconColor", OnButtonRefreshIconColor)
+                hooksecurefunc(child, "RefreshIconColor", Addon.OnButtonRefreshIconColor)
             end
             if child.RefreshIconDesaturation then
                 hooksecurefunc(child, "RefreshIconDesaturation", OnButtonRefreshIconDesaturation)  
             end
+            
             child.__refreshIconHook = true
         end
         
@@ -706,107 +579,25 @@ local function Hook_Layout(self)
         end
 
         if child.Cooldown and (not child.__cooldown or forceUpdate) then
-            local color = {r = 1.0, g = 1.0, b = 1.0, a = 1.0}
-
-            if Addon:GetValue("UseCooldownCDMFontColor", nil, frameName) then
-                color.r,color.g,color.b,color.a = Addon:GetRGBA("CooldownCDMFontColor", nil, frameName)
-            end
-            
-            local fontSize = Addon:GetValue("UseCooldownCDMFontSize", nil, frameName) and Addon:GetValue("CooldownCDMFontSize", nil, frameName) or 17
-            
-            local _, fontName = Addon:GetFontObject(
-                Addon:GetValue("CurrentCDMCooldownFont", nil, frameName),
-                "OUTLINE",
-                color,
-                fontSize,
-                false,
-                frameName
-            )
-            child.Cooldown:SetCountdownFont(fontName)
+            ABE_CDMCustomized:RefreshCooldownFont(child, frameName)
             child.__cooldown = true
         end
         
         local stacksFrame = child.Applications or child.ChargeCount
         local stacksString = stacksFrame and (stacksFrame.Applications or stacksFrame.Current) or child.Icon.Applications
         if stacksString and (not child.__stacksString or forceUpdate) then
-            if Addon:GetValue("CurrentCDMStacksFont", nil, frameName) ~= "Default" then
-                stacksString:SetFont(
-                    LibStub("LibSharedMedia-3.0"):Fetch("font", Addon:GetValue("CurrentCDMStacksFont", nil, frameName)),
-                    (Addon:GetValue("UseCDMStacksFontSize", nil, frameName) and Addon:GetValue("CDMStacksFontSize", nil, frameName) or 16),
-                    "OUTLINE"
-                )
-            end
-            stacksString:SetFontHeight(Addon:GetValue("CDMStacksFontSize", nil, frameName) or 16)
-            if Addon:GetValue("UseCDMStacksFontColor", nil, frameName) then
-                stacksString:SetVertexColor(Addon:GetRGBA("CDMStacksFontColor", nil, frameName))
-            end
-
-            local point = Addon.AttachPoints[Addon:GetValue("CDMCurrentStacksPoint", nil, frameName)]
-            local relativePoint = Addon.AttachPoints[Addon:GetValue("CDMCurrentStacksRelativePoint", nil, frameName)]
-            stacksString:SetWidth(0)
-            stacksString:ClearAllPoints()
-            stacksString:SetPoint(point, stacksString:GetParent(), relativePoint)
-
-            if Addon:GetValue("UseCDMStacksOffset", nil, frameName) then
-                stacksString:AdjustPointsOffset(Addon:GetValue("CDMStacksOffsetX", nil, frameName), Addon:GetValue("CDMStacksOffsetY", nil, frameName))
-            end
-
+            ABE_CDMCustomized:RefreshStacksFont(child, frameName)
             child.__stacksString = true
         end
 
         if Addon:GetValue("CDMUseItemSize", nil, frameName) and (not child.__sizeHooked or forceUpdate) then
-            local size = Addon:GetValue("CDMItemSize", nil, frameName)
-            child:SetSize(size, size)
-            if child.SetScale then
-                hooksecurefunc(child, "SetScale", Hook_OnItemSetScale)
-            end
+            ABE_CDMCustomized:RefreshItemSize(child, frameName)
             child.__sizeHooked = true
         end
         
         if Addon:GetValue("CurrentIconMaskTexture", nil, frameName) > 1 and (not child.__iconHooked or forceUpdate) then
 
-            local iconMaskAtlas = T.IconMaskTextures[Addon:GetValue("CurrentIconMaskTexture", nil, frameName)]
-
-            local icon = (frameName ~= "BuffBarCooldownViewer") and child.Icon or child.Icon.Icon
-            local mask = icon:GetMaskTexture(1)
-
-            mask:SetHorizTile(false)
-            mask:SetVertTile(false)
-
-            Addon:SetTexture(mask, iconMaskAtlas.texture)
-            
-            if iconMaskAtlas.point then
-                mask:ClearAllPoints()
-                mask:SetPoint(iconMaskAtlas.point, mask:GetParent(), iconMaskAtlas.point)
-            end
-
-            if Addon:GetValue("UseIconMaskScale", nil, frameName) then
-                mask:SetSize(mask:GetParent():GetSize())
-                mask:SetScale(Addon:GetValue("IconMaskScale", nil, frameName))
-            else
-                mask:ClearAllPoints()
-                mask:SetAllPoints()
-            end
-
-            if Addon:GetValue("UseIconScale", nil, frameName) then
-                icon:ClearAllPoints()
-                icon:SetPoint("CENTER", icon:GetParent(), "CENTER")
-                icon:SetSize(icon:GetParent():GetSize())
-                icon:SetScale(Addon:GetValue("IconScale", nil, frameName))
-            end
-
-             if not child.__iconOverlay then
-                local regions = (frameName ~= "BuffBarCooldownViewer") and { child:GetRegions() } or { child.Icon:GetRegions() }
-                for k, region in ipairs(regions) do
-                    if region:IsObjectType("Texture") then
-                        local atlas = region:GetAtlas()
-                        if atlas == "UI-HUD-CoolDownManager-IconOverlay" then
-                            child.__iconOverlay = region
-                        end
-                    end
-                end
-                child.__iconOverlay:Hide()
-            end
+            ABE_CDMCustomized:RefreshIconMask(child, frameName)
 
             child.__iconHooked = true
         end
@@ -825,72 +616,7 @@ local function Hook_Layout(self)
 
             if child.Bar and (not child.__barHooked or forceUpdate) then
 
-                if child.Icon and Addon:GetValue("UseCDMBarIconSize", nil, frameName) then
-                    local size = Addon:GetValue("CDMBarIconSize", nil, frameName)
-                    child.Icon:ClearAllPoints()
-                    child.Icon:SetPoint("LEFT", child, "LEFT")
-                    child.Icon:SetSize(size, size)
-                end
-                
-                if Addon:GetValue("UseCDMBarHeight", nil, frameName) then
-                    local height = Addon:GetValue("CDMBarHeight", nil, frameName)
-                    child.Bar:SetHeight(height)
-                end
-
-                child:SetHeight(math.max(child.Icon:GetHeight(), child.Bar:GetHeight()))
-
-                Addon:SetTexture(child.Bar.Pip, T.PipTextures[Addon:GetValue("CurrentCDMPipTexture", nil, frameName)].texture, true)
-
-                if Addon:GetValue("CDMUseBarPipSize", nil, frameName) then
-                    child.Bar.Pip:SetSize(Addon:GetValue("CDMBarPipSizeX", nil, frameName), Addon:GetValue("CDMBarPipSizeY", nil, frameName))
-                end
-                
-                child.Bar:SetStatusBarTexture(Addon:GetStatusBarTextureByName(Addon:GetValue("CurrentCDMStatusBarTexture", nil, frameName)))
-                
-                Addon:SetTexture(child.Bar.BarBG, Addon:GetStatusBarTextureByName(Addon:GetValue("CurrentCDMBGTexture", nil, frameName)))
-                if Addon:GetValue("UseCDMBarBGColor", nil, frameName) then
-                    child.Bar.BarBG:SetVertexColor(Addon:GetRGBA("CDMBarBGColor", nil, frameName))
-                else
-                    child.Bar.BarBG:SetVertexColor(1,1,1,1)
-                end
-                child.Bar.BarBG:ClearAllPoints()
-                child.Bar.BarBG:SetPoint("TOPLEFT", child.Bar, "TOPLEFT")
-                child.Bar.BarBG:SetPoint("BOTTOMRIGHT", child.Bar, "BOTTOMRIGHT")
-                --child.Bar.BarBG:SetSize(child.Bar:GetWidth(), child.Bar:GetHeight())
-
-                if child.Bar.Duration then
-
-                    local color = {r = 1.0, g = 1.0, b = 1.0, a = 1.0}
-
-                    if Addon:GetValue("UseCooldownCDMFontColor", nil, frameName) then
-                        color.r,color.g,color.b,color.a = Addon:GetRGBA("CooldownCDMFontColor", nil, frameName)
-                    end
-                    local fontSize = Addon:GetValue("UseCooldownCDMFontSize", nil, frameName) and Addon:GetValue("CooldownCDMFontSize", nil, frameName) or 17
-                    local _, fontName = Addon:GetFontObject(
-                        Addon:GetValue("CurrentCDMCooldownFont", nil, frameName),
-                        "OUTLINE",
-                        color,
-                        fontSize,
-                        false,
-                        frameName
-                    )
-                    child.Bar.Duration:SetFontObject(fontName)
-                end
-                if child.Bar.Name then
-
-                    local color = {r = 1.0, g = 1.0, b = 1.0, a = 1.0}
-
-                    if Addon:GetValue("UseNameCDMFontColor", nil, frameName) then
-                        color.r,color.g,color.b,color.a = Addon:GetRGBA("NameCCDMFontColor", nil, frameName)
-                    end
-                    local fontSize = Addon:GetValue("UseNameCDMFontSize", nil, frameName) and Addon:GetValue("NameCDMFontSize", nil, frameName) or 17
-                    child.Bar.Name:SetFont(
-                        LibStub("LibSharedMedia-3.0"):Fetch("font", Addon:GetValue("CurrentCDMNameFont", nil, frameName)),
-                        fontSize,
-                        "OUTLINE"
-                    )
-                    child.Bar.Name:SetTextColor(color.r,color.g,color.b,color.a)
-                end
+                ABE_CDMCustomized:RefreshBar(child, frameName)
 
                 child.__barHooked = true
             end

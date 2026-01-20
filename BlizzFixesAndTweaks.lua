@@ -1,3 +1,5 @@
+local AddonName, Addon = ...
+
 local function OnBreakFrameSnap(self, deltaX, deltaY)
     if not self:CanChangeProtectedState() then return end
     
@@ -30,9 +32,12 @@ end
 local function OnEditModeEnter()
     if EditModeManagerFrame.registeredSystemFrames then
         for index, systemFrame in ipairs(EditModeManagerFrame.registeredSystemFrames) do
-            if systemFrame.BreakFrameSnap and not systemFrame.__breakHooked then
-                hooksecurefunc(systemFrame, "BreakFrameSnap", OnBreakFrameSnap)
-                systemFrame.__breakHooked = true
+            local frameName = systemFrame:GetName()
+            if tContains(Addon.CDMFrames, frameName) then
+                if systemFrame.BreakFrameSnap and not systemFrame.__breakHooked then
+                    hooksecurefunc(systemFrame, "BreakFrameSnap", OnBreakFrameSnap)
+                    systemFrame.__breakHooked = true
+                end
             end
         end
     end
