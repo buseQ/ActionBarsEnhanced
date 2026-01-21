@@ -206,12 +206,12 @@ function ABE_CDMCustomized:RefreshBar(child, frameName)
 
         local color = {r = 1.0, g = 1.0, b = 1.0, a = 1.0}
 
-        if Addon:GetValue("UseCooldownCDMFontColor", nil, frameName) then
-            color.r,color.g,color.b,color.a = Addon:GetRGBA("CooldownCDMFontColor", nil, frameName)
+        if Addon:GetValue("UseCooldownFontColor", nil, frameName) then
+            color.r,color.g,color.b,color.a = Addon:GetRGBA("CooldownFontColor", nil, frameName)
         end
-        local fontSize = Addon:GetValue("UseCooldownCDMFontSize", nil, frameName) and Addon:GetValue("CooldownCDMFontSize", nil, frameName) or 17
+        local fontSize = Addon:GetValue("UseCooldownFontSize", nil, frameName) and Addon:GetValue("CooldownFontSize", nil, frameName) or 17
         local _, fontName = Addon:GetFontObject(
-            Addon:GetValue("CurrentCDMCooldownFont", nil, frameName),
+            Addon:GetValue("CurrentCooldownFont", nil, frameName),
             "OUTLINE, SLUG",
             color,
             fontSize,

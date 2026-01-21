@@ -238,7 +238,9 @@ function ActionBarsEnhancedProfilesMixin:DeleteProfile(profileName)
     if Addon.P.profilesList[profileName] ~= nil then
         Addon.P.profilesList[profileName] = nil
         self:RemoveProfileOrder(profileName)
+        return true
     end
+    return false
 end
 
 function ActionBarsEnhancedProfilesMixin:CopyProfileCategory(fromCatName, toCatName, reload)
@@ -456,7 +458,7 @@ function ActionBarsEnhancedImportDialogMixin:AcceptImport(_, profileString, prof
                 Addon.Print("Profile with this name already exists")
                 return false
             else
-                Addon.P.profilesList[profileName] = nil
+                ActionBarsEnhancedProfilesMixin:DeleteProfile(profileName)
             end
         end
         if Addon.P.profilesList[profileName] == nil then            

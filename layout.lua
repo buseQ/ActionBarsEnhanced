@@ -551,7 +551,7 @@ Addon.BuffBarCooldownViewer = {
             {name = "CDMCooldownFont", template = "OptionsDropdownTemplate"},
             {name = "CDMCooldownFontSize", template = "OptionsCheckboxSliderTemplate"},
             {name = "CDMCooldownFontColor", template = "OptionsColorOverrideTemplate"},
-            {name = "CDMColorizedCooldownFont", template = "OptionsCheckboxTemplate"},
+            --{name = "CDMColorizedCooldownFont", template = "OptionsCheckboxTemplate"},
             {name = "Divider", template = "OptionsDividerTemplate"},
             {name = "CDMStacksFont", template = "OptionsDropdownTemplate"},
             {name = "CDMStacksPoint", template = "OptionsDoubleDropdownTemplate"},
