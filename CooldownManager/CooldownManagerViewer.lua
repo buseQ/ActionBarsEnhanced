@@ -172,23 +172,7 @@ local function OnCooldownSet(cooldownFrame, button)
         button.__cooldownDoneHooked = true
     end
 
-    local timerString
-    if not isBeta then
-        if not cooldownFrame.__timer then
-            local cdRegions = { cooldownFrame:GetRegions() }
-            if cdRegions then
-                for i, region in ipairs(cdRegions) do
-                    if region:IsObjectType("FontString") then
-                        cooldownFrame.__timer = region
-                        break
-                    end
-                end
-            end
-        end
-        timerString = cooldownFrame.__timer
-    else
-        timerString = cooldownFrame:GetCountdownFontString()
-    end
+    local timerString = cooldownFrame:GetCountdownFontString()
 
     button.__removeAura = Addon:GetValue("CDMAuraRemoveSwipe", nil, barName)
 

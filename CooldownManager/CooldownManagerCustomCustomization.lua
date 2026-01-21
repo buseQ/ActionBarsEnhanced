@@ -142,23 +142,8 @@ function ABE_CDMCustomFrameCustomized:RefreshCooldownFrame(frame, frameName)
             auraFrame:SetSwipeColor(Addon:GetRGBA("CooldownAuraColor", nil, frameName)) 
         end
 
-        local timerString
-        if not isBeta then
-            if not auraFrame.__timer then
-                local cdRegions = { auraFrame:GetRegions() }
-                if cdRegions then
-                    for i, region in ipairs(cdRegions) do
-                        if region:IsObjectType("FontString") then
-                           auraFrame.__timer = region
-                            break
-                        end
-                    end
-                end
-            end
-            timerString = auraFrame.__timer
-        else
-            timerString = auraFrame:GetCountdownFontString()
-        end
+        local timerString = auraFrame:GetCountdownFontString()
+        
 
         if Addon:GetValue("UseCDMAuraTimerColor", nil, frameName) then
             timerString:SetVertexColor(Addon:GetRGBA("CDMAuraTimerColor", nil, frameName)) 

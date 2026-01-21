@@ -166,9 +166,6 @@ function ABE_CDMCustomItemMixin:GetCooldownInfo()
         }
     elseif self.type == "spell" then
         self.cooldownInfo = C_Spell.GetSpellCooldown(self.spellID)
-        if not isBeta then
-            self.cooldownInfo.isOnGCD, self.cooldownInfo.isOnActualCooldown = Addon:IsSpellOnGCD(self.spellID)
-        end
     elseif self.type == "slot" then
         --self.cooldownInfo = C_Spell.GetSpellCooldown(self:GetSpellID())
         local start, duration, enable = GetInventoryItemCooldown("player", self.slotID)
@@ -233,11 +230,7 @@ function ABE_CDMCustomItemMixin:RefreshCount()
         local charges = C_Spell.GetSpellCharges(self.spellID)
         count = charges and charges.currentCharges or ""
 
-        if not isBeta then
-            self.Applications:SetAlpha((charges ~= nil) and math.min(charges.currentCharges, 1) or 1)
-        else
-            self.Applications:SetAlpha((charges ~= nil) and (charges.currentCharges) or 1)
-        end
+        self.Applications:SetAlpha((charges ~= nil) and (charges.currentCharges) or 1)
     end
     --[[ if self.spellID == 1966 then
         Addon:DebugPrint("RefreshCount: ", count)
@@ -378,11 +371,7 @@ function ABE_CDMCustomItemMixin:RefreshSpellCooldownInfo()
             self.isOnChargeCooldown = true
         end
         if not self.isOnAuraTimer then
-            if not isBeta then
-                cooldownFrame:SetAlpha(math.min(chargeCooldownInfo.duration, 1))
-            else
-                cooldownFrame:SetAlpha(chargeCooldownInfo.duration)
-            end
+            cooldownFrame:SetAlpha(chargeCooldownInfo.duration)
         end
         
         --cooldownFrame:SetAlphaFromBoolean((self.isOnAuraTimer == true) or (cooldownFrame.showGCDSwipe == false and (cooldownInfo.isOnGCD == true)), 0,1)
@@ -402,24 +391,16 @@ function ABE_CDMCustomItemMixin:RefreshSpellCooldownInfo()
             else
                 cooldownFrame:Resume()
             end
-            if not isBeta then
-                if self.isOnAuraTimer or (not self.isOnActualCooldown == true and cooldownFrame.showGCDSwipe == false and cooldownInfo.isOnGCD == true) then
-                    cooldownFrame:SetAlpha(0)
-                else
-                    cooldownFrame:SetAlpha(1)
-                end
-            else
-                cooldownFrame:SetAlphaFromBoolean(
-                    (self.isOnAuraTimer == true)
-                    or 
-                    (
-                        not self.isOnActualCooldown == true
-                        and cooldownFrame.showGCDSwipe == false
-                        and (cooldownInfo.isOnGCD == true)
-                    ),
-                    0,1
-                )
-            end
+            cooldownFrame:SetAlphaFromBoolean(
+                (self.isOnAuraTimer == true)
+                or 
+                (
+                    not self.isOnActualCooldown == true
+                    and cooldownFrame.showGCDSwipe == false
+                    and (cooldownInfo.isOnGCD == true)
+                ),
+                0,1
+            )
         end
     else
         CooldownFrame_Clear(cooldownFrame)
