@@ -441,3 +441,7 @@ L.UseCustomBGColor = "Custom background color"
 L.CDMAuraRemoveSwipe = "Don't show Aura"
 
 L.JustifyH = "Horizontal text Justification"
+
+L.AlwaysShow = "Always Show"
+L.ShowOnAura = "Show only with Aura"
+L.ShowOnAuraAndCD = "Show with Aura or CD"
