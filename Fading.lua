@@ -20,6 +20,10 @@ local fadeBars = {
     "MultiBar7",
     "BagsBar",
     "MicroMenu",
+    "EssentialCooldownViewer",
+    "UtilityCooldownViewer",
+    "BuffIconCooldownViewer",
+    "BuffBarCooldownViewer",
 }
 local function SetFadeBars()
     local profileTable = Addon.CurrentProfileTbl or Addon:GetCurrentProfileTable()

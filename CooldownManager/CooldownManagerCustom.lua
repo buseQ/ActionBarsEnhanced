@@ -227,10 +227,16 @@ function ABE_CDMCustomItemMixin:RefreshCount()
     if self.type == "item" and self.itemID then
         count = C_Item.GetItemCount(self.itemID, nil, true) or 0
     elseif self.type == "spell" then
-        local charges = C_Spell.GetSpellCharges(self.spellID)
-        count = charges and charges.currentCharges or ""
 
-        self.Applications:SetAlpha((charges ~= nil) and (charges.currentCharges) or 1)
+        local charges = C_Spell.GetSpellCharges(self.spellID) or {}
+
+        if self.isOnAuraTimer and self.auraInstanceID then
+            charges.currentCharges = C_UnitAuras.GetAuraApplicationDisplayCount("player", self.auraInstanceID)
+        end
+
+        count = charges.currentCharges or ""
+
+        self.Applications:SetAlpha(charges.currentCharges ~= nil and tonumber(charges.currentCharges) or 1)
     end
     --[[ if self.spellID == 1966 then
         Addon:DebugPrint("RefreshCount: ", count)
@@ -663,6 +669,7 @@ function ABE_CDMCustomFrameMixin:OnShow()
     else
         self:UnregisterEvent("UNIT_AURA")
     end
+    --self:RegisterEvent("PLAYER_TOTEM_UPDATE")
     --self:RegisterUnitEvent("UNIT_TARGET", "player")
 end
 
@@ -685,8 +692,8 @@ end
 local CooldownManagerFrames = {
     "EssentialCooldownViewer",
     "UtilityCooldownViewer",
-    "BuffIconCooldownViewer",
     "BuffBarCooldownViewer",
+    "BuffIconCooldownViewer",
 }
 
 function ABE_CDMCustomFrameMixin:OnAuraAddedEvent(spellID, auraData)
@@ -695,6 +702,7 @@ function ABE_CDMCustomFrameMixin:OnAuraAddedEvent(spellID, auraData)
             itemFrame.auraInstanceID = auraData.auraInstanceID
             itemFrame.auraDuration = auraData.duration
             local auraDurationObject = C_UnitAuras.GetAuraDuration("player", itemFrame.auraInstanceID)
+            itemFrame.__auraDurationObject = auraDurationObject
             itemFrame.auraStartTime = auraDurationObject:GetStartTime()
             itemFrame.isOnAuraTimer = true
             itemFrame.AuraCooldown:SetCooldown(itemFrame.auraStartTime, auraData.duration)
@@ -762,6 +770,22 @@ function ABE_CDMCustomFrameMixin:OnEvent(event, ...)
         if slot == 13 or slot == 14 then
             self:RefreshLayout()
         end
+    elseif event == "PLAYER_TOTEM_UPDATE" then
+        local slot = ...
+		local _haveTotem, name, startTime, duration, _icon, modRate, spellID = GetTotemInfo(slot)
+
+        --[[ for _, frameName in ipairs(CooldownManagerFrames) do
+            local frame = _G[frameName]
+            if frame then
+                for _, itemFrame in ipairs(frame:GetItemFrames()) do
+                    local totemData = itemFrame:GetTotemData()
+                    if totemData then
+                        print(issecretvalue(totemData.slot), totemData.slot)
+                    end
+                end
+            end
+        end ]]
+
     elseif event == "UNIT_AURA" then
         local unit, unitAuraUpdateInfo = ...
         if unitAuraUpdateInfo then

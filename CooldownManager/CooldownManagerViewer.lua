@@ -441,6 +441,19 @@ end
     OnButtonVisibilityChanged(self)
 end ]]
 
+local function Hook_OnEnter(self)
+    local frame = self:GetParent()
+    if frame.fade then
+        Addon:Fade(frame, true)
+    end
+end
+local function Hook_OnLeave(self)
+    local frame = self:GetParent()
+    if frame.fade then
+        Addon:Fade(frame, false)
+    end
+end
+
 local function Hook_Layout(self)
     if self.__locked then
         return
@@ -518,6 +531,12 @@ local function Hook_Layout(self)
                 hooksecurefunc(child.Cooldown, "Clear", function(self)
                     OnCooldownClear(self, child)
                 end)
+            end
+            if child.OnEnter then
+                child:HookScript("OnEnter", Hook_OnEnter)
+            end
+            if child.OnLeave then
+                child:HookScript("OnLeave", Hook_OnLeave)
             end
             child.__hooked = true
         end

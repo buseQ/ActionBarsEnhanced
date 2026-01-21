@@ -357,6 +357,16 @@ Addon.EssentialCooldownViewer = {
         }
     },
     {
+        name = "FadeOptionsContainer",
+        childs = {
+            {name = "FadeOutBars", template = "OptionsCheckboxSliderTemplate"},
+            {name = "FadeInOnCombat", template = "OptionsCheckboxTemplate"},
+            {name = "FadeInOnTarget", template = "OptionsCheckboxTemplate"},
+            {name = "FadeInOnCasting", template = "OptionsCheckboxTemplate"},
+            {name = "FadeInOnHover", template = "OptionsCheckboxTemplate"},
+        }
+    },
+    {
         name = "CooldownViewerIconContainer",
         childs = {
             {name = "IconMaskTextureOptions", template = "OptionsDropdownTemplate"},
@@ -448,6 +458,16 @@ Addon.BuffIconCooldownViewer = {
         }
     },
     {
+        name = "FadeOptionsContainer",
+        childs = {
+            {name = "FadeOutBars", template = "OptionsCheckboxSliderTemplate"},
+            {name = "FadeInOnCombat", template = "OptionsCheckboxTemplate"},
+            {name = "FadeInOnTarget", template = "OptionsCheckboxTemplate"},
+            {name = "FadeInOnCasting", template = "OptionsCheckboxTemplate"},
+            {name = "FadeInOnHover", template = "OptionsCheckboxTemplate"},
+        }
+    },
+    {
         name = "CooldownViewerIconContainer",
         childs = {
             {name = "IconMaskTextureOptions", template = "OptionsDropdownTemplate"},
@@ -521,6 +541,16 @@ Addon.BuffBarCooldownViewer = {
             {name = "GridLayoutType", template = "OptionsDropdownTemplate"},
             {name = "RemovePandemicAnims", template = "OptionsCheckboxTemplate"},
             {name = "RemoveAuraTypeBorder", template = "OptionsCheckboxTemplate"},
+        }
+    },
+    {
+        name = "FadeOptionsContainer",
+        childs = {
+            {name = "FadeOutBars", template = "OptionsCheckboxSliderTemplate"},
+            {name = "FadeInOnCombat", template = "OptionsCheckboxTemplate"},
+            {name = "FadeInOnTarget", template = "OptionsCheckboxTemplate"},
+            {name = "FadeInOnCasting", template = "OptionsCheckboxTemplate"},
+            {name = "FadeInOnHover", template = "OptionsCheckboxTemplate"},
         }
     },
     {
