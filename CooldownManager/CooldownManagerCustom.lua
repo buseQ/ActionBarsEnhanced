@@ -658,6 +658,7 @@ function ABE_CDMCustomFrameMixin:OnShow()
     self:RegisterEvent("PLAYER_TALENT_UPDATE")
     self:RegisterEvent("ITEM_COUNT_CHANGED")
     self:RegisterEvent("SPELL_UPDATE_USES")
+    self:RegisterEvent("SPELL_UPDATE_CHARGES")
     self:RegisterEvent("BAG_UPDATE_DELAYED")
     self:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
     self:RegisterEvent("TRAIT_CONFIG_UPDATED")
@@ -731,6 +732,13 @@ function ABE_CDMCustomFrameMixin:OnAuraRemoveEvent(auraInstanceID)
         end
     end
 end
+function ABE_CDMCustomFrameMixin:UpdateAllTrinkets(usedSlot)
+    for itemFrame in self.itemPool:EnumerateActive() do
+        if itemFrame.slotID and itemFrame.slotID ~= usedSlot and itemFrame.slotID < 16 then
+            itemFrame:RefreshData()
+        end
+    end
+end
 
 function ABE_CDMCustomFrameMixin:OnEvent(event, ...)
     if event == "PLAYER_IN_COMBAT_CHANGED" or event == "PLAYER_LEVEL_CHANGED" then
@@ -739,8 +747,18 @@ function ABE_CDMCustomFrameMixin:OnEvent(event, ...)
 		local spellID, baseSpellID, category, startRecoveryCategory = ...
         for itemFrame in self.itemPool:EnumerateActive() do
             if itemFrame.spellID == spellID or (baseSpellID and (itemFrame.baseSpellID == baseSpellID)) then
+                if itemFrame.slotID == 13 or itemFrame.slotID == 14 then
+                    self:UpdateAllTrinkets(itemFrame.slotID)
+                end
                 itemFrame:OnSpellUpdateCooldownEvent()
                 break
+            end
+        end
+
+    elseif event == "SPELL_UPDATE_CHARGES" then
+        for itemFrame in self.itemPool:EnumerateActive() do
+            if itemFrame.isOnChargeCooldown then
+                itemFrame:RefreshData()
             end
         end
     elseif event == "SPELL_UPDATE_USES" then
@@ -767,7 +785,7 @@ function ABE_CDMCustomFrameMixin:OnEvent(event, ...)
         end
     elseif event == "PLAYER_EQUIPMENT_CHANGED" then
         local slot, isEmpty = ...
-        if slot == 13 or slot == 14 then
+        if slot == 13 or slot == 14 or slot == 16 or slot == 17 then
             self:RefreshLayout()
         end
     elseif event == "PLAYER_TOTEM_UPDATE" then

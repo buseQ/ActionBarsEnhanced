@@ -288,6 +288,8 @@ L.CDMCustomFrameAddItemByID = "Add Item by ID"
 
 L.CDMCustomFrameTrackSlot13 = "Add Trinket #1 (Slot 13)"
 L.CDMCustomFrameTrackSlot14 = "Add Trinket #2 (Slot 14)"
+L.CDMCustomFrameTrackSlot16 = "Add Weapon #1 (Slot 16)"
+L.CDMCustomFrameTrackSlot17 = "Add Weapon #2 (Slot 17)"
 
 L.CDMCustomFrameHideWhen0 = "Hide when count is 0"
 
@@ -324,7 +326,7 @@ L.GridCompact = "Left/Right, no gaps"
 L.GridFixed = "Left/Right, with gaps"
 
 L.GridLayoutType = "Grid Style"
-L.HideWhenInactive = "Hide when inactive"
+L.HideWhenInactive = "Visibility"
 
 L.Alpha = "Fade Alpha"
 

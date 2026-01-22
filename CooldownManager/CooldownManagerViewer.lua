@@ -160,6 +160,12 @@ local function OnCooldownSet(cooldownFrame, button)
     if not cooldownFrame then return end
 
     if barName == "BuffIconCooldownViewer" and button.__cooldownSet then
+        if Addon:GetValue("UseCooldownColor", nil, barName) then
+            cooldownFrame:SetSwipeColor(Addon:GetRGBA("CooldownColor", nil, barName))
+        end
+        if Addon:GetValue("UseCDMBackdrop", nil, barName) then
+            Addon.SetBorderColor(button, {Addon:GetRGBA("CDMBackdropColor", nil, barName)}, "reset")
+        end
         return
     end
 
@@ -200,7 +206,6 @@ local function OnCooldownSet(cooldownFrame, button)
         cooldownFrame:SetReverse(Addon:GetValue("CDMAuraReverseSwipe", nil, barName))
     else
         button.__isOnAura = false
-
         if Addon:GetValue("UseCooldownColor", nil, barName) then
             cooldownFrame:SetSwipeColor(Addon:GetRGBA("CooldownColor", nil, barName))
         end

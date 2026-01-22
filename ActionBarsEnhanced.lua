@@ -867,7 +867,9 @@ function Addon:UpdateIcon(button, isStanceBar, previewValue)
 end
 
 function Addon:UpdateCooldown(button, isStanceBar, previewValue)
+
     local config, configName = Addon:GetConfig(button)
+
     if Addon:GetValue("UseSwipeSize", nil, configName) then
         button.cooldown:ClearAllPoints()
         local size = isStanceBar and Addon:GetValue("SwipeSize", nil, configName)*0.69 or Addon:GetValue("SwipeSize", nil, configName)
@@ -879,8 +881,10 @@ function Addon:UpdateCooldown(button, isStanceBar, previewValue)
         button.lossOfControlCooldown:SetPoint("CENTER", button.icon, "CENTER", 0, 0)
         button.lossOfControlCooldown:SetSize(size, size)
     end
+
     local color = {r = 1.0, g = 1.0, b = 1.0, a = 1.0}
     local bar = button.bar
+
     if Addon:GetValue("UseCooldownFontColor", nil, configName) then
         color.r,color.g,color.b,color.a = Addon:GetRGBA("CooldownFontColor", nil, configName)
         if bar and not bar.cooldownColorCurve then
@@ -896,6 +900,7 @@ function Addon:UpdateCooldown(button, isStanceBar, previewValue)
     elseif bar then
         bar.cooldownColorCurve = Addon.cooldownColorCurve
     end
+
     local fontSize = Addon:GetValue("UseCooldownFontSize", nil, configName) and Addon:GetValue("CooldownFontSize", nil, configName) or 17
     local _, fontName = Addon:GetFontObject(
         Addon:GetValue("CurrentCooldownFont", nil, configName),
@@ -904,13 +909,26 @@ function Addon:UpdateCooldown(button, isStanceBar, previewValue)
         fontSize,
         isStanceBar
     )
+
+    local fontString = button.cooldown:GetCountdownFontString()
+    if Addon:GetValue("UseCooldownFontOffset", nil, configName) then
+        local offsetX = Addon:GetValue("CooldownFontOffsetX", nil, configName)
+        local offsetY = Addon:GetValue("CooldownFontOffsetY", nil, configName)
+
+        fontString:AdjustPointsOffset(offsetX, offsetY)
+    else
+        fontString:AdjustPointsOffset(0, 0)
+    end
+
     button.cooldown:SetCountdownFont(fontName)
     button.cooldown:SetCountdownAbbrevThreshold(920)
 
     if button.cooldown:IsUsingParentLevel() then
         button.cooldown:SetUsingParentLevel(false)
     end
+
     button.cooldown:SetFrameLevel(510)
+
 end
 
 local function Hook_ButtonOnUpdate(button)

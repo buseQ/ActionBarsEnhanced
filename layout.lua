@@ -91,6 +91,7 @@ Addon.layoutMini = {
             {name = "Divider2", template = "OptionsDividerTemplate"},
             {name = "CooldownFont", template = "OptionsDropdownTemplate"},
             {name = "CooldownFontSize", template = "OptionsCheckboxSliderTemplate"},
+            {name = "CooldownFontOffset", template = "OptionsDoubleCheckboxSliderTemplate"},
             {name = "CooldownFontColor", template = "OptionsColorOverrideTemplate"},
             --{name = "ColorizedCooldownFont", template = "OptionsCheckboxTemplate"},
             {name = "PreviewSwipe", template = "OptionsButtonCooldownPreviewTemplate", point = {"TOP", "desc", "BOTTOM", 180, -10}, scale="1.8"},
@@ -238,6 +239,7 @@ Addon.layout = {
             {name = "Divider2", template = "OptionsDividerTemplate"},
             {name = "CooldownFont", template = "OptionsDropdownTemplate"},
             {name = "CooldownFontSize", template = "OptionsCheckboxSliderTemplate"},
+            {name = "CooldownFontOffset", template = "OptionsDoubleCheckboxSliderTemplate"},
             {name = "CooldownFontColor", template = "OptionsColorOverrideTemplate"},
             --{name = "ColorizedCooldownFont", template = "OptionsCheckboxTemplate"},
             {name = "PreviewSwipe", template = "OptionsButtonCooldownPreviewTemplate", point = {"TOP", "desc", "BOTTOM", 180, -10}, scale="1.8"},
@@ -411,6 +413,7 @@ Addon.EssentialCooldownViewer = {
         childs = {
             {name = "CDMCooldownFont", template = "OptionsDropdownTemplate"},
             {name = "CDMCooldownFontSize", template = "OptionsCheckboxSliderTemplate"},
+            {name = "CDMCooldownFontOffset", template = "OptionsDoubleCheckboxSliderTemplate"},
             {name = "CDMCooldownFontColor", template = "OptionsColorOverrideTemplate"},
             {name = "CDMColorizedCooldownFont", template = "OptionsCheckboxTemplate"},
             {name = "Divider", template = "OptionsDividerTemplate"},
@@ -498,6 +501,7 @@ Addon.BuffIconCooldownViewer = {
         childs = {
             {name = "CDMCooldownFont", template = "OptionsDropdownTemplate"},
             {name = "CDMCooldownFontSize", template = "OptionsCheckboxSliderTemplate"},
+            {name = "CDMCooldownFontOffset", template = "OptionsDoubleCheckboxSliderTemplate"},
             {name = "CDMCooldownFontColor", template = "OptionsColorOverrideTemplate"},
             {name = "CDMColorizedCooldownFont", template = "OptionsCheckboxTemplate"},
             {name = "Divider", template = "OptionsDividerTemplate"},
@@ -613,6 +617,8 @@ Addon.CustomFrameCooldownViewer = {
             {name = "CDMCustomItemListFrame", template = "OptionsCDMCustomItemListTemplate", height = 250},
             {name = "CDMCustomTrackTrink1", template = "OptionsCheckboxTemplate"},
             {name = "CDMCustomTrackTrink2", template = "OptionsCheckboxTemplate"},
+            {name = "CDMCustomTrackWeapon1", template = "OptionsCheckboxTemplate"},
+            {name = "CDMCustomTrackWeapon2", template = "OptionsCheckboxTemplate"},
             {name = "CDMCustomFrameAddSpellByID", template = "OptionsEditBoxTemplate"},
             {name = "CDMCustomFrameAddItemByID", template = "OptionsEditBoxTemplate"},
             {name = "CDMCustomHideWhenEmpty", template = "OptionsCheckboxTemplate"},
@@ -696,6 +702,7 @@ Addon.CustomFrameCooldownViewer = {
         childs = {
             {name = "CDMCooldownFont", template = "OptionsDropdownTemplate"},
             {name = "CDMCooldownFontSize", template = "OptionsCheckboxSliderTemplate"},
+            {name = "CDMCooldownFontOffset", template = "OptionsDoubleCheckboxSliderTemplate"},
             {name = "CDMCooldownFontColor", template = "OptionsColorOverrideTemplate"},
             {name = "CDMColorizedCooldownFont", template = "OptionsCheckboxTemplate"},
             {name = "Divider", template = "OptionsDividerTemplate"},

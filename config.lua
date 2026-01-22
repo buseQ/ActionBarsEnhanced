@@ -81,8 +81,8 @@ Addon.config.containers = {
                 IsSelected  = function(id) return id == Addon:GetValue("CurrentAssistType", nil, true) end,
                 OnSelect    = function(id) Addon:SaveSetting("CurrentAssistType", id, true) end,
                 showNew     = false,
-                OnEnter     = function(id, frames) ActionBarEnhancedDropdownMixin:RefreshProcLoop(frames.ProcLoopPreview, id) end,
-                OnClose     = function() ActionBarEnhancedDropdownMixin:RefreshAllPreview() end,
+                OnEnter     = false,
+                OnClose     = false,
             },
             ["CustomColorAssistLoop"] = {
                 type            = "colorSwatch",
@@ -90,9 +90,7 @@ Addon.config.containers = {
                 value           = "AssistGlowColor",
                 checkboxValues  = {"UseAssistGlowColor", "DesaturateAssist"},
                 alpha           = false,
-                callback        = function()
-                    ActionBarEnhancedDropdownMixin:RefreshAllPreview()
-                end,
+                
             },
             ["AssistAltGlowType"] = {
                 type        = "dropdown",
@@ -101,8 +99,8 @@ Addon.config.containers = {
                 IsSelected  = function(id) return id == Addon:GetValue("CurrentAssistAltType", nil, true) end,
                 OnSelect    = function(id) Addon:SaveSetting("CurrentAssistAltType", id, true) end,
                 showNew     = false,
-                OnEnter     = function(id, frames) ActionBarEnhancedDropdownMixin:RefreshAltGlow(frames.ProcLoopPreview, id) end,
-                OnClose     = function() ActionBarEnhancedDropdownMixin:RefreshAllPreview() end,
+                OnEnter     = false,
+                OnClose     = false,
             },
             ["CustomColorAltGlow"] = {
                 type            = "colorSwatch",
@@ -110,9 +108,6 @@ Addon.config.containers = {
                 value           = "AssistAltColor",
                 checkboxValues  = {"UseAssistAltColor", "DesaturateAssistAlt"},
                 alpha           = true,
-                callback        = function()
-                    ActionBarEnhancedDropdownMixin:RefreshAllPreview()
-                end,
             },
         }
     },
@@ -467,6 +462,19 @@ Addon.config.containers = {
                 name            = L.ColorizedCooldownFont,
                 value           = "ColorizedCooldownFont",
                 showNew         = true,
+                callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
+                end,
+            },
+            ["CooldownFontOffset"] = {
+                type            = "checkboxSlider",
+                name            = L.Offset,
+                checkboxValue   = "UseCooldownFontOffset",
+                sliderValue     = {"CooldownFontOffsetX", "CooldownFontOffsetY"},
+                min             = -40,
+                max             = 40,
+                step            = 1,
+                sliderName      = {{top = L.OffsetX}, {top = L.OffsetY}},
                 callback        = function()
                     ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
                 end,
@@ -1262,6 +1270,21 @@ Addon.config.containers = {
                     CooldownManagerEnhanced:ForceUpdate(frameName)
                 end,
             },
+            ["CDMCooldownFontOffset"] = {
+                type            = "checkboxSlider",
+                name            = L.Offset,
+                checkboxValue   = "UseCooldownFontOffset",
+                sliderValue     = {"CooldownFontOffsetX", "CooldownFontOffsetY"},
+                min             = -40,
+                max             = 40,
+                step            = 1,
+                sliderName      = {{top = L.OffsetX}, {top = L.OffsetY}},
+                callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
             ["CDMCooldownFontColor"] = {
                 type            = "colorSwatch",
                 name            = L.FontColor,
@@ -1877,6 +1900,24 @@ Addon.config.containers = {
                     EventRegistry:TriggerEvent("CDMCustomItemList.AddItemBySlot", 14, frameLabel, checked)
                 end
             },
+            ["CDMCustomTrackWeapon1"] = {
+                type            = "checkbox",
+                name            = L.CDMCustomFrameTrackSlot16,
+                value           = "CDMCustomTrackWeapon1",
+                callback        = function(checked)
+                    local frameLabel = ABE_BarsListMixin:GetFrameLebel()
+                    EventRegistry:TriggerEvent("CDMCustomItemList.AddItemBySlot", 16, frameLabel, checked)
+                end
+            },
+            ["CDMCustomTrackWeapon2"] = {
+                type            = "checkbox",
+                name            = L.CDMCustomFrameTrackSlot17,
+                value           = "CDMCustomTrackWeapon2",
+                callback        = function(checked)
+                    local frameLabel = ABE_BarsListMixin:GetFrameLebel()
+                    EventRegistry:TriggerEvent("CDMCustomItemList.AddItemBySlot", 17, frameLabel, checked)
+                end
+            },
             ["CDMCustomHideWhenEmpty"] = {
                 type            = "checkbox",
                 name            = L.CDMCustomFrameHideWhen0,
@@ -2445,6 +2486,22 @@ Addon.config.containers = {
                 sliderName      = {top = L.Size},
                 callback        = function()
                     ActionBarEnhancedDropdownMixin:RefreshFontPreview()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshCooldownFont(frame, frameName)
+                end,
+            },
+            ["CDMCooldownFontOffset"] = {
+                type            = "checkboxSlider",
+                name            = L.Offset,
+                checkboxValue   = "UseCooldownFontOffset",
+                sliderValue     = {"CooldownFontOffsetX", "CooldownFontOffsetY"},
+                min             = -40,
+                max             = 40,
+                step            = 1,
+                sliderName      = {{top = L.OffsetX}, {top = L.OffsetY}},
+                callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     local frame = _G[frameName]
                     ABE_CDMCustomFrameCustomized:RefreshCooldownFont(frame, frameName)

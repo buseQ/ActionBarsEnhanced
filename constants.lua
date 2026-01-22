@@ -558,6 +558,10 @@ Addon.Defaults = {
     CurrentCastBarCastNameJustifyH = 2,
     CurrentCastBarCastTimeJustifyH = 3,
     CurrentCastBarCastTargetJustifyH = 2,
+
+    UseCooldownFontOffset = false,
+    CooldownFontOffsetX = 0,
+    CooldownFontOffsetY = 0,
 }
 
 Addon.Templates = {

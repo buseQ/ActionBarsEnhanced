@@ -13,14 +13,16 @@ local function OnBreakFrameSnap(self, deltaX, deltaY)
     if deltaX then offsetX = offsetX + deltaX end
     if deltaY then offsetY = offsetY + deltaY end
 
+    local point = "CENTER"
+
     self:ClearAllPoints()
-    self:SetPoint("CENTER", UIParent, "CENTER", offsetX, offsetY)
+    self:SetPoint(point, UIParent, point, offsetX, offsetY)
 
     if self.systemInfo then
         self.systemInfo.anchorInfo = {
-            point = "CENTER",
+            point = point,
             relativeTo = "UIParent",
-            relativePoint = "CENTER",
+            relativePoint = point,
             offsetX = offsetX,
             offsetY = offsetY,
         }
@@ -33,7 +35,7 @@ local function OnEditModeEnter()
     if EditModeManagerFrame.registeredSystemFrames then
         for index, systemFrame in ipairs(EditModeManagerFrame.registeredSystemFrames) do
             local frameName = systemFrame:GetName()
-            if tContains(Addon.CDMFrames, frameName) then
+            if frameName == "PlayerCastingBarFrame" or tContains(Addon.CDMFrames, frameName) then
                 if systemFrame.BreakFrameSnap and not systemFrame.__breakHooked then
                     hooksecurefunc(systemFrame, "BreakFrameSnap", OnBreakFrameSnap)
                     systemFrame.__breakHooked = true

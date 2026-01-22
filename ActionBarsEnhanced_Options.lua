@@ -1072,6 +1072,15 @@ function ActionBarEnhancedMixin:InitOptions()
         local timerString = button.cooldown:GetCountdownFontString()
         button.cooldown:SetCountdownFont(fontName)
         timerString:SetVertexColor(color.r,color.g,color.b,color.a)
+
+        if Addon:GetValue("UseCooldownFontOffset", profileName, barName) then
+            local offsetX = Addon:GetValue("CooldownFontOffsetX", profileName, barName)
+            local offsetY = Addon:GetValue("CooldownFontOffsetY", profileName, barName)
+
+            timerString:SetPointsOffset(offsetX, offsetY)
+        else
+            timerString:SetPointsOffset(0, 0)
+        end
     end
 
     function ActionBarEnhancedDropdownMixin:RefreshPreview(button, profileName, barName)
@@ -1765,7 +1774,6 @@ end
 
 
 RegisterNewSlashCommand(ActionBarEnhancedMixin.InitOptions, Addon.command, Addon.shortCommand)
-RegisterNewSlashCommand(ActionBarEnhancedMixin.InitOptions, "wa", "wa")
 
 local LDB = LibStub:GetLibrary("LibDataBroker-1.1")
 local LDBIcon = LibStub:GetLibrary("LibDBIcon-1.0")

@@ -151,6 +151,19 @@ function ABE_CDMCustomFrameCustomized:RefreshCooldownFrame(frame, frameName)
             timerString:SetVertexColor(1,1,1,1)
         end
 
+        local fontString = cooldownFrame:GetCountdownFontString()
+
+        if Addon:GetValue("UseCooldownFontOffset", nil, frameName) then
+            local offsetX = Addon:GetValue("CooldownFontOffsetX", nil, frameName)
+            local offsetY = Addon:GetValue("CooldownFontOffsetY", nil, frameName)
+
+            timerString:AdjustPointsOffset(offsetX, offsetY)
+            fontString:AdjustPointsOffset(offsetX, offsetY)
+        else
+            timerString:AdjustPointsOffset(0, 0)
+            fontString:AdjustPointsOffset(0, 0)
+        end
+
         cooldownFrame.isReversed = Addon:GetValue("CDMReverseSwipe", nil, frameName)
         auraFrame.isReversed = Addon:GetValue("CDMAuraReverseSwipe", nil, frameName)
 

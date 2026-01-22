@@ -293,6 +293,8 @@ L.CDMCustomFrameAddItemByID = "Добавить Предмет по ID"
 
 L.CDMCustomFrameTrackSlot13 = "Добавить Тринкет #1 (13 слот)"
 L.CDMCustomFrameTrackSlot14 = "Добавить Тринкет #2 (14 слот)"
+L.CDMCustomFrameTrackSlot16 = "Добавить Оружие #1 (16 слот)"
+L.CDMCustomFrameTrackSlot17 = "Добавить Оружие #2 (17 слот)"
 
 L.CDMCustomFrameHideWhen0 = "Скрывать если количество 0"
 
@@ -331,7 +333,7 @@ L.GridFixed = "По краю, показывать пустые"
 
 L.GridLayoutType = "Расположение иконок"
 
-L.HideWhenInactive = "Скрыть во время неактивности"
+L.HideWhenInactive = "Видимость"
 
 L.Alpha = "Прозрачность"
 
