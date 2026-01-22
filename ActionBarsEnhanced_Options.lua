@@ -774,9 +774,9 @@ function ActionBarEnhancedMixin:InitOptions()
                     button.NormalTexture:SetPoint("TOPLEFT")
                 end
                 if normalAtlas.padding then
-                    button.NormalTexture:AdjustPointsOffset(normalAtlas.padding[1], normalAtlas.padding[2])
+                    button.NormalTexture:SetPointsOffset(normalAtlas.padding[1], normalAtlas.padding[2])
                 else
-                    button.NormalTexture:AdjustPointsOffset(0,0)
+                    button.NormalTexture:SetPointsOffset(0,0)
                 end
                 if normalAtlas.size then
                     button.NormalTexture:SetSize(normalAtlas.size[1], normalAtlas.size[2])
@@ -813,9 +813,9 @@ function ActionBarEnhancedMixin:InitOptions()
                         button.SlotBackground:SetPoint("TOPLEFT")
                     end
                     if backdropAtlas.padding then
-                        button.SlotBackground:AdjustPointsOffset(backdropAtlas.padding[1], backdropAtlas.padding[2])
+                        button.SlotBackground:SetPointsOffset(backdropAtlas.padding[1], backdropAtlas.padding[2])
                     else
-                        button.SlotBackground:AdjustPointsOffset(0,0)
+                        button.SlotBackground:SetPointsOffset(0,0)
                     end
                     if backdropAtlas.size then
                         button.SlotBackground:SetSize(backdropAtlas.size[1], backdropAtlas.size[2])

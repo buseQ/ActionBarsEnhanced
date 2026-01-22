@@ -157,11 +157,11 @@ function ABE_CDMCustomFrameCustomized:RefreshCooldownFrame(frame, frameName)
             local offsetX = Addon:GetValue("CooldownFontOffsetX", nil, frameName)
             local offsetY = Addon:GetValue("CooldownFontOffsetY", nil, frameName)
 
-            timerString:AdjustPointsOffset(offsetX, offsetY)
-            fontString:AdjustPointsOffset(offsetX, offsetY)
+            timerString:SetPointsOffset(offsetX, offsetY)
+            fontString:SetPointsOffset(offsetX, offsetY)
         else
-            timerString:AdjustPointsOffset(0, 0)
-            fontString:AdjustPointsOffset(0, 0)
+            timerString:SetPointsOffset(0, 0)
+            fontString:SetPointsOffset(0, 0)
         end
 
         cooldownFrame.isReversed = Addon:GetValue("CDMReverseSwipe", nil, frameName)
@@ -320,7 +320,7 @@ function ABE_CDMCustomFrameCustomized:RefreshCooldownFont(frame, frameName)
             stacksString:SetPoint(point, stacksString:GetParent(), relativePoint)
 
             if Addon:GetValue("UseStacksOffset", nil, frameName) then
-                stacksString:AdjustPointsOffset(Addon:GetValue("StacksOffsetX", nil, frameName), Addon:GetValue("StacksOffsetY", nil, frameName))
+                stacksString:SetPointsOffset(Addon:GetValue("StacksOffsetX", nil, frameName), Addon:GetValue("StacksOffsetY", nil, frameName))
             end
         end
 

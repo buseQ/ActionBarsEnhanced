@@ -134,6 +134,18 @@ function ABE_CDMCustomized:RefreshCooldownFont(child, frameName)
         false,
         frameName
     )
+
+    local timerString = child.Cooldown:GetCountdownFontString()
+
+    if Addon:GetValue("UseCooldownFontOffset", nil, frameName) then
+        local offsetX = Addon:GetValue("CooldownFontOffsetX", nil, frameName)
+        local offsetY = Addon:GetValue("CooldownFontOffsetY", nil, frameName)
+
+        timerString:SetPointsOffset(offsetX, offsetY)
+    else
+        timerString:SetPointsOffset(0, 0)
+    end
+
     child.Cooldown:SetCountdownFont(fontName)
 end
 
@@ -162,7 +174,7 @@ function ABE_CDMCustomized:RefreshStacksFont(child, frameName)
     stacksString:SetPoint(point, stacksString:GetParent(), relativePoint)
 
     if Addon:GetValue("UseStacksOffset", nil, frameName) then
-        stacksString:AdjustPointsOffset(Addon:GetValue("StacksOffsetX", nil, frameName), Addon:GetValue("StacksOffsetY", nil, frameName))
+        stacksString:SetPointsOffset(Addon:GetValue("StacksOffsetX", nil, frameName), Addon:GetValue("StacksOffsetY", nil, frameName))
     end
 end
 

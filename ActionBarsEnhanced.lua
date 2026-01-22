@@ -648,7 +648,7 @@ function Addon:UpdateNormalTexture(button, isStanceBar, previewValue)
                 button.NormalTexture:SetPoint(normalAtlas.point, button, normalAtlas.point)
             end
             if normalAtlas.padding then
-                button.NormalTexture:AdjustPointsOffset(normalAtlas.padding[1], normalAtlas.padding[2])
+                button.NormalTexture:SetPointsOffset(normalAtlas.padding[1], normalAtlas.padding[2])
             end
             if normalAtlas.size then
                 button.NormalTexture:SetSize(normalAtlas.size[1], normalAtlas.size[2])
@@ -687,7 +687,7 @@ function Addon:UpdateBackdropTexture(button, isStanceBar, previewValue)
                 button.SlotBackground:SetPoint(backdropAtlas.point, button, backdropAtlas.point)
             end
             if backdropAtlas.padding then
-                button.SlotBackground:AdjustPointsOffset(backdropAtlas.padding[1], backdropAtlas.padding[2])
+                button.SlotBackground:SetPointsOffset(backdropAtlas.padding[1], backdropAtlas.padding[2])
             end
             if backdropAtlas.size then
                 button.SlotBackground:SetSize(backdropAtlas.size[1], backdropAtlas.size[2])
@@ -762,7 +762,7 @@ function Addon:UpdateHighlightTexture(button, isStanceBar, previewValue)
                 button.HighlightTexture:SetPoint(highlightAtlas.point, button, highlightAtlas.point)
             end
             if highlightAtlas.padding then
-                button.HighlightTexture:AdjustPointsOffset(highlightAtlas.padding[1], highlightAtlas.padding[2])
+                button.HighlightTexture:SetPointsOffset(highlightAtlas.padding[1], highlightAtlas.padding[2])
             end
             if highlightAtlas.size then
                 button.HighlightTexture:SetSize(highlightAtlas.size[1], highlightAtlas.size[2])
@@ -915,9 +915,9 @@ function Addon:UpdateCooldown(button, isStanceBar, previewValue)
         local offsetX = Addon:GetValue("CooldownFontOffsetX", nil, configName)
         local offsetY = Addon:GetValue("CooldownFontOffsetY", nil, configName)
 
-        fontString:AdjustPointsOffset(offsetX, offsetY)
+        fontString:SetPointsOffset(offsetX, offsetY)
     else
-        fontString:AdjustPointsOffset(0, 0)
+        fontString:SetPointsOffset(0, 0)
     end
 
     button.cooldown:SetCountdownFont(fontName)
