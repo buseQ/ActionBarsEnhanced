@@ -1825,8 +1825,10 @@ Addon.config.containers = {
                 name            = L.CDMCustomFrameName,
                 defaultText     = function()
                     local frame = _G[ABE_BarsListMixin:GetFrameLebel()]
-                    local frameName = frame:GetDisplayName()
-                    return frameName
+                    if frame then
+                        local frameName = frame:GetDisplayName()
+                        return frameName
+                    end
                 end,
                 OnEnterPressed  = function(self)
                     local frameName = ABE_BarsListMixin:GetFrameLebel()

@@ -204,6 +204,12 @@ end
 
 function ABE_BarsListMixin:OnShow()
     if ABE_BarsListMixin.selected then
+        if ABE_BarsListMixin.selected ~= "Presets" or ABE_BarsListMixin.selected ~= "Global Settings" then
+            if not _G[ABE_BarsListMixin.selected.label] then
+
+                return
+            end
+        end
         ABE_BarsListMixin.selected:Click()
     end
 end

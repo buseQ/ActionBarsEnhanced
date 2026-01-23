@@ -699,7 +699,7 @@ local CooldownManagerFrames = {
 
 function ABE_CDMCustomFrameMixin:OnAuraAddedEvent(spellID, auraData)
     for itemFrame in self.itemPool:EnumerateActive() do
-        if not itemFrame.__removeAura and itemFrame.spellID == spellID then
+        if not itemFrame.__removeAura and (itemFrame.spellID == spellID or itemFrame.baseSpellID == spellID) then
             itemFrame.auraInstanceID = auraData.auraInstanceID
             itemFrame.auraDuration = auraData.duration
             local auraDurationObject = C_UnitAuras.GetAuraDuration("player", itemFrame.auraInstanceID)
@@ -825,7 +825,8 @@ function ABE_CDMCustomFrameMixin:OnEvent(event, ...)
                     for _, frameName in ipairs(CooldownManagerFrames) do
                         local frame = _G[frameName]
                         if frame then
-                            itemFrames = frame.auraInstanceIDToItemFramesMap[auraData.auraInstanceID]
+                            itemFrames = frame.auraInstanceIDToItemFramesMap[auraData.auraInstanceID]                            
+                            --print("UNIT_AURA", frame.auraInstanceIDToItemFramesMap)
                             if itemFrames then
                                 for _, item in ipairs(itemFrames) do
                                     local spellID = item.cooldownInfo.spellID
@@ -1330,6 +1331,7 @@ local function OnCreateNewMenuFrame(self, frameLabel, displayName)
 end
 
 local function OnDeleteMenuFrame(self, frameLabel)
+    print(self, frameLabel)
     local frame = _G[frameLabel]
     if frame then
         frame:UnregisterAllEvents()
@@ -1339,12 +1341,14 @@ local function OnDeleteMenuFrame(self, frameLabel)
 
     local frameIndex = ABE_CDMCustomFrameMixin:GetFrameIndexByName(frameLabel)
     if profileTable["CDMCustomFrames"] then
+        print("OnDeleteMenu", frameLabel, profileTable["CDMCustomFrames"][frameIndex].label)
         if frameLabel == profileTable["CDMCustomFrames"][frameIndex].label then
             table.remove(profileTable["CDMCustomFrames"], frameIndex)
         end
     end
     if profileTable[frameLabel] then
-        --print("Remove Frame from profile", frameLabel)
+        print("Remove Frame from profile", frameLabel)
+        wipe(profileTable[frameLabel])
         profileTable[frameLabel] = nil
     end
 end
@@ -1366,7 +1370,7 @@ local function ProcessEvent(self, event, ...)
 
         for index, data in ipairs(profileTable["CDMCustomFrames"]) do
             if data then
-                local frame = ABE_CDMCustomFrameMixin:CreateFrame("CDMCustomFrame_" .. index, nil, nil, nil, data.point.x or 0, data.point.y or 0)
+                local frame = ABE_CDMCustomFrameMixin:CreateFrame( profileTable["CDMCustomFrames"][index].label, nil, nil, nil, data.point.x or 0, data.point.y or 0)
                 frame:SetDisplayName(data.name)
             end
         end

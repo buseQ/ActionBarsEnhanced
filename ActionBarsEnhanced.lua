@@ -1447,12 +1447,6 @@ local function ProcessEvent(self, event, ...)
     if event == "TALKINGHEAD_REQUESTED" then
         DisableTalkingHeadFrame()
     end
-    if event == "PLAYER_ENTERING_WORLD" then
-        local stateWA = C_AddOns.GetAddOnEnableState("WeakAuras", UnitName("player"))
-        if stateWA > 0 then
-            ABE_WAIntegrationParse()
-        end
-    end
     if event == "ACTION_RANGE_CHECK_UPDATE" then
         local slot, inRange, checksRange = ...
         Hook_RangeCheckButton(slot, inRange, checksRange)
