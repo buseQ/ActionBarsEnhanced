@@ -24,19 +24,20 @@ function ABE_CDMCustomized:RefreshIconMask(child, frameName)
         mask:SetPoint(iconMaskAtlas.point, mask:GetParent(), iconMaskAtlas.point)
     end
 
-    if Addon:GetValue("UseIconMaskScale", nil, frameName) then
-        mask:SetSize(mask:GetParent():GetSize())
-        mask:SetScale(Addon:GetValue("IconMaskScale", nil, frameName))
-    else
-        mask:ClearAllPoints()
-        mask:SetAllPoints()
-    end
-
     if Addon:GetValue("UseIconScale", nil, frameName) then
         icon:ClearAllPoints()
         icon:SetPoint("CENTER", icon:GetParent(), "CENTER")
         icon:SetSize(icon:GetParent():GetSize())
         icon:SetScale(Addon:GetValue("IconScale", nil, frameName))
+    end
+
+    if Addon:GetValue("UseIconMaskScale", nil, frameName) then
+        local size = icon:GetSize()
+        mask:SetSize(size, size)
+        mask:SetScale(Addon:GetValue("IconMaskScale", nil, frameName))
+    else
+        mask:ClearAllPoints()
+        mask:SetAllPoints()
     end
 
     if not child.__iconOverlay then

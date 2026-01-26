@@ -13,7 +13,7 @@ function ABE_CDMCustomFrameCustomized:RefreshSkin(frame, frameName)
     self:RefreshCooldownFrame(frame, frameName)
     self:RefreshBackdrop(frame, frameName)
     self:RefreshLoopGlow(frame, frameName)
-    self:RefreshCooldownFont(frame, frameName)
+    self:RefreshCooldownFont(frame, frameName)   
 
 end
 
@@ -206,10 +206,10 @@ function ABE_CDMCustomFrameCustomized:RefreshLoopGlow(frame, frameName)
     
     for itemFrame in frame.itemPool:EnumerateActive() do
 
-        local actionButtonSize = 42
-        local size = itemFrame:GetHeight()
-        local scaleMult = size / actionButtonSize
-
+        local actionButtonSize = 31
+        local size = itemFrame.ProcGlow:GetHeight()
+        local scaleMult = math.min(size / actionButtonSize, 1.4)
+        
         local region = itemFrame.ProcGlow
         if loopAnim.atlas then
             region.ProcLoopFlipbook:SetAtlas(loopAnim.atlas)    
@@ -218,15 +218,16 @@ function ABE_CDMCustomFrameCustomized:RefreshLoopGlow(frame, frameName)
         end
         if loopAnim then
             region.ProcLoopFlipbook:ClearAllPoints()
-            region.ProcLoopFlipbook:SetSize(region:GetSize())
+            region.ProcLoopFlipbook:SetSize(size, size)
             region.ProcLoopFlipbook:SetPoint("CENTER", region, "CENTER")
+            region.ProcLoopFlipbook:SetScale((loopAnim.scale or 1) * scaleMult)
+            
             region.ProcLoop.FlipAnim:SetFlipBookRows(loopAnim.rows or 6)
             region.ProcLoop.FlipAnim:SetFlipBookColumns(loopAnim.columns or 5)
             region.ProcLoop.FlipAnim:SetFlipBookFrames(loopAnim.frames or 30)
             region.ProcLoop.FlipAnim:SetDuration(loopAnim.duration or 1.0)
             region.ProcLoop.FlipAnim:SetFlipBookFrameWidth(loopAnim.frameW or 0.0)
             region.ProcLoop.FlipAnim:SetFlipBookFrameHeight(loopAnim.frameH or 0.0)
-            region.ProcLoopFlipbook:SetScale((loopAnim.scale or 1) * scaleMult)
         end
 
         region.ProcLoopFlipbook:SetDesaturated(Addon:GetValue("DesaturateGlow", nil, frameName))
@@ -252,7 +253,7 @@ function ABE_CDMCustomFrameCustomized:RefreshLoopGlow(frame, frameName)
                 if procAnim then
                     region.ProcStartFlipbook:ClearAllPoints()
                     local size = region:GetHeight()
-                    region.ProcStartFlipbook:SetSize(size * 2.5, size * 2.5)
+                    region.ProcStartFlipbook:SetSize(size, size)
                     region.ProcStartFlipbook:SetPoint("CENTER", region, "CENTER")
                     startProc:SetFlipBookRows(procAnim.rows or 6)
                     startProc:SetFlipBookColumns(procAnim.columns or 5)
@@ -287,7 +288,6 @@ function ABE_CDMCustomFrameCustomized:RefreshCooldownFont(frame, frameName)
         
         local fontSize = Addon:GetValue("UseCooldownFontSize", nil, frameName) and Addon:GetValue("CooldownFontSize", nil, frameName) or 17
         
-        --print("CustomFrame stacks Font:", Addon:GetValue("CurrentCDMCooldownFont", nil, frameName))
         local _, fontName = Addon:GetFontObject(
             Addon:GetValue("CurrentCooldownFont", nil, frameName),
             "OUTLINE, SLUG",
@@ -325,5 +325,27 @@ function ABE_CDMCustomFrameCustomized:RefreshCooldownFont(frame, frameName)
         end
 
 
+    end
+end
+
+function ABE_CDMCustomFrameCustomized:RefreshAnchors(frame, frameName)
+    frameName = frameName or frame.frameName
+    if Addon:GetValue("CDMEnableAttach", nil, frameName) then
+        local relativeKeyName = Addon:GetValue("CurrentAttachFrame", nil, frameName)
+        if relativeKeyName ~= "" and relativeKeyName ~= "UIParent" and relativeKeyName ~= frameName then
+            local relativeKey = _G[relativeKeyName]
+            if relativeKey then
+                frame.ABESelection:SetMouseClickEnabled(false)
+
+                local point = Addon.AttachPoints[Addon:GetValue("CurrentAttachPoint", nil, frameName)]
+                local relPoint = Addon.AttachPoints[Addon:GetValue("CurrentAttachRelativePoint", nil, frameName)]
+                local offsetX = Addon:GetValue("UseAttachOffset", nil, frameName) and Addon:GetValue("AttachOffsetX", nil, frameName) or 0
+                local offsetY = Addon:GetValue("UseAttachOffset", nil, frameName) and Addon:GetValue("AttachOffsetY", nil, frameName) or 0
+                frame:ClearAllPoints()
+                frame:SetPoint(point, relativeKey, relPoint, offsetX, offsetY)
+            end
+        end
+    else
+        frame.ABESelection:SetMouseClickEnabled(true)
     end
 end

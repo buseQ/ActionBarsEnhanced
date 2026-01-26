@@ -562,6 +562,20 @@ Addon.Defaults = {
     UseCooldownFontOffset = false,
     CooldownFontOffsetX = 0,
     CooldownFontOffsetY = 0,
+
+    UseCooldownAuraColor = true,
+    CooldownAuraColor = { r=1.0, g=0.95, b=0.57, a=0.7 },
+    UseCDMAuraTimerColor = false,
+    CDMAuraTimerColor = { r=1.0, g=0.95, b=0.57, a=1.0 },
+
+    CurrentAttachPoint = 2,
+    CurrentAttachRelativePoint = 2,
+    UseAttachOffset = false,
+    AttachOffsetX = 0,
+    AttachOffsetY = 0,
+    CDMEnableAttach = false,
+    CurrentAttachFrame = "",
+    ShowCountdownNumbersForCharges = true,
 }
 
 Addon.Templates = {

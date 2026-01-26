@@ -971,7 +971,7 @@
 			</Layer>
 		</Layers>
 		<Frames>
-			<EditBox parentKey="EditBox" mixin="ActionBarEnhancedEditBoxEditMixin" autoFocus="false" virtual="true" letters="15" >
+			<EditBox parentKey="EditBox" mixin="ActionBarEnhancedEditBoxEditMixin" autoFocus="false" virtual="true" letters="20" >
 				<Size x="300" y="26"/>
 				<Anchors>
 					<Anchor point="LEFT" relativePoint="CENTER" x="-80" y="0"/>

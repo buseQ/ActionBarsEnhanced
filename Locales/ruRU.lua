@@ -456,3 +456,17 @@ L.UseCustomBGColor = "Свой цвет фона"
 L.CDMAuraRemoveSwipe = "Не показывать ауру"
 
 L.JustifyH = "Горизонтальное выравнивание"
+
+L.EnableAttach = "Использовать привязку к фрейму"
+L.CDMCustomFrameAttachFrameName = "Привязать к фрейму:"
+L.CDMCutomFrameAttachPoint = "Точка крепления"
+L.CDMCutomFrameAttachOffset = "Смещение точки крепления"
+
+L.ShowCountdownNumbersForCharges = "Показывать время заряда"
+
+L.AnchorPosOK = "Привязка фрейма |cff0bbe76ОК"
+L.AnchorPosUNSAVED = "|cffff0000НЕ СОХРАНЕНО!|r\nЗАКРОЙ Редактирование, чтобы сохранить привязку фрейма"
+L.AnchorPosAttached = "Привязан к фрейму:\n|cff0bbe76"
+
+L.AttachTitle = "Настройка привязки фрейма"
+L.AttachDesc = "Выбор фрейма и точки для крепления."

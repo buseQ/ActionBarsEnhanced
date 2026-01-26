@@ -251,6 +251,11 @@ function ABE_BarsButtonMixin:SetSelected(selected)
     if not bar then return end
     local index = ABE_BarsListMixin:GetFrameIndex()
 
+    local isCastBar
+    if bar == PlayerCastingBarFrame or bar == TargetFrameSpellBar or bar == FocusFrameSpellBar then
+        isCastBar = true
+    end
+
     if bar.ABESelection then
         if selected then
             self.active = true
@@ -274,14 +279,24 @@ function ABE_BarsButtonMixin:SetSelected(selected)
             ABE_BarsFrameMixin.selection:SetFrameLevel(bar:GetFrameLevel()-1)
             ABE_BarsFrameMixin.selection:Show()
             ABE_BarsFrameMixin.selection.PulseAnim:Play()
+
+            if isCastBar then
+                ABE_CastingBarMixin.OnOptionsSelected(bar, true)
+            end
         else
             ABE_BarsFrameMixin.selection:Hide()
             ABE_BarsFrameMixin.selection.PulseAnim:Stop()
+            if isCastBar then
+                ABE_CastingBarMixin.OnOptionsSelected(bar, false)
+            end
         end
 	else
         if bar then
             ABE_BarsFrameMixin.selection:Hide()
             ABE_BarsFrameMixin.selection.PulseAnim:Stop()
+            if isCastBar then
+                ABE_CastingBarMixin.OnOptionsSelected(bar, false)
+            end
         end
 		self.Texture:Hide()
         self.active = false

@@ -641,7 +641,7 @@ function ActionBarEnhancedMixin:InitOptions()
     local optionsFrame = CreateFrame("Frame", "ActionBarEnhancedOptionsFrame", UIParent, "ActionBarEnhancedOptionsFrameTemplate")
     optionsFrame:SetParent(UIParent)
     optionsFrame:SetPoint("LEFT", UIParent, "LEFT", 0, 0)
-    optionsFrame:SetScale(0.95)
+    --optionsFrame:SetScale(0.95)
 
     optionsFrame:SetMovable(true)
     optionsFrame:EnableMouse(true)
@@ -1401,7 +1401,7 @@ function ActionBarEnhancedMixin:InitOptions()
 
     ActionBarEnhancedEditBoxMixin = {}
 
-    function ActionBarEnhancedEditBoxMixin:SetupEditBox(name, defaultText, OnEnterPressed, OnEditFocusLost, OnEditFocusGained, numeric)
+    function ActionBarEnhancedEditBoxMixin:SetupEditBox(name, defaultText, OnEnterPressed, OnEditFocusLost, OnEditFocusGained, numeric, numLetters)
         self.Label:SetText(name)
         local displayText = ""
         if type(defaultText) == "function" then
@@ -1414,6 +1414,9 @@ function ActionBarEnhancedMixin:InitOptions()
 
         if numeric then
             self.EditBox:SetNumeric(numeric)
+        end
+        if numLetters then
+            self.EditBox:SetMaxLetters(numLetters)
         end
         
         if OnEnterPressed and type(OnEnterPressed) == "function" then
@@ -1760,7 +1763,8 @@ function Addon:InitChildElement(child, config, frames)
             config.OnEnterPressed,
             config.OnEditFocusLost,
             config.OnEditFocusGained,
-            config.numeric
+            config.numeric,
+            config.numLetters
         )
     elseif config.type == "button" then
         ActionBarEnhancedButtonMixin.SetupButton(

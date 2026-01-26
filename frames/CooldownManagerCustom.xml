@@ -5,6 +5,7 @@
 			<OnEnter method="OnEnter"/>
 			<OnLeave method="OnLeave"/>
 			<OnShow method="OnShow"/>
+			<OnEvent method="OnEvent"/>
 		</Scripts>
 	</Frame>
     <Frame name="ABE_CDMCustomItemTemplate" inherits="ABE_CDMCustomItemBaseTemplate" mixin="ABE_CDMCustomItemMixin" virtual="true" hidden="false" dontSavePosition="true">
@@ -56,7 +57,7 @@
 					</AnimationGroup>
 						
 					<AnimationGroup parentKey="ProcStartAnim" setToFinalAlpha="true">
-						<Alpha childKey="ProcStartFlipbook" startDelay="0.5" duration=".001" order="0" fromAlpha="1" toAlpha="1"/>
+						<Alpha childKey="ProcStartFlipbook" duration=".001" order="0" fromAlpha="1" toAlpha="1"/>
 						<FlipBook childKey="ProcStartFlipbook" duration="0.7" order="1" flipBookRows="6" flipBookColumns="5" flipBookFrames="30" flipBookFrameWidth="0" flipBookFrameHeight="0"/>
 						<Alpha childKey="ProcStartFlipbook" duration=".001" order="2" fromAlpha="1" toAlpha="0"/>
 					</AnimationGroup>

@@ -83,12 +83,17 @@ Addon.layoutMini = {
             {name = "SwipeTexture", template = "OptionsDropdownTemplate"},
             {name = "SwipeSize", template = "OptionsCheckboxSliderTemplate"},
             {name = "SwipeColor", template = "OptionsColorOverrideTemplate"},
+            {name = "ShowCountdownNumbersForCharges", template = "OptionsCheckboxTemplate"},
+
             {name = "Divider", template = "OptionsDividerTemplate"},
+
             {name = "EdgeTexture", template = "OptionsDropdownTemplate"},
             {name = "EdgeSize", template = "OptionsCheckboxSliderTemplate"},
             {name = "EdgeColor", template = "OptionsColorOverrideTemplate"},
             {name = "EdgeAlwaysShow", template = "OptionsCheckboxTemplate"},
+
             {name = "Divider2", template = "OptionsDividerTemplate"},
+
             {name = "CooldownFont", template = "OptionsDropdownTemplate"},
             {name = "CooldownFontSize", template = "OptionsCheckboxSliderTemplate"},
             {name = "CooldownFontOffset", template = "OptionsDoubleCheckboxSliderTemplate"},
@@ -231,6 +236,7 @@ Addon.layout = {
             {name = "SwipeTexture", template = "OptionsDropdownTemplate"},
             {name = "SwipeSize", template = "OptionsCheckboxSliderTemplate"},
             {name = "SwipeColor", template = "OptionsColorOverrideTemplate"},
+            {name = "ShowCountdownNumbersForCharges", template = "OptionsCheckboxTemplate"},
             {name = "Divider", template = "OptionsDividerTemplate"},
             {name = "EdgeTexture", template = "OptionsDropdownTemplate"},
             {name = "EdgeSize", template = "OptionsCheckboxSliderTemplate"},
@@ -384,12 +390,13 @@ Addon.EssentialCooldownViewer = {
             {name = "CDMSwipeTexture", template = "OptionsDropdownTemplate"},
             {name = "CDMSwipeSize", template = "OptionsCheckboxSliderTemplate"},
             {name = "CDMSwipeColor", template = "OptionsColorOverrideTemplate"},
+            {name = "ShowCountdownNumbersForCharges", template = "OptionsCheckboxTemplate"},
             {name = "CDMReverseSwipe", template = "OptionsCheckboxTemplate"},
             {name = "CDMRemoveGCDSwipe", template = "OptionsCheckboxTemplate"},
             
             {name = "Divider1", template = "OptionsDividerTemplate"},
 
-            --{name = "CDMAuraRemoveSwipe", template = "OptionsCheckboxTemplate"},
+            {name = "CDMAuraRemoveSwipe", template = "OptionsCheckboxTemplate"},
 
             {name = "CDMAuraSwipeColor", template = "OptionsColorOverrideTemplate"},
             {name = "CDMAuraTimerColor", template = "OptionsColorOverrideTemplate"},
@@ -639,6 +646,15 @@ Addon.CustomFrameCooldownViewer = {
         }
     },
     {
+        name = "CDMCustomFrameAttachContainer",
+        childs = {
+            {name = "CDMEnableAttach", template = "OptionsCheckboxTemplate"},
+            {name = "CDMCustomFrameAttachTo", template = "OptionsEditBoxTemplate"},
+            {name = "CDMCustomFrameAttachPoint", template = "OptionsDoubleDropdownTemplate"},
+            {name = "CDMCustomFrameAttachOffset", template = "OptionsDoubleCheckboxSliderTemplate"},
+        }
+    },
+    {
         name = "FadeOptionsContainer",
         childs = {
             {name = "FadeOutBars", template = "OptionsCheckboxSliderTemplate"},
@@ -648,7 +664,7 @@ Addon.CustomFrameCooldownViewer = {
             {name = "FadeInOnHover", template = "OptionsCheckboxTemplate"},
         }
     },
-    --[[ {
+    {
         name = "CDMCustomFrameGlowContainer",
         childs = {
             {name = "GlowOptions", template = "OptionsDropdownTemplate"},
@@ -660,7 +676,7 @@ Addon.CustomFrameCooldownViewer = {
             {name = "ProcLoopPreview", template = "OptionsButtonGlowPreviewTemplate", point = {"TOP", "desc", "BOTTOM", 180, 4}, scale="1.8"},
             {name = "ProcStartPreview", template = "OptionsButtonGlowPreviewTemplate", point = {"TOP", "Divider", "BOTTOM", 180, -10}, scale="1.8"},
         }
-    }, ]]
+    },
     {
         name = "CDMCustomFrameIconContainer",
         childs = {
@@ -677,6 +693,8 @@ Addon.CustomFrameCooldownViewer = {
             {name = "CDMCustomFrameSwipeSize", template = "OptionsCheckboxSliderTemplate"},
             {name = "CDMCustomFrameSwipeColor", template = "OptionsColorOverrideTemplate"},
             {name = "CDMCustomFrameReverseSwipe", template = "OptionsCheckboxTemplate"},
+            {name = "ShowCountdownNumbersForCharges", template = "OptionsCheckboxTemplate"},
+            {name = "CDMCustomFrameRemoveGCDSwipe", template = "OptionsCheckboxTemplate"},
 
             {name = "Divider", template = "OptionsDividerTemplate"},
 
@@ -684,7 +702,6 @@ Addon.CustomFrameCooldownViewer = {
             {name = "CDMCustomFrameAuraSwipeColor", template = "OptionsColorOverrideTemplate"},
             {name = "CDMCustomFrameAuraTimerColor", template = "OptionsColorOverrideTemplate"},
             {name = "CDMCustomFrameAuraReverseSwipe", template = "OptionsCheckboxTemplate"},
-            {name = "CDMCustomFrameRemoveGCDSwipe", template = "OptionsCheckboxTemplate"},
 
             {name = "Divider", template = "OptionsDividerTemplate"},
 

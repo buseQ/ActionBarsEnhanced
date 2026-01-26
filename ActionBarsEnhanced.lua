@@ -911,23 +911,38 @@ function Addon:UpdateCooldown(button, isStanceBar, previewValue)
     )
 
     local fontString = button.cooldown:GetCountdownFontString()
+    local fontStringCharges = button.chargeCooldown:GetCountdownFontString()
     if Addon:GetValue("UseCooldownFontOffset", nil, configName) then
         local offsetX = Addon:GetValue("CooldownFontOffsetX", nil, configName)
         local offsetY = Addon:GetValue("CooldownFontOffsetY", nil, configName)
 
         fontString:SetPointsOffset(offsetX, offsetY)
+        if fontStringCharges then
+            fontStringCharges:SetPointsOffset(offsetX, offsetY)
+        end
+        
     else
         fontString:SetPointsOffset(0, 0)
+        if fontStringCharges then
+            fontStringCharges:SetPointsOffset(0, 0)
+        end
     end
 
     button.cooldown:SetCountdownFont(fontName)
+    if button.chargeCooldown then
+        button.chargeCooldown:SetCountdownFont(fontName)
+    end
     button.cooldown:SetCountdownAbbrevThreshold(920)
 
     if button.cooldown:IsUsingParentLevel() then
         button.cooldown:SetUsingParentLevel(false)
     end
+    if button.chargeCooldown and button.chargeCooldown:IsUsingParentLevel() then
+        button.chargeCooldown:SetUsingParentLevel(false)
+    end
 
     button.cooldown:SetFrameLevel(510)
+    button.chargeCooldown:SetFrameLevel(510)
 
 end
 
@@ -1100,19 +1115,19 @@ function Addon:RefreshCooldown(button, isStanceBar, barName)
             cooldown:SetEdgeColor(Addon:GetRGBA("EdgeColor", nil, configName))
         end
     end
-    local function RefreshSwipeTexture(button, isStanceBar)
+    local function RefreshSwipeTexture(button, cooldown, isStanceBar)
         if Addon:GetValue("CurrentSwipeTexture", nil, configName) and Addon:GetValue("CurrentSwipeTexture", nil, configName) > 1 then
-            button.cooldown:SetSwipeTexture(T.SwipeTextures[Addon:GetValue("CurrentSwipeTexture", nil, configName)].texture)
+            cooldown:SetSwipeTexture(T.SwipeTextures[Addon:GetValue("CurrentSwipeTexture", nil, configName)].texture)
             button.lossOfControlCooldown:SetSwipeTexture(T.SwipeTextures[Addon:GetValue("CurrentSwipeTexture", nil, configName)].texture)
         end
         if Addon:GetValue("UseCooldownColor", nil, configName) then
-            button.cooldown:SetSwipeColor(Addon:GetRGBA("CooldownColor", nil, configName))
+            cooldown:SetSwipeColor(Addon:GetRGBA("CooldownColor", nil, configName))
             button.lossOfControlCooldown:SetSwipeColor(Addon:GetRGBA("CooldownColor", nil, configName))
             
         end
     end
     if button.cooldown then
-        RefreshSwipeTexture(button, isStanceBar)
+        RefreshSwipeTexture(button, button.cooldown, isStanceBar)
 
         button.cooldown:SetDrawEdge(Addon:GetValue("EdgeAlwaysShow", nil, configName))
         if button.cooldown:GetDrawEdge() then
@@ -1121,6 +1136,9 @@ function Addon:RefreshCooldown(button, isStanceBar, barName)
     end
     if button.chargeCooldown then
         RefreshEdgeTexture(button.chargeCooldown, isStanceBar)
+        RefreshSwipeTexture(button, button.chargeCooldown, isStanceBar)
+        local showCountdonwNumbers = Addon:GetValue("ShowCountdownNumbersForCharges", nil, configName)
+        button.chargeCooldown:SetHideCountdownNumbers(not showCountdonwNumbers)
     end
     Addon:RefreshIconColor(button)
 end
@@ -1388,6 +1406,10 @@ local function UpdateStanceAndPetBars()
     end
     if SpellFlyout and not SpellFlyout.__hooked then
         SpellFlyout:HookScript("OnSizeChanged", OnSpellFlyoutSizeChanged)
+    end
+    -- todo find better place
+    if MainMenuBarVehicleLeaveButton then
+        MainMenuBarVehicleLeaveButton:SetIgnoreParentAlpha(true)
     end
 end
 

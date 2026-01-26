@@ -594,6 +594,49 @@ function ABE_CastingBarMixin.ProcessShieldBorder(self)
     end
 end
 
+local function StartCastbar(self)
+    local spellID = 150544
+    local spellInfo = C_Spell.GetSpellInfo(spellID)
+    local text = spellInfo.name
+    local texture = spellInfo.iconID
+
+
+    self.barType = self:GetEffectiveType(false, false, false, false)
+    self:SetStatusBarTexture(self:GetTypeInfo(self.barType).filling)
+
+    self.value = 5
+    self.maxValue = 15
+    self:SetMinMaxValues(0, self.maxValue);
+    self:SetValue(self.value)
+    self:UpdateCastTimeText()
+    if ( self.Text ) then
+        self.Text:SetText(text)
+    end
+    if ( self.Icon ) then
+        self.Icon:SetTexture(texture)
+    end
+    self.casting = false
+
+    self.channeling = nil
+    self.reverseChanneling = nil
+
+    self:UpdateIconShown()
+    self:StopAnims()
+    self:ApplyAlpha(1.0)
+
+    self:ShowSpark()
+
+    self:UpdateShownState(true)
+end
+
+function ABE_CastingBarMixin.OnOptionsSelected(self, show)
+    if show then
+        StartCastbar(self)
+    else
+        self:Hide()
+    end
+end
+
 function ABE_CastingBarMixin.SetHooks(frame)
     if frame.SetLook then
         hooksecurefunc(frame, "SetLook", ABE_CastingBarMixin.SetLook)

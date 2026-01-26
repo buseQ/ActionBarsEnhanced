@@ -447,3 +447,17 @@ L.JustifyH = "Horizontal text Justification"
 L.AlwaysShow = "Always Show"
 L.ShowOnAura = "Show only with Aura"
 L.ShowOnAuraAndCD = "Show with Aura or CD"
+
+L.AttachTitle = "Frame Attach Options"
+L.AttachDesc = "Select the frame and anchor point to attach to"
+
+L.EnableAttach = "Enable frame Attachment"
+L.CDMCustomFrameAttachFrameName = "Attach to frame:"
+L.CDMCutomFrameAttachPoint = "Attach Point"
+L.CDMCutomFrameAttachOffset = "Attach point Offset"
+
+L.ShowCountdownNumbersForCharges = "Show charge countdown numbers"
+
+L.AnchorPosOK = "Anchor is |cff0bbe76ОК"
+L.AnchorPosUNSAVED = "|cffff0000UNSAVED!|r\nEXIT Edit Mode to save Anchor"
+L.AnchorPosAttached = "Attached to frame:|cff0bbe76"

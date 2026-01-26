@@ -184,6 +184,7 @@ local function OnCooldownSet(cooldownFrame, button)
 
     if button.cooldownUseAuraDisplayTime or button.pandemicAlertTriggerTime then
         button.__isOnAura = not button.__removeAura
+        cooldownFrame:SetHideCountdownNumbers(false)
 
         if button.__removeAura then
             local duration = C_Spell.GetSpellChargeDuration(button:GetSpellID()) or C_Spell.GetSpellCooldownDuration(button:GetSpellID())
@@ -215,8 +216,12 @@ local function OnCooldownSet(cooldownFrame, button)
         
         CheckCooldownState(button)
 
-        if (button.isOnGCD and not button.isOnActualCooldown) and Addon:GetValue("CDMRemoveGCDSwipe", nil, barName) then
+        if (button.isOnGCD and not button.isOnActualCooldown and not button.wasSetFromCharges) and Addon:GetValue("CDMRemoveGCDSwipe", nil, barName) then
             cooldownFrame:Clear()
+        end
+        if button.wasSetFromCharges then
+            local showCountdonwNumbers =  Addon:GetValue("ShowCountdownNumbersForCharges", nil, barName)
+            cooldownFrame:SetHideCountdownNumbers(not showCountdonwNumbers)
         end
 
         cooldownFrame:SetReverse(Addon:GetValue("CDMReverseSwipe", nil, barName))
@@ -332,6 +337,26 @@ function Addon.OnButtonRefreshIconColor(self)
     local OORColor = CooldownManagerEnhanced.constants.OORColor
     local OOMColor = CooldownManagerEnhanced.constants.OOMColor  
     local NUColor = CooldownManagerEnhanced.constants.NUColor
+
+    local isUsable, notEnoughMana = C_Spell.IsSpellUsable(self:GetSpellID())
+    
+
+    --[[ if self.spellOutOfRange and Addon:GetValue("UseOORColor", nil, frameName) then
+        color = {Addon:GetRGBA("OORColor", nil, frameName)}
+        if outOfRangeTexture then
+            outOfRangeTexture:SetShown(false)
+        end
+        self.__desaturated = Addon:GetValue("OORDesaturate", nil, frameName)
+    elseif self.__isOnActualCooldown and Addon:GetValue("UseCDColor", nil, frameName) then
+        color = {Addon:GetRGBA("CDColor", nil, frameName)}
+        self.__desaturated = Addon:GetValue("CDColorDesaturate", nil, frameName)
+    elseif self.__isOnGCD and Addon:GetValue("UseGCDColor", nil, frameName) then
+        color = {Addon:GetRGBA("GCDColor", nil, frameName)}
+        self.__desaturated = Addon:GetValue("GCDColorDesaturate", nil, frameName)
+    
+    else
+        if  ]]
+
 
     if Addon:GetValue("UseOORColor", nil, frameName) and 
        (iconColor[1] == OORColor[1] and iconColor[2] == OORColor[2] and iconColor[3] == OORColor[3]) then
@@ -602,13 +627,6 @@ local function Hook_Layout(self)
             ABE_CDMCustomized:RefreshItemSize(child, frameName)
             child.__sizeHooked = true
         end
-        
-        if Addon:GetValue("CurrentIconMaskTexture", nil, frameName) > 1 and (not child.__iconHooked or forceUpdate) then
-
-            ABE_CDMCustomized:RefreshIconMask(child, frameName)
-
-            child.__iconHooked = true
-        end
 
         if child.DebuffBorder and not child.__debuffBorderHooked then
             if child.DebuffBorder.UpdateFromAuraData then
@@ -660,6 +678,13 @@ local function Hook_Layout(self)
                 child.Bar.Pip:SetPoint("CENTER", statusBarTexture, "LEFT")
             end        
         end
+
+        if Addon:GetValue("CurrentIconMaskTexture", nil, frameName) > 1 and (not child.__iconHooked or forceUpdate) then
+
+            ABE_CDMCustomized:RefreshIconMask(child, frameName)
+
+            child.__iconHooked = true
+        end
     end
 
     if #layoutChildren == 0 then
@@ -680,11 +705,15 @@ local function Hook_Layout(self)
 
             if self.gridLayoutType == 1 then
                 Addon:ApplyCenteredGridLayout(self, layoutChildren, stride, padding)
-                Addon:ResizeLayout(self, layoutChildren)
+                if not InCombatLockdown() then
+                    Addon:ResizeLayout(self, layoutChildren)
+                end
                 self:CacheLayoutSettings(layoutChildren)
             else
                 Addon:ApplyStandardGridLayout(self, layoutChildren, stride, padding)
-                Addon:ResizeLayout(self, layoutChildren)
+                if not InCombatLockdown() then
+                    Addon:ResizeLayout(self, layoutChildren)
+                end
                 self:CacheLayoutSettings(layoutChildren)
             end
         end
@@ -762,6 +791,10 @@ local function Hook_HidePandemic(self, frame)
             end)
         end
     end
+end
+
+local function Hook_RegisterAuraInstanceIDItemFrame(self, auraInstanceID, itemFrame)
+
 end
 
 local function ProcessEvent(self, event, ...)

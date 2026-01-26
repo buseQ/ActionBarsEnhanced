@@ -378,6 +378,14 @@ Addon.config.containers = {
                 alpha           = true,
                 callback        = function() ActionBarEnhancedDropdownMixin:RefreshCooldownPreview() end,
             },
+            ["ShowCountdownNumbersForCharges"] = {
+                type            = "checkbox",
+                name            = L.ShowCountdownNumbersForCharges,
+                value           = "ShowCountdownNumbersForCharges",
+                callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
+                end,
+            },
             ["EdgeTexture"] = {
                 type        = "dropdown",
                 setting     = T.EdgeTextures,
@@ -1104,6 +1112,15 @@ Addon.config.containers = {
                     ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     CooldownManagerEnhanced:ForceUpdate(frameName)
+                end,
+            },
+
+            ["ShowCountdownNumbersForCharges"] = {
+                type            = "checkbox",
+                name            = L.ShowCountdownNumbersForCharges,
+                value           = "ShowCountdownNumbersForCharges",
+                callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
                 end,
             },
 
@@ -2087,6 +2104,98 @@ Addon.config.containers = {
             },
         }
     },
+    CDMCustomFrameAttachContainer = {
+        title = L.AttachTitle,
+        desc = L.AttachDesc,
+        childs = {
+            ["CDMEnableAttach"] = {
+                type            = "checkbox",
+                name            = L.EnableAttach,
+                value           = "CDMEnableAttach",
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshAnchors(frame, frameName)
+                end,
+            },
+            ["CDMCustomFrameAttachTo"] = {
+                type            = "editbox",
+                name            = L.CDMCustomFrameAttachFrameName,
+                numLetters      = 100,
+                defaultText     = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local name = Addon:GetValue("CurrentAttachFrame", nil, frameName)
+                    return name or ""
+                end,
+                OnEnterPressed  = function(self)
+                    local frameName = self:GetText()
+                    local frame = _G[frameName]
+                    if frame then
+                        self.currentName = frameName
+
+                        Addon:SaveSetting("CurrentAttachFrame", frameName, true)
+                        local frameName = ABE_BarsListMixin:GetFrameLebel()
+                        local frame = _G[frameName]
+                        ABE_CDMCustomFrameCustomized:RefreshAnchors(frame, frameName)
+                    else
+                        Addon.Print("Cant find frame with name: |cffff0000", frameName)
+                    end
+                    self:ClearFocus()
+                end,
+                OnEditFocusLost = function(self)
+                    self:SetText(self.currentName)
+                end,
+                OnEditFocusGained = function(self)
+                    self.currentName = self:GetText()
+                end,
+            },
+            ["CDMCustomFrameAttachPoint"] = {
+                type        = "dropdown",
+                setting     = {Addon.AttachPoints, Addon.AttachPoints},
+                name        = L.CDMCutomFrameAttachPoint,
+                IsSelected  = {
+                    function(id) return id == Addon:GetValue("CurrentAttachPoint", nil, true) end,
+                    function(id) return id == Addon:GetValue("CurrentAttachRelativePoint", nil, true) end,
+                },
+                OnSelect    = {
+                    function(id) Addon:SaveSetting("CurrentAttachPoint", id, true) end,
+                    function(id) Addon:SaveSetting("CurrentAttachRelativePoint", id, true) end,
+                },
+                showNew     = false,
+                OnEnter     = {
+                    false,
+                    false,
+                },
+                OnClose     = {
+                    function()
+                        local frameName = ABE_BarsListMixin:GetFrameLebel()
+                        local frame = _G[frameName]
+                        ABE_CDMCustomFrameCustomized:RefreshAnchors(frame, frameName)
+                    end,
+                    function()
+                        local frameName = ABE_BarsListMixin:GetFrameLebel()
+                        local frame = _G[frameName]
+                        ABE_CDMCustomFrameCustomized:RefreshAnchors(frame, frameName)
+                    end,
+                },
+            },
+            ["CDMCustomFrameAttachOffset"] = {
+                type            = "checkboxSlider",
+                name            = L.CDMCutomFrameAttachOffset,
+                checkboxValue   = "UseAttachOffset",
+                sliderValue     = {"AttachOffsetX", "AttachOffsetY"},
+                min             = -100,
+                max             = 100,
+                step            = 1,
+                sliderName      = {{top = L.OffsetX}, {top = L.OffsetY}},
+                callback        = function()
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CDMCustomFrameCustomized:RefreshAnchors(frame, frameName)
+                end,
+            },
+        }
+    },
     CDMCustomFrameIconContainer = {
         title = L.IconTitle,
         desc = L.IconDesc,
@@ -2191,6 +2300,14 @@ Addon.config.containers = {
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     local frame = _G[frameName]
                     ABE_CDMCustomFrameCustomized:RefreshSkin(frame, frameName)
+                end,
+            },
+            ["ShowCountdownNumbersForCharges"] = {
+                type            = "checkbox",
+                name            = L.ShowCountdownNumbersForCharges,
+                value           = "ShowCountdownNumbersForCharges",
+                callback        = function()
+                    ActionBarEnhancedDropdownMixin:RefreshCooldownPreview()
                 end,
             },
 
@@ -2743,12 +2860,14 @@ Addon.config.containers = {
                     function()
                         local frameName = ABE_BarsListMixin:GetFrameLebel()
                         local frame = _G[frameName]
-                        ABE_CastingBarMixin.SetLook(frame)
+                        --ABE_CastingBarMixin.SetLook(frame)
+                        ABE_CastingBarMixin.AdjustPosition(frame)
                     end,
                     function()
                         local frameName = ABE_BarsListMixin:GetFrameLebel()
                         local frame = _G[frameName]
-                        ABE_CastingBarMixin.SetLook(frame)
+                        --ABE_CastingBarMixin.SetLook(frame)
+                        ABE_CastingBarMixin.AdjustPosition(frame)
                     end,
                 },
             },
@@ -2764,7 +2883,8 @@ Addon.config.containers = {
                 callback        = function()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     local frame = _G[frameName]
-                    ABE_CastingBarMixin.SetLook(frame)
+                    --ABE_CastingBarMixin.SetLook(frame)
+                    ABE_CastingBarMixin.AdjustPosition(frame)
                 end,
             },
             ["CastBarOffsetY"] = {
@@ -2779,7 +2899,8 @@ Addon.config.containers = {
                 callback        = function()
                     local frameName = ABE_BarsListMixin:GetFrameLebel()
                     local frame = _G[frameName]
-                    ABE_CastingBarMixin.SetLook(frame)
+                    --ABE_CastingBarMixin.SetLook(frame)
+                    ABE_CastingBarMixin.AdjustPosition(frame)
                 end,
             },
             ["CastBarStatusbarTexture"] = {
@@ -3326,7 +3447,9 @@ Addon.config.containers = {
                 showNew     = false,
                 OnEnter     = false,
                 OnClose     = function()
-                    
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.UpdateIconShown(frame)
                 end,
             },
             ["CastBarCastTimeSize"] = {
@@ -3339,7 +3462,9 @@ Addon.config.containers = {
                 step            = 1,
                 sliderName      = {top = L.Size},
                 callback        = function()
-                    
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.UpdateIconShown(frame)
                 end,
             },
             ["CastBarCastTimeColor"] = {
@@ -3349,7 +3474,9 @@ Addon.config.containers = {
                 checkboxValues  = {"UseCastBarCastTimeColor"},
                 alpha           = true,
                 callback        = function()
-
+                    local frameName = ABE_BarsListMixin:GetFrameLebel()
+                    local frame = _G[frameName]
+                    ABE_CastingBarMixin.UpdateIconShown(frame)
                 end,
             },
             ["CastBarCastTimePoint"] = {
