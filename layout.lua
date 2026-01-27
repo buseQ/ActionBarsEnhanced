@@ -145,6 +145,19 @@ Addon.layoutMini = {
             {name = "PreviewFont05", template = "OptionsButtonTextPreviewTemplate", point = {"TOP", "PreviewFont075", "BOTTOM", 0, -5}, scale="0.5"},
         }
     },
+    {
+        name = "BarsOptionsContainer",
+        childs = {
+            --{name = "BarOrientation", template = "OptionsDropdownTemplate"},
+            {name = "BarGrow", template = "OptionsDropdownTemplate"},
+            {name = "CenteredGrid", template = "OptionsCheckboxTemplate"},
+            --{name = "RowsNumber", template = "OptionsCheckboxSliderTemplate"},
+            --{name = "ColumnsNumber", template = "OptionsCheckboxSliderTemplate"},
+            --{name = "ButtonsNumber", template = "OptionsCheckboxSliderTemplate"},
+            --{name = "ButtonSize", template = "OptionsDoubleCheckboxSliderTemplate"},
+            {name = "BarsPadding", template = "OptionsCheckboxSliderTemplate"},
+        }
+    },
 }
 
 Addon.layout = {

@@ -977,7 +977,7 @@ Addon.config.containers = {
             },
             ["BarsPadding"] = {
                 type            = "checkboxSlider",
-                name            = "Bar Padding",
+                name            = L.Padding,
                 checkboxValue   = "UseBarPadding",
                 sliderValue     = "CurrentBarPadding",
                 min             = -5,

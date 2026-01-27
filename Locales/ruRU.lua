@@ -222,7 +222,7 @@ L.BuffBarCooldownViewer     = "Полоски"
 -- ==========================================
 -- Cooldown Manager Basic Settings
 -- ==========================================
-L.IconPadding = "Растояние между иконками"
+L.IconPadding = "Расстояние между иконками"
 L.CDMBackdrop = "Добавить границу"
 L.CDMCenteredGrid = "Центрировать иконки"
 L.CDMRemoveIconMask = "Убрать маску иконки"
